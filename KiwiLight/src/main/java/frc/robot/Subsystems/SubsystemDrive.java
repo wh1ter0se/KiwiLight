@@ -41,7 +41,7 @@ public class SubsystemDrive extends Subsystem {
   private static CANSparkMax leftMaster;
   private static CANSparkMax leftSlave;
   private static CANSparkMax rightMaster;
-  private static CANSparkMax rightSlave;
+  private static CANSparkMax rightSlave;  // this code will work with any other motor controller as well
 
   @Override
   public void initDefaultCommand() {
