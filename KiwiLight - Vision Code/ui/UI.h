@@ -11,7 +11,7 @@
  * Written By: Brach Knutson
  */
 
-using namespace std;
+
 
 namespace KiwiLight {
 
@@ -30,8 +30,8 @@ namespace KiwiLight {
         public:
         Panel() {};
         Panel(bool horizontal, int spacing);
-        void Pack_start(Widget &widget, bool expand, bool fill, int pad);
-        void Pack_end(Widget &widget, bool expand, bool fill, int pad);
+        void Pack_start(GtkWidget *widget, bool expand, bool fill, int pad);
+        void Pack_end(GtkWidget *widget, bool expand, bool fill, int pad);
         GtkWidget *GetWidget() { return panel; };
 
         private:
@@ -42,8 +42,8 @@ namespace KiwiLight {
     class Frame : public Widget {
         public:
         Frame() {};
-        Frame(string label);
-        void Pack(Widget &widget);
+        Frame(std::string label);
+        void Pack(GtkWidget *widget);
         GtkWidget *GetWidget() { return this->frame; };
 
         private:
@@ -76,16 +76,16 @@ namespace KiwiLight {
     class Label : public Widget {
         public:
         Label() {};
-        Label(string text);
-        void SetText(string text);
-        string GetText() { return text; };
-        void SetFont(string font);
+        Label(std::string text);
+        void SetText(std::string text);
+        std::string GetText() { return text; };
+        void SetFont(std::string font);
         void SetFontSize(double size);
         GtkWidget *GetWidget() { return this->label; };
 
         private:
-        string text;
-        string font;
+        std::string text;
+        std::string font;
         double font_size;
         GtkWidget *label;
     };
@@ -96,11 +96,11 @@ namespace KiwiLight {
     class TextBox : public Widget {
         public:
         TextBox() {};
-        TextBox(string text);
-        void SetText(string text);
+        TextBox(std::string text);
+        void SetText(std::string text);
         void SetEditable(bool edit);
         void SetAlignment(double align);
-        string GetText();
+        std::string GetText();
         GtkWidget *GetWidget() { return this->textbox; };
 
         private:
@@ -113,7 +113,7 @@ namespace KiwiLight {
     class CheckBox : public Widget {
         public:
         CheckBox() {};
-        CheckBox(string name, bool checked);
+        CheckBox(std::string name, bool checked);
         void SetState(bool checked);
         bool GetState();
         GtkWidget *GetWidget() { return this->checkbox; };
@@ -128,7 +128,7 @@ namespace KiwiLight {
     class Slider : public Widget {
         public:
         Slider() {};
-        Slider(string label, int min, int max, double step, double value);
+        Slider(std::string label, int min, int max, double step, double value);
         void SetValue(double value);
         double GetValue();
         GtkWidget *GetWidget() { return this->slider; };
@@ -154,14 +154,14 @@ namespace KiwiLight {
      */
     class Button : public Widget {
         public:
-        Button(string text, void(*callback)() );
-        void SetText(string text);
-        string GetText() { return text; };
+        Button(std::string text, void(*callback)() );
+        void SetText(std::string text);
+        std::string GetText() { return text; };
         void SetCallback( void(*callback)() );
         GtkWidget *GetWidget() { return this->button; };
 
         private:
-        string text;
+        std::string text;
         GtkWidget *button;
     };
 
@@ -171,7 +171,7 @@ namespace KiwiLight {
     class AlignmentContainer : public Widget {
         public:
         AlignmentContainer(int x, int y);
-        void Pack(Widget &widget);
+        void Pack(GtkWidget *widget);
         GtkWidget *GetWidget() { return this->aligncontainer; };
 
         private:
@@ -183,7 +183,7 @@ namespace KiwiLight {
     */
     class SubMenuItem : public Widget {
         public:
-        SubMenuItem(string name, void(*callback)());
+        SubMenuItem(std::string name, void(*callback)());
         GtkWidget *GetWidget() { return this->submenuitem; };
 
         private:
@@ -195,7 +195,7 @@ namespace KiwiLight {
      */
     class MenuItem : public Widget {
         public:
-        MenuItem(string name);
+        MenuItem(std::string name);
         void AddSubmenuItem(SubMenuItem item);
         GtkWidget *GetWidget() { return this->menuitem; };
 
@@ -222,9 +222,10 @@ namespace KiwiLight {
      */
     class CameraSetting : public Widget {
         public:
-        CameraSetting(string name, int min, int max, int value);
+        CameraSetting(std::string name, int min, int max, int value);
         int GetValue();
-        string GetName() { return name; };
+        void SetValue(int newValue);
+        std::string GetName() { return name; };
         GtkWidget *GetWidget() { return this->camerasetting; };
 
         private:
@@ -233,7 +234,7 @@ namespace KiwiLight {
         Label  nameLabel;
         TextBox input;
 
-        string name,
+        std::string name,
                type;
 
         int min, 

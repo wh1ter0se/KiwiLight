@@ -14,7 +14,7 @@
  * Written by: Brach Knutson
  */
 
-using namespace std;
+
 using namespace cv;
 
 namespace KiwiLight {
@@ -46,28 +46,22 @@ namespace KiwiLight {
         Settings();
         static void ScheduleApplySettings();
         void Update();
+        void UpdateValue();
         GtkWidget *GetWidget() { return settingsWidget; };
 
         private:
-        int searchAndReturnValue(string searchString, string term);
-        vector<CameraSetting> settings;
+        int searchAndReturnValue(std::string searchString, std::string term);
+        std::vector<CameraSetting> settings;
         GtkWidget *settingsWidget;
     };
 
     /**
-     * Controls the UI of the program.
+     * A UI event manager, which keeps static callbacks in one place
      */
     class Kiwi {
         public:
-        Kiwi() {};
-        Kiwi( void (*UpdateMethod)() );
-        void UpdateSettings();
-        static void UpdateCamera();
         static void ShowAbout();
         static void HELPME();
-
-        private:
-        void CreateMenuBar();
         static void AddConfig();
         static void SaveConfig();
         static void RunSelected();
@@ -75,12 +69,6 @@ namespace KiwiLight {
         static void ConfStartConfigOnBoot();
         static void CompileConfig();
         static void EditSelected();
-
-        Window win;
-        MenuBar menubar;
-        Settings camSettings;
-        Panel content, data, confPanel, camera;
-        Frame config, cameraFrame;
         static Camera cam; 
     };
 }

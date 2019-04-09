@@ -5,7 +5,7 @@
  * Written By: Brach Knutson
  */
 
-using namespace std;
+
 using namespace KiwiLight;
 
 /**
@@ -17,6 +17,6 @@ AlignmentContainer::AlignmentContainer(int x, int y) {
 }
 
 
-void AlignmentContainer::Pack(Widget &widget) {
-    gtk_container_add(GTK_CONTAINER(this->aligncontainer), widget.GetWidget());
+void AlignmentContainer::Pack(GtkWidget *widget) {
+    gtk_container_add(GTK_CONTAINER(this->aligncontainer), widget);
 }

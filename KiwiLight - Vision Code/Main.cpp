@@ -5,22 +5,106 @@
  * Written By: Brach Knutson
  */
 
-using namespace std;
+
 using namespace KiwiLight;
 
-Kiwi kiwi;
+Window win;
+
+Panel content,
+      dataPanel;
+
+Frame configFrame,
+      cameraFrame;
+
+Settings settings;
+
+MenuBar menubar;
 
 /**
- * Updates the camera stream and allows the kiwi to update without static methods.
+ * Runs through a checklist and updates UI objects, utilities, etc.
  */
-static void Update() {
-    kiwi.UpdateCamera();
-    kiwi.UpdateSettings();
+void Update() {
+    // std::cout << "update" << std::endl;
+    // std::cout.flush(); 
+    Kiwi::cam.Update();
+    settings.Update();
+}
+
+/**
+ * Creates a menu bar and adds it to the content panel.
+ */
+void CreateMenuBar() {
+    //create a new menubar
+    menubar = MenuBar();
+        MenuItem file = MenuItem("File");
+            SubMenuItem addConfig = SubMenuItem("New Configuration", Kiwi::AddConfig);
+                file.AddSubmenuItem(addConfig);
+
+            SubMenuItem openConfig = SubMenuItem("Open Config", Kiwi::OpenConfig);
+                file.AddSubmenuItem(openConfig);
+
+            SubMenuItem saveConfig = SubMenuItem("SaveConfig", Kiwi::SaveConfig);
+                file.AddSubmenuItem(saveConfig);
+
+            SubMenuItem quit = SubMenuItem("Quit", gtk_main_quit);
+                file.AddSubmenuItem(quit);
+
+            menubar.AddItem(file);
+
+        MenuItem config = MenuItem("Config");
+            SubMenuItem runConfig = SubMenuItem("Run Config", Kiwi::RunSelected);
+                config.AddSubmenuItem(runConfig);
+
+            SubMenuItem compConfig = SubMenuItem("Compile Config", Kiwi::CompileConfig);
+                config.AddSubmenuItem(compConfig);
+
+            SubMenuItem confBoot = SubMenuItem("Configure Start on Boot", Kiwi::ConfStartConfigOnBoot);
+                config.AddSubmenuItem(confBoot);
+
+            menubar.AddItem(config);
+
+        MenuItem help = MenuItem("Help");
+            SubMenuItem about = SubMenuItem("About", Kiwi::ShowAbout);
+                help.AddSubmenuItem(about);
+
+            SubMenuItem helpme = SubMenuItem("How the heck does this work?", Kiwi::HELPME);
+                help.AddSubmenuItem(helpme);
+
+            menubar.AddItem(help);
+
+    content.Pack_start(menubar.GetWidget(), false, false, 0);
 }
 
 
+/**
+ * KIWILIGHT MAIN ENTRY POINT!!! 
+ * KiwiLight will enter, create a UI, and start the main loop in this method.
+ */
 int main() {
-    kiwi = Kiwi(Update);
+    //lets make ourselves a ui
+    gtk_init(NULL, NULL);
+
+    win = Window();
+        content = Panel(false, 5);
+            CreateMenuBar();
+            dataPanel = Panel(true, 5);
+                configFrame = Frame("Config");
+                    dataPanel.Pack_start(configFrame.GetWidget(), true, false, 0);
+                
+                cameraFrame = Frame("Camera");
+                    settings = Settings();
+                        cameraFrame.Pack(settings.GetWidget());
+                    
+                    dataPanel.Pack_start(cameraFrame.GetWidget(), true, false, 0);
+
+                content.Pack_start(dataPanel.GetWidget(), true, false, 0);
+
+        win.SetPane(content);
+    
+    //set events and show Window
+    win.SetInterval(25, Update);
+    win.Show();
+    win.Main();
 
     return 0;
 }

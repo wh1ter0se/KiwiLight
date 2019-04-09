@@ -5,7 +5,7 @@
  * Written By: Brach Knutson
  */
 
-using namespace std;
+
 using namespace cv;
 using namespace KiwiLight;
 
@@ -30,7 +30,7 @@ void Camera::Update() {
             bool success = stream.read(img);
             if(success) {
                 //show image in window on screen
-                string winName = "Camera Device " + std::to_string(index);
+                std::string winName = "Camera Device " + std::to_string(index);
                 cv::imshow(winName.c_str(), img);
                 cv::waitKey(5);
             }
@@ -52,5 +52,11 @@ void Camera::Update() {
         this->opened = false;
         Flags::LowerFlag("GetReadyToApplySettings");
         Flags::RaiseFlag("ApplySettings");
+    }
+
+    if(Flags::GetFlag("StartCamera")) {
+        Flags::LowerFlag("StartCamera");
+        this->stream = cv::VideoCapture(this->index);
+        this->opened = true;
     }
 }

@@ -5,15 +5,15 @@
  * Written By: Brach Knutson
  */
 
-using namespace std;
+
 using namespace KiwiLight;
 
-vector<string> Flags::flagNames = vector<string>();
+std::vector<std::string> Flags::flagNames = std::vector<std::string>();
 
 /**
  * Raises a flag with the passed name.
  */
-void Flags::RaiseFlag(string flagName) {
+void Flags::RaiseFlag(std::string flagName) {
     if(!Flags::GetFlag(flagName)) { //flag not there, raise it
         Flags::flagNames.push_back(flagName);
     }
@@ -22,9 +22,9 @@ void Flags::RaiseFlag(string flagName) {
 /**
  * Removes any flag with the given name.
  */
-void Flags::LowerFlag(string flagName) {
-    //repopulate the flag vector without the given flag
-    vector<string> newFlags = vector<string>();
+void Flags::LowerFlag(std::string flagName) {
+    //repopulate the flag std::vector without the given flag
+    std::vector<std::string> newFlags = std::vector<std::string>();
     for(int i=0; i<Flags::flagNames.size(); i++) {
         if(Flags::flagNames[i] != flagName) {
             newFlags.push_back(Flags::flagNames[i]);
@@ -37,7 +37,7 @@ void Flags::LowerFlag(string flagName) {
 /**
  * Raises or lowers the given flag based on the "raised" property.
  */
-void Flags::SetFlagState(string flagName, bool raised) {
+void Flags::SetFlagState(std::string flagName, bool raised) {
     if(Flags::GetFlag(flagName) && !raised) {
         Flags::LowerFlag(flagName); // if the flag is there and we want it lowered, lower it
     }
@@ -49,7 +49,7 @@ void Flags::SetFlagState(string flagName, bool raised) {
 /**
  * Searches for a raised flag with the given name. Returns true for raised, otherwise false.
  */
-bool Flags::GetFlag(string flagName) {
+bool Flags::GetFlag(std::string flagName) {
     for(int i=0; i<flagNames.size(); i++) {
         if(Flags::flagNames[i] == flagName) {
             return true;

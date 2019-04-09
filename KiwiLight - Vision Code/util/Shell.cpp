@@ -5,19 +5,18 @@
  * Written By: Brach Knutson
  */
 
-using namespace std;
 using namespace KiwiLight;
 
-string Shell::ExecuteCommand(string command) {
-    string execute = command + " >> shell_out.log";
+std::string Shell::ExecuteCommand(std::string command) {
+    std::string execute = command + " >> shell_out.log";
     system(execute.c_str());
 
     //create a file stream to view the log
-    fstream log = fstream("shell_out.log");
-    string logString = "";
+    std::fstream log = std::fstream("shell_out.log");
+    std::string logString = "";
 
-    //loop through and read every line, formatting into string separated by newline characters
-    string line;
+    //loop through and read every line, formatting into std::string separated by newline characters
+    std::string line;
     while(getline(log, line)) {
         logString += line + "\n";
     }
@@ -25,7 +24,7 @@ string Shell::ExecuteCommand(string command) {
     log.close();
 
     //clear the file text for the next time
-    ofstream file = ofstream("shell_out.log", std::ofstream::out | std::ofstream::trunc);
+    std::ofstream file = std::ofstream("shell_out.log", std::ofstream::out | std::ofstream::trunc);
     file.close();
 
     return logString;

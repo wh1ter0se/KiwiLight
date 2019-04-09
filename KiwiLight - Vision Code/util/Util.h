@@ -6,7 +6,7 @@
 #include <fstream>
 #include "opencv2/opencv.hpp"
 
-using namespace std;
+
 using namespace cv;
 
 namespace KiwiLight {
@@ -16,13 +16,13 @@ namespace KiwiLight {
      */
     class Flags {
         public:
-        static void RaiseFlag(string flagName);
-        static void LowerFlag(string flagName);
-        static void SetFlagState(string flagName, bool state);
-        static bool GetFlag(string flagName);
+        static void RaiseFlag(std::string flagName);
+        static void LowerFlag(std::string flagName);
+        static void SetFlagState(std::string flagName, bool state);
+        static bool GetFlag(std::string flagName);
 
         private:
-        static vector<string> flagNames;
+        static std::vector<std::string> flagNames;
     };
 
     /**
@@ -30,12 +30,12 @@ namespace KiwiLight {
      */
     class Shell {
         public:
-        static string ExecuteCommand(string command);
+        static std::string ExecuteCommand(std::string command);
     };
 
     class StringUtils {
         public:
-        static vector<string> SplitString(string str, char character);
+        static std::vector<std::string> SplitString(std::string str, char character);
     };
 }
 

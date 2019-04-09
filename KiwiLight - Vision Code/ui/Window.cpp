@@ -5,7 +5,7 @@
  * Written By: Brach Knutson
  */
 
-using namespace std;
+
 using namespace KiwiLight;
 
 static gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer pointer) {

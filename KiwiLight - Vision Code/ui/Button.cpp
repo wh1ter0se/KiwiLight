@@ -5,13 +5,13 @@
  * Written By: Brach Knutson
  */
 
-using namespace std;
+
 using namespace KiwiLight;
 
 /**
  * Creates a new button object given the label text text and the callback callback
  */
-Button::Button(string text, void(*callback)()) {
+Button::Button(std::string text, void(*callback)()) {
     this->text = text;
 
     this->button = gtk_button_new_with_label(text.c_str());
@@ -19,7 +19,7 @@ Button::Button(string text, void(*callback)()) {
 }
 
 
-void Button::SetText(string text) {
+void Button::SetText(std::string text) {
     gtk_button_set_label(GTK_BUTTON(this->button), text.c_str());
 }
 

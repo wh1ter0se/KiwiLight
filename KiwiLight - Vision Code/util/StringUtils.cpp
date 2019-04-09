@@ -5,15 +5,15 @@
  * Written By: Brach Knutson
  */
 
-using namespace std;
+
 using namespace KiwiLight;
 
 /**
- * Splits the given string str by the char character.
+ * Splits the given std::string str by the char character.
  */
-vector<string> StringUtils::SplitString(string str, char character) {
-    vector<string> substrings;
-    string current = "";
+std::vector<std::string> StringUtils::SplitString(std::string str, char character) {
+    std::vector<std::string> substrings;
+    std::string current = "";
 
     for(int i=0; i<str.length(); i++) {
         char currentCharacter = str.at(i);

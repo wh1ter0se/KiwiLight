@@ -5,21 +5,21 @@
  * Written By: Brach Knutson
  */
 
-using namespace std;
+
 using namespace KiwiLight;
 
 /**
  * Creates a new textbox with the given text.
  */
-TextBox::TextBox(string text) {
+TextBox::TextBox(std::string text) {
     this->textbox = gtk_entry_new();
     gtk_entry_set_text(GTK_ENTRY(this->textbox), text.c_str());
 }
 
 /**
- * Sets the textbox text to the given string.
+ * Sets the textbox text to the given std::string.
  */
-void TextBox::SetText(string text) {
+void TextBox::SetText(std::string text) {
     gtk_entry_set_text(GTK_ENTRY(this->textbox), text.c_str());
 }
 
@@ -40,6 +40,6 @@ void TextBox::SetAlignment(double align) {
 /**
  * Returns the text inside the textbox.
  */
-string TextBox::GetText() {
+std::string TextBox::GetText() {
     return gtk_entry_get_text(GTK_ENTRY(this->textbox));
 }

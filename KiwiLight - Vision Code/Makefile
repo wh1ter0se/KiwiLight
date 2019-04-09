@@ -79,5 +79,5 @@ bin/Settings.o: Settings.cpp
 	$(CXX) -c -o bin/Settings.o Settings.cpp $(GTK)
 
 #MAIN FILE
-KiwiLight: lib/UI.a lib/Util.a bin/Kiwi.o bin/Camera.o bin/Settings.o
+KiwiLight: Main.cpp lib/UI.a lib/Util.a bin/Kiwi.o bin/Camera.o bin/Settings.o
 	$(CXX) -o KiwiLight Main.cpp bin/Kiwi.o bin/Camera.o bin/Settings.o lib/UI.a lib/Util.a $(CV) $(GTK)
