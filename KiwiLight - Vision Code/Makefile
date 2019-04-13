@@ -63,8 +63,17 @@ bin/Shell.o: util/Shell.cpp
 bin/StringUtils.o: util/StringUtils.cpp
 	$(CXX) -c -o bin/StringUtils.o util/StringUtils.cpp
 
-lib/Util.a: bin/Flags.o bin/Shell.o bin/StringUtils.o
-	ar rs lib/Util.a bin/Flags.o bin/Shell.o bin/StringUtils.o
+bin/XMLDocument.o: util/XMLDocument.cpp
+	$(CXX) -c -o bin/XMLDocument.o util/XMLDocument.cpp
+
+bin/XMLTag.o: util/XMLTag.cpp
+	$(CXX) -c -o bin/XMLTag.o util/XMLTag.cpp
+
+bin/XMLTagAttribute.o: util/XMLTagAttribute.cpp
+	$(CXX) -c -o bin/XMLTagAttribute.o util/XMLTagAttribute.cpp
+
+lib/Util.a: bin/Flags.o bin/Shell.o bin/StringUtils.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o
+	ar rs lib/Util.a bin/Flags.o bin/Shell.o bin/StringUtils.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o
 
 
 #ROOT

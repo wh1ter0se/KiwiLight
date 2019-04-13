@@ -16,7 +16,6 @@ AlignmentContainer::AlignmentContainer(int x, int y) {
     this->aligncontainer = gtk_alignment_new(gfloat(x), gfloat(y), 1.5f, 1.5f);
 }
 
-
 void AlignmentContainer::Pack(GtkWidget *widget) {
     gtk_container_add(GTK_CONTAINER(this->aligncontainer), widget);
 }

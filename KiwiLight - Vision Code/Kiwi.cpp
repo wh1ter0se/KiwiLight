@@ -9,8 +9,6 @@ using namespace KiwiLight;
  */
 
 
-Camera Kiwi::cam = Camera(0);
-
 /**
  * Opens a form for the user to create a new vision config.
  */

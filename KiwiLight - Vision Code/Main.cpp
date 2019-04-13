@@ -11,23 +11,41 @@ using namespace KiwiLight;
 Window win;
 
 Panel content,
-      dataPanel;
+      dataPanel,
+      cameraPanel,
+      cameraLabelPanel;
 
 Frame configFrame,
       cameraFrame;
+
+Label cameraLabel,
+      cameraStatus;
+
+TextBox CameraIndex;
+
+Button ApplyCameraIndex;
 
 Settings settings;
 
 MenuBar menubar;
 
+Camera cam;
+
 /**
  * Runs through a checklist and updates UI objects, utilities, etc.
  */
 void Update() {
-    // std::cout << "update" << std::endl;
-    // std::cout.flush(); 
-    Kiwi::cam.Update();
+    cam.Update();
     settings.Update();
+
+    cam.SetWidth(settings.GetWidth());
+    cam.SetHeight(settings.GetHeight());
+
+    if(!cam.isOpen()) {
+        cameraStatus.SetText("Error Streaming Camera!!!");
+    } else {
+        cameraStatus.SetText("");
+    }
 }
 
 /**
@@ -75,6 +93,20 @@ void CreateMenuBar() {
     content.Pack_start(menubar.GetWidget(), false, false, 0);
 }
 
+void OpenNewCamera() {
+    std::cout << "open camera" << std::endl;
+    std::cout.flush();
+
+    std::string indexString = CameraIndex.GetText();
+    
+    try {
+        int newIndex = std::stoi(indexString);
+        cam.SetIndex(newIndex);
+    } catch(...) {
+        CameraIndex.SetText(std::to_string(cam.GetIndex()));
+    }
+    
+}
 
 /**
  * KIWILIGHT MAIN ENTRY POINT!!! 
@@ -84,6 +116,8 @@ int main() {
     //lets make ourselves a ui
     gtk_init(NULL, NULL);
 
+    cam = Camera(0);
+
     win = Window();
         content = Panel(false, 5);
             CreateMenuBar();
@@ -92,9 +126,30 @@ int main() {
                     dataPanel.Pack_start(configFrame.GetWidget(), true, false, 0);
                 
                 cameraFrame = Frame("Camera");
-                    settings = Settings();
-                        cameraFrame.Pack(settings.GetWidget());
-                    
+                    cameraPanel = Panel(false, 0);
+                        cameraLabelPanel = Panel(true, 0);
+                            cameraLabel = Label("Camera Device ");
+                                cameraLabel.SetFont("Monospace");
+                                cameraLabel.SetFontSize(16.0);
+                                cameraLabelPanel.Pack_start(cameraLabel.GetWidget(), true, false, 0);
+
+                            CameraIndex = TextBox("0");
+                                cameraLabelPanel.Pack_start(CameraIndex.GetWidget(), true, false, 0);
+
+                            ApplyCameraIndex = Button("Open", OpenNewCamera);
+                                cameraLabelPanel.Pack_start(ApplyCameraIndex.GetWidget(), true, false, 0);
+                            
+                            cameraPanel.Pack_start(cameraLabelPanel.GetWidget(), true, false, 0);
+
+                        cameraStatus = Label("");
+                            cameraStatus.SetFont("Monospace");
+                            cameraStatus.SetFontSize(11.0);
+                            cameraPanel.Pack_start(cameraStatus.GetWidget(), true, false, 0);
+
+                        settings = Settings(0);
+                            cameraPanel.Pack_start(settings.GetWidget(), true, false, 0);
+                        
+                        cameraFrame.Pack(cameraPanel.GetWidget());
                     dataPanel.Pack_start(cameraFrame.GetWidget(), true, false, 0);
 
                 content.Pack_start(dataPanel.GetWidget(), true, false, 0);

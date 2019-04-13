@@ -7,7 +7,6 @@
 #include "ui/UI.h"
 #include "util/Util.h"
 #include "runner/Runner.h"
-#include "confs/json_interpreter/Json.h"
 
 /**
  * the main header for the KiwiLight program and namespace
@@ -27,14 +26,22 @@ namespace KiwiLight {
         Camera() {};
         Camera(int index);
         void Update();
+        void SetIndex(int index);
+        void SetWidth(int width);
+        void SetHeight(int height);
         int GetIndex() { return this->index; };
-        bool isOpen() { return this->stream.isOpened(); };
+        bool isOpen() { return this->stream.isOpened() && this->streamingSuccessful; };
         bool QueryPropertySupported(int propid);
 
         private:
-        int iteration;
-        int index;
-        bool opened;
+        void Close();
+        void Open();
+        int iteration, 
+            index,
+            frameWidth,
+            frameHeight;
+        bool opened,
+             streamingSuccessful;
         cv::VideoCapture stream;
     };
 
@@ -43,15 +50,25 @@ namespace KiwiLight {
      */
     class Settings : public Widget {
         public:
-        Settings();
-        static void ScheduleApplySettings();
+        Settings() {};
+        Settings(int index);
+        // ~Settsings();
         void Update();
         void UpdateValue();
+        void Show() { gtk_widget_show_all(this->settingsWidget); };
+        int GetWidth() { return camWidth; };
+        int GetHeight() { return camHeight; };
         GtkWidget *GetWidget() { return settingsWidget; };
 
         private:
+        static void ScheduleApplySettings();
+        static void FRCSettings();
         int searchAndReturnValue(std::string searchString, std::string term);
+        CameraSetting frameWidth,
+                      frameHeight;
         std::vector<CameraSetting> settings;
+        int camWidth,
+            camHeight;
         GtkWidget *settingsWidget;
     };
 
@@ -69,7 +86,6 @@ namespace KiwiLight {
         static void ConfStartConfigOnBoot();
         static void CompileConfig();
         static void EditSelected();
-        static Camera cam; 
     };
 }
 

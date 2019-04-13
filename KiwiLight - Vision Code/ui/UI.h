@@ -32,6 +32,7 @@ namespace KiwiLight {
         Panel(bool horizontal, int spacing);
         void Pack_start(GtkWidget *widget, bool expand, bool fill, int pad);
         void Pack_end(GtkWidget *widget, bool expand, bool fill, int pad);
+        void Show() { gtk_widget_show_all(this->panel); };
         GtkWidget *GetWidget() { return panel; };
 
         private:
@@ -154,6 +155,7 @@ namespace KiwiLight {
      */
     class Button : public Widget {
         public:
+        Button() {};
         Button(std::string text, void(*callback)() );
         void SetText(std::string text);
         std::string GetText() { return text; };
@@ -222,9 +224,11 @@ namespace KiwiLight {
      */
     class CameraSetting : public Widget {
         public:
+        CameraSetting() {};
         CameraSetting(std::string name, int min, int max, int value);
         int GetValue();
         void SetValue(int newValue);
+        void Destroy();
         std::string GetName() { return name; };
         GtkWidget *GetWidget() { return this->camerasetting; };
 

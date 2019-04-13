@@ -13,7 +13,6 @@ Slider::Slider(std::string label, int min, int max, double step, double value) {
     gtk_range_set_value(GTK_RANGE(this->slider), gdouble(value));
 }
 
-
 void Slider::SetValue(double value) {
     gtk_range_set_value(GTK_RANGE(this->slider), value);
 }

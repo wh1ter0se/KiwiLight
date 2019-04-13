@@ -18,7 +18,6 @@ Button::Button(std::string text, void(*callback)()) {
     g_signal_connect(this->button, "clicked", G_CALLBACK(callback), NULL);
 }
 
-
 void Button::SetText(std::string text) {
     gtk_button_set_label(GTK_BUTTON(this->button), text.c_str());
 }

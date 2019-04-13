@@ -17,7 +17,6 @@ MenuItem::MenuItem(std::string name) {
     gtk_menu_item_set_submenu(GTK_MENU_ITEM(this->menuitem), this->menu);
 }
 
-
 void MenuItem::AddSubmenuItem(SubMenuItem item) {
     gtk_menu_shell_append(GTK_MENU_SHELL(this->menu), item.GetWidget());
 }

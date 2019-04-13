@@ -46,7 +46,7 @@ CameraSetting::CameraSetting(std::string name, int min, int max, int value) {
 
     Panel main = Panel(false, 0);
         Panel nameAndInput = Panel(true, 5);
-            Label nameLabel = Label(nameString);
+            this->nameLabel = Label(nameString);
                 nameAndInput.Pack_start(nameLabel.GetWidget(), true, false, 0);
 
             AlignmentContainer align = AlignmentContainer(1, 0);
@@ -84,3 +84,4 @@ void CameraSetting::SetValue(int newValue) {
     this->value = newValue;
     this->input.SetText(std::to_string(newValue));
 }
+

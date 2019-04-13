@@ -11,12 +11,30 @@ using namespace KiwiLight;
 /**
  * Create a new Settings menu.
  */
-Settings::Settings() {
+Settings::Settings(int index) {
     //get the settings for the current camera, as well as their ranges.
-    std::string settingsAsString = Shell::ExecuteCommand("v4l2-ctl --list-ctrls");
+    std::cout << "make settings" << std::endl;
+    std::string command = "v4l2-ctl -d " + std::to_string(index) + " --list-ctrls";
+    std::string settingsAsString = Shell::ExecuteCommand(command);
+    std::cout << "command: " << command << std::endl;
+    std::cout << settingsAsString << std::endl;
+    std::cout.flush();
     std::vector<std::string> settingsList = StringUtils::SplitString(settingsAsString, '\n');
 
     Panel panel = Panel(false, 5);
+
+    this->frameWidth  = CameraSetting("Frame Width (int)", 1, 2000, 600);
+        panel.Pack_start(frameWidth.GetWidget(), true, false, 0);
+
+    this->frameHeight = CameraSetting("Frame Height (int)", 1, 2000, 400);
+        panel.Pack_start(frameHeight.GetWidget(), true, false, 0);
+
+    Label warning = Label("NOTE: Some resolutions may not be supported by your camera!");
+       // warning.SetFont("Monospace");
+        panel.Pack_start(warning.GetWidget(), true, false, 0);
+
+    Separator sep = Separator(true);
+        panel.Pack_start(sep.GetWidget(), true, false, 0);
 
     for(int i=0; i<settingsList.size(); i++) {
         //create a camera settings widget for each setting. 
@@ -37,8 +55,15 @@ Settings::Settings() {
             panel.Pack_start(sep.GetWidget(), true, false, 0);
     }
 
-    Button applyButton = Button("Apply Settings", Settings::ScheduleApplySettings);
-        panel.Pack_start(applyButton.GetWidget(), true, false, 5);
+    Panel buttonPanel = Panel(true, 0);
+
+        Button frcButton = Button("Recommended FRC Settings", Settings::FRCSettings);
+            buttonPanel.Pack_start(frcButton.GetWidget(), true, true, 5);
+
+        Button applyButton = Button("Apply Settings", Settings::ScheduleApplySettings);
+            buttonPanel.Pack_start(applyButton.GetWidget(), true, true, 5);
+
+        panel.Pack_start(buttonPanel.GetWidget(), true, false, 0);
 
     this->settingsWidget = panel.GetWidget();
 }
@@ -48,9 +73,14 @@ Settings::Settings() {
  * The camera manager will then schedule the settings to be applied.
  */
 void Settings::ScheduleApplySettings() {
-    std::cout << "schedule" << std::endl;
+
+    Flags::RaiseFlag("CloseCamera");
+}
+
+
+void Settings::FRCSettings() {
+    std::cout << "Display FRC Settings" << std::endl;
     std::cout.flush();
-    Flags::RaiseFlag("GetReadyToApplySettings");
 }
 
 /**
@@ -59,8 +89,11 @@ void Settings::ScheduleApplySettings() {
 void Settings::Update() {
 
     //check for the update settings flag. if raised, the camera stream is closed and we can update settings
-    if(Flags::GetFlag("ApplySettings")) {
-        Flags::LowerFlag("ApplySettings");
+    if(Flags::GetFlag("CamClosed")) {
+        Flags::LowerFlag("CamClosed");
+
+        this->camWidth  = this->frameWidth.GetValue();
+        this->camHeight = this->frameHeight.GetValue();
 
         //go through all settings, grab values, use Shell to set them
         for(int i=0; i<this->settings.size(); i++) {

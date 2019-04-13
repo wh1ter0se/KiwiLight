@@ -32,3 +32,19 @@ std::vector<std::string> StringUtils::SplitString(std::string str, char characte
 
     return substrings;
 }
+
+
+std::string StringUtils::Substring(std::string str, int begin, int end) {
+    std::string substr = "";
+
+    for(int i=begin; i<end; i++) {
+        substr += str.at(i);
+    }
+
+    return substr;
+}
+
+
+bool StringUtils::StringStartsWith(std::string str, std::string startsWith) {
+    return ( StringUtils::Substring(str, 0, startsWith.length()) == startsWith );
+}
