@@ -16,9 +16,6 @@ Settings::Settings(int index) {
     std::cout << "make settings" << std::endl;
     std::string command = "v4l2-ctl -d " + std::to_string(index) + " --list-ctrls";
     std::string settingsAsString = Shell::ExecuteCommand(command);
-    std::cout << "command: " << command << std::endl;
-    std::cout << settingsAsString << std::endl;
-    std::cout.flush();
     std::vector<std::string> settingsList = StringUtils::SplitString(settingsAsString, '\n');
 
     Panel panel = Panel(false, 5);

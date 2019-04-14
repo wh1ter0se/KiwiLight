@@ -67,7 +67,8 @@ void XMLTag::AddContent(std::string content) {
     this->content += content;
 }
 
-std::vector<KiwiLight::XMLTag> XMLTag::GetTagsByName(std::string name) {
+
+std::vector<XMLTag> XMLTag::GetTagsByName(std::string name) {
     std::vector<XMLTag> results = std::vector<XMLTag>();
 
     for(int i=0; i<this->children.size(); i++) {
@@ -101,20 +102,22 @@ std::string XMLTag::ReturnString(std::string prefix) {
         finalString += this->attributes[i].ReturnString();
     }
 
-    finalString += ">\n";
+    finalString += ">";
 
     if(this->containsChildren) {
         for(int i=0; i<this->children.size(); i++) {
-            finalString += this->children[i].ReturnString(prefix + "    ");
             finalString += "\n";
+            finalString += this->children[i].ReturnString(prefix + "    ");
         }
-    } else {
-        finalString += prefix + "    ";
-        finalString += this->content;
-        finalString += "\n";
-    }
 
-    finalString += prefix + "</" + this->name + ">";
+        finalString += "\n" + prefix + "</" + this->name + ">";
+    } else {
+        // finalString += "\n";
+        // finalString += prefix + "    ";
+        finalString += this->content;
+        finalString += "</" + this->name + ">";
+        // finalString += "\n";
+    }
 
     return finalString;
 }

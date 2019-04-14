@@ -71,6 +71,7 @@ namespace KiwiLight {
         std::vector<XMLTag> GetTagsByName(std::string name);
         std::vector<XMLTag> Tags() { return this->children; };
         std::vector<XMLTagAttribute> GetAttributesByName(std::string name);
+        std::vector<XMLTagAttribute> Attributes() { return this->attributes; };
         std::string Name() { return this->name; };
         std::string Content() { return this->content; };
         std::string ReturnString(std::string prefix);

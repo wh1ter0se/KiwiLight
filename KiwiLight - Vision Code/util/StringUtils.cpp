@@ -37,6 +37,13 @@ std::vector<std::string> StringUtils::SplitString(std::string str, char characte
 std::string StringUtils::Substring(std::string str, int begin, int end) {
     std::string substr = "";
 
+    if(begin == end ||
+       begin > end ||
+       begin > str.length() ||
+       end > str.length()) {
+        return "";
+    }
+
     for(int i=begin; i<end; i++) {
         substr += str.at(i);
     }

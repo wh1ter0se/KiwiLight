@@ -75,6 +75,36 @@ bin/XMLTagAttribute.o: util/XMLTagAttribute.cpp
 lib/Util.a: bin/Flags.o bin/Shell.o bin/StringUtils.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o
 	ar rs lib/Util.a bin/Flags.o bin/Shell.o bin/StringUtils.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o
 
+#RUNNER
+bin/ConfigurationSetting.o: runner/ConfigurationSetting.cpp
+	$(CXX) -c -o bin/ConfigurationSetting.o runner/ConfigurationSetting.cpp $(CV)
+
+bin/ConfigurationSettingsList.o: runner/ConfigurationSettingsList.cpp
+	$(CXX) -c -o bin/ConfigurationSettingsList.o runner/ConfigurationSettingsList.cpp $(CV)
+
+bin/Contour.o: runner/Contour.cpp
+	$(CXX) -c -o bin/Contour.o runner/Contour.cpp $(CV)
+
+bin/ExampleContour.o: runner/ExampleContour.cpp
+	$(CXX) -c -o bin/ExampleContour.o runner/ExampleContour.cpp $(CV)
+
+bin/ExampleTarget.o: runner/ExampleTarget.cpp
+	$(CXX) -c -o bin/ExampleTarget.o runner/ExampleTarget.cpp $(CV)
+
+bin/PostProcessor.o: runner/PostProcessor.cpp
+	$(CXX) -c -o bin/PostProcessor.o runner/PostProcessor.cpp $(CV)
+
+bin/PreProcessor.o: runner/PreProcessor.cpp
+	$(CXX) -c -o bin/PreProcessor.o runner/PreProcessor.cpp $(CV)
+
+bin/Runner.o: runner/Runner.cpp
+	$(CXX) -c -o bin/Runner.o runner/Runner.cpp $(CV);
+
+bin/Target.o: runner/Target.cpp
+	$(CXX) -c -o bin/Target.o runner/Target.cpp $(CV);
+
+lib/Runner.a: bin/ConfigurationSetting.o bin/ConfigurationSettingsList.o bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/Runner.o bin/Target.o
+	ar rs lib/Runner.a bin/ConfigurationSetting.o bin/ConfigurationSettingsList.o bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/Runner.o bin/Target.o
 
 #ROOT
 
@@ -88,5 +118,12 @@ bin/Settings.o: Settings.cpp
 	$(CXX) -c -o bin/Settings.o Settings.cpp $(GTK)
 
 #MAIN FILE
-KiwiLight: Main.cpp lib/UI.a lib/Util.a bin/Kiwi.o bin/Camera.o bin/Settings.o
-	$(CXX) -o KiwiLight Main.cpp bin/Kiwi.o bin/Camera.o bin/Settings.o lib/UI.a lib/Util.a $(CV) $(GTK)
+KiwiLight: Main.cpp lib/UI.a lib/Util.a lib/Runner.a bin/Kiwi.o bin/Camera.o bin/Settings.o
+	$(CXX) -o KiwiLight Main.cpp bin/Kiwi.o bin/Camera.o bin/Settings.o lib/UI.a lib/Util.a lib/Runner.a $(CV) $(GTK)
+
+#UNINSTALL
+clean:
+	$(info Uninstalling KiwiLight Executables...)
+	rm lib/*
+	rm bin/*
+	rm KiwiLight
