@@ -10,13 +10,7 @@ using namespace KiwiLight;
 ConfigurationSettingsList::ConfigurationSettingsList() {
 }
 
-
-ConfigurationSettingsList::ConfigurationSettingsList(XMLTag tag) {
-    
-}
-
-
-void ConfigurationSettingsList::AddSetting(std::string settingName, double value) {
+void ConfigurationSettingsList::AddSetting(std::string settingName, std::string value) {
     for(int i=0; i<this->settings.size(); i++) {
         if(this->settings[i].Name() == settingName)
             return;
@@ -27,7 +21,7 @@ void ConfigurationSettingsList::AddSetting(std::string settingName, double value
 }
 
 
-void ConfigurationSettingsList::SetSetting(std::string settingName, double value) {
+void ConfigurationSettingsList::SetSetting(std::string settingName, std::string value) {
     //find the setting
     for(int i=0; i<this->settings.size(); i++) {
         if(this->settings[i].Name() == settingName) {
@@ -38,10 +32,12 @@ void ConfigurationSettingsList::SetSetting(std::string settingName, double value
 }
 
 
-double ConfigurationSettingsList::GetSetting(std::string settingName) {
+std::string ConfigurationSettingsList::GetSetting(std::string settingName) {
     for(int i=0; i<this->settings.size(); i++) {
         if(this->settings[i].Name() == settingName) {
             return this->settings[i].GetValue();
         }
     }
+
+    return "";
 }

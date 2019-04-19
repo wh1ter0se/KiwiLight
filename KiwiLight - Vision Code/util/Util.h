@@ -38,9 +38,8 @@ namespace KiwiLight {
         static std::vector<std::string> SplitString(std::string str, char character);
         static std::string Substring(std::string str, int begin, int end);
         static bool StringStartsWith(std::string str, std::string startsWith);
+        static int CountCharacters(std::string str, char character);
     };
-
-
 
     class XMLTagAttribute {
         public:
@@ -93,15 +92,71 @@ namespace KiwiLight {
         XMLDocument();
         XMLDocument(std::vector<XMLTag> tags);
         XMLDocument(std::string filePath);
+        bool HasContents() { return this->hasContents; };
         void AddTag(XMLTag tag);
         std::vector<XMLTag> GetTagsByName(std::string name);
         std::string ReturnString();
         void WriteFile(std::string filePath);
 
         private:
+        bool hasContents;
         std::vector<XMLTag> children;
     };
 
+    /**
+     * Represents a color in the HSV colorspace
+     */
+    class Color {
+        public:
+        Color() {};
+        Color(int h, int s, int v, int hError, int sError, int vError);
+
+        cv::Scalar ReturnScalar();
+        cv::Scalar GetLowerBound();
+        cv::Scalar GetUpperBound();
+        int GetH() { return this->h; };
+        int GetS() { return this->s; };
+        int GetV() { return this->v; };
+        int GetHError() { return this->hError; };
+        int GetSError() { return this->sError; };
+        int GetVError() { return this->vError; };
+
+        private:
+        int h,
+            s,
+            v,
+            hError,
+            sError,
+            vError;
+    };
+
+    /**
+     * Represents a USB camera or built in webcam.
+     */
+    class Camera {
+        public:
+        Camera() {};
+        Camera(int index);
+        cv::Mat GetImage();
+        void Update();
+        void SetIndex(int index);
+        void SetWidth(int width);
+        void SetHeight(int height);
+        int GetIndex() { return this->index; };
+        bool isOpen() { return this->stream.isOpened() && this->streamingSuccessful; };
+        bool QueryPropertySupported(int propid);
+
+        private:
+        void Close();
+        void Open();
+        int iteration, 
+            index,
+            frameWidth,
+            frameHeight;
+        bool opened,
+             streamingSuccessful;
+        cv::VideoCapture stream;
+    };
 }
 
 #endif

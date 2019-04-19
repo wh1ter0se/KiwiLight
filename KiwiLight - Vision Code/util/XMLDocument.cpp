@@ -11,6 +11,7 @@ using namespace KiwiLight;
  * Creates a blank XML document.
  */
 XMLDocument::XMLDocument() {
+    this->hasContents = false;
 }
 
 /**
@@ -18,6 +19,12 @@ XMLDocument::XMLDocument() {
  */
 XMLDocument::XMLDocument(std::vector<XMLTag> tags) {
     this->children = tags;
+
+    if(tags.size() > 0) {
+        this->hasContents = true;
+    } else {
+        this->hasContents = false;
+    }
 }
 
 /**
@@ -46,68 +53,57 @@ XMLDocument::XMLDocument(std::string fileName) {
         fileLines.push_back(trimmedContent);
     }
 
+    //if no lines, return because theres no point anyway
+    if(fileLines.size() < 1) {
+        this->hasContents = false;
+        return;
+    }
+
     //parse the vector of lines and build a hierarchy of xml tags for this document
     std::vector<XMLTag> workingHierarchy = std::vector<XMLTag>(); //the hierarchy of tags to be completed
     for(int i=0; i<fileLines.size(); i++) {
-        // std::cout << "1" << std::endl;
-        // std::cout << "wh size: " << workingHierarchy.size() << std::endl;
         std::string line = fileLines[i];
         if(StringUtils::StringStartsWith(line, "<") && !StringUtils::StringStartsWith(line, "<!--")) {
-            // std::cout << "2" << std::endl;
             int closingBracket = line.find('>');
             std::string tag = StringUtils::Substring(line, 1, closingBracket);
             std::string content = StringUtils::Substring(line, closingBracket + 1, line.length());
-            // std::cout << "tag: \"" << tag << "\"" << std::endl;
-            // std::cout << tag << std::endl;
-            // std::cout << "3" << std::endl;
             if(StringUtils::StringStartsWith(tag, "/")) {
                 //ending tag, rebuild the hierarchy without this tag
-                // std::cout << "4" << std::endl;
                 if(workingHierarchy.size() > 1) {
-                    // std::cout << "5a" << std::endl;
                     XMLTag addTag = workingHierarchy[workingHierarchy.size() - 1];
                     workingHierarchy[workingHierarchy.size() - 2].AddTag(addTag);
 
-                    // std::cout << "5b" << std::endl;
                 } else {
-                    // std::cout << "5c" << std::endl;
-                    // std::cout << "adding tag to master" << std::endl;
                     this->AddTag(workingHierarchy[0]);
-                    // std::cout << "5d" << std::endl;
                 }
-                // std::cout << "5e" << std::endl;
                 std::vector<XMLTag> newHierarchy = std::vector<XMLTag>();
                 for(int k=0; k<workingHierarchy.size() - 1; k++) {
-                    // std::cout << "5f" << std::endl;
                     newHierarchy.push_back(workingHierarchy[k]);
-                    // std::cout << "5g" << std::endl;
                 }
-                // std::cout << "5h" << std::endl;
                 workingHierarchy = newHierarchy;
             } else {
-                // std::cout << "6" << std::endl;
                 std::vector<std::string> nameAndAttrs = StringUtils::SplitString(tag, ' ');
                 std::vector<XMLTagAttribute> attrs = std::vector<XMLTagAttribute>();
                 std::string name = nameAndAttrs[0];
 
-                // std::cout << "7" << std::endl;
                 for(int k=1; k<nameAndAttrs.size(); k++) {
-                    // std::cout << "8" << std::endl;
                     std::string attrString = nameAndAttrs[k];
                     std::string attrName = StringUtils::SplitString(attrString, '=')[0];
                     std::string attrValue = StringUtils::SplitString(attrString, '=')[1];
+
+                    //if there are spaces in the value, get rid of them
+                    while(StringUtils::CountCharacters(attrValue, '"') < 2) {
+                        attrValue += nameAndAttrs[k+1];
+                        k++;
+                    }
 
                     //take off quotes 
                     attrValue = StringUtils::Substring(attrValue, 1, attrValue.length()-1);
                     XMLTagAttribute newAttr = XMLTagAttribute(attrName, attrValue);
                     attrs.push_back(newAttr);
-                    // std::cout << "9" << std::endl;
                 }
-                // std::cout << "10" << std::endl;
                 XMLTag newTag = XMLTag(name, attrs);
-                // std::cout << "11" << std::endl;
                 if(content.length() > 0) {
-                    // std::cout << "12" << std::endl;
                     //get the index of the starting bracket of the closing tag
                     int closingTag = content.find("</" + newTag.Name() + ">");
                     content = StringUtils::Substring(content, 0, closingTag);
@@ -119,22 +115,20 @@ XMLDocument::XMLDocument(std::string fileName) {
                         this->AddTag(newTag);
                     }
 
-                    // std::cout << "13" << std::endl;
                 } else {
                     workingHierarchy.push_back(newTag);
                 }
             }
         } else {
-            // std::cout << "12" << std::endl;
             if(!StringUtils::StringStartsWith(line, "<!--")) {
-                // std::cout << "13" << std::endl;
                 //line is not comment, parse as content for the current tag
                 workingHierarchy[workingHierarchy.size()-1].AddContent(line);
-                // std::cout << "14" << std::endl;
             }
         }
         
     }
+
+    this->hasContents = true;
 }
 
 /**
@@ -142,6 +136,7 @@ XMLDocument::XMLDocument(std::string fileName) {
  */
 void XMLDocument::AddTag(XMLTag tag) {
     this->children.push_back(tag);
+    this->hasContents = true;
 }
 
 /**

@@ -1,4 +1,4 @@
-#include "KiwiLight.h"
+#include "Util.h"
 
 /**
  * Source file for Camera class.
@@ -29,6 +29,13 @@ Camera::Camera(int index) {
 
     iteration = 0;
 
+}
+
+
+cv::Mat Camera::GetImage() {
+    cv::Mat img;
+    bool success = this->stream.read(img);
+    return img;
 }
 
 /**

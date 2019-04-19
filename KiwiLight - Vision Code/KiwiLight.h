@@ -19,33 +19,6 @@ using namespace cv;
 namespace KiwiLight {
 
     /**
-     * Represents a USB camera or built in webcam.
-     */
-    class Camera {
-        public:
-        Camera() {};
-        Camera(int index);
-        void Update();
-        void SetIndex(int index);
-        void SetWidth(int width);
-        void SetHeight(int height);
-        int GetIndex() { return this->index; };
-        bool isOpen() { return this->stream.isOpened() && this->streamingSuccessful; };
-        bool QueryPropertySupported(int propid);
-
-        private:
-        void Close();
-        void Open();
-        int iteration, 
-            index,
-            frameWidth,
-            frameHeight;
-        bool opened,
-             streamingSuccessful;
-        cv::VideoCapture stream;
-    };
-
-    /**
      * A window where camera settings can be modified.
      */
     class Settings : public Widget {

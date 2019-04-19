@@ -72,8 +72,14 @@ bin/XMLTag.o: util/XMLTag.cpp
 bin/XMLTagAttribute.o: util/XMLTagAttribute.cpp
 	$(CXX) -c -o bin/XMLTagAttribute.o util/XMLTagAttribute.cpp
 
-lib/Util.a: bin/Flags.o bin/Shell.o bin/StringUtils.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o
-	ar rs lib/Util.a bin/Flags.o bin/Shell.o bin/StringUtils.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o
+bin/Color.o: util/Color.cpp
+	$(CXX) -c -o bin/Color.o util/Color.cpp $(CV)
+
+bin/Camera.o: util/Camera.cpp
+	$(CXX) -c -o bin/Camera.o util/Camera.cpp $(CV) $(GTK)
+
+lib/Util.a: bin/Flags.o bin/Shell.o bin/StringUtils.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/Color.o bin/Camera.o 
+	ar rs lib/Util.a bin/Flags.o bin/Shell.o bin/StringUtils.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/Color.o bin/Camera.o 
 
 #RUNNER
 bin/ConfigurationSetting.o: runner/ConfigurationSetting.cpp
@@ -98,10 +104,10 @@ bin/PreProcessor.o: runner/PreProcessor.cpp
 	$(CXX) -c -o bin/PreProcessor.o runner/PreProcessor.cpp $(CV)
 
 bin/Runner.o: runner/Runner.cpp
-	$(CXX) -c -o bin/Runner.o runner/Runner.cpp $(CV);
+	$(CXX) -c -o bin/Runner.o runner/Runner.cpp $(CV)
 
 bin/Target.o: runner/Target.cpp
-	$(CXX) -c -o bin/Target.o runner/Target.cpp $(CV);
+	$(CXX) -c -o bin/Target.o runner/Target.cpp $(CV)
 
 lib/Runner.a: bin/ConfigurationSetting.o bin/ConfigurationSettingsList.o bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/Runner.o bin/Target.o
 	ar rs lib/Runner.a bin/ConfigurationSetting.o bin/ConfigurationSettingsList.o bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/Runner.o bin/Target.o
@@ -111,15 +117,15 @@ lib/Runner.a: bin/ConfigurationSetting.o bin/ConfigurationSettingsList.o bin/Con
 bin/Kiwi.o: Kiwi.cpp
 	$(CXX) -c -o bin/Kiwi.o Kiwi.cpp $(GTK)
 
-bin/Camera.o: Camera.cpp
-	$(CXX) -c -o bin/Camera.o Camera.cpp $(CV) $(GTK)
-
 bin/Settings.o: Settings.cpp
 	$(CXX) -c -o bin/Settings.o Settings.cpp $(GTK)
 
 #MAIN FILE
 KiwiLight: Main.cpp lib/UI.a lib/Util.a lib/Runner.a bin/Kiwi.o bin/Camera.o bin/Settings.o
-	$(CXX) -o KiwiLight Main.cpp bin/Kiwi.o bin/Camera.o bin/Settings.o lib/UI.a lib/Util.a lib/Runner.a $(CV) $(GTK)
+	$(CXX) -o KiwiLight Main.cpp bin/Kiwi.o bin/Settings.o lib/UI.a lib/Util.a lib/Runner.a $(CV) $(GTK)
+
+RunnerTest: RunnerTest.cpp lib/UI.a lib/Util.a lib/Runner.a bin/Kiwi.o bin/Settings.o
+	$(CXX) -o RunnerTest RunnerTest.cpp lib/Runner.a lib/Util.a lib/UI.a $(CV) $(GTK)
 
 #UNINSTALL
 clean:

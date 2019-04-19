@@ -1,18 +1,17 @@
-<cameraSettings>
-    <setting>
-        <name>exposure_absolute</name>
-        <value>155</value>
-    </setting>
-    <setting>
-        <name>exposure_auto</name>
-        <value>1</value>
-    </setting>
-    <setting>
-        <name>white_balance_temperature_auto</name>
-        <value>0</value>
-    </setting>
-</cameraSettings>
-<configuration>
+<camera index="1">
+    <resolution>
+        <width>600</width>
+        <height>400</height>
+    </resolution>
+    <settings>
+        <setting name="exposure_absolute">155</setting>
+    </settings>
+</camera>
+<configuration name="Test Configuration">
+    <cameraResolution>
+        <width>600</width>
+        <height>400</height>
+    </cameraResolution>
     <preprocessor type="full">
         <targetThreshold>
             <threshold>50</threshold>
@@ -21,18 +20,19 @@
         </targetThreshold>
         <dilation>5</dilation>
         <targetColor>
-            <h error="5">60</h>
-            <s error="5">255</s>
-            <v error="5">255</v>
+            <h error="20">0</h>
+            <s error="20">0</s>
+            <v error="20">255</v>
         </targetColor>
     </preprocessor>
     <postprocessor>
         <target id="0">
-            <area error="1000">1500</area>
-            <aspectRatio error="0.2">1.0</aspectRatio>
-            <solidity error="0.2">1.0</solidity>
-            <angle error="5">0</angle>
-            <angleConstrained>false</angleConstrained>
+            <contour id="0">
+                <area error="1000">1500</area>
+                <aspectRatio error="0.2">1.0</aspectRatio>
+                <solidity error="0.2">1.0</solidity>
+                <angle error="5">0</angle>
+            </contour>
         </target>
         <UDP>
             <address>127.0.0.1</address>

@@ -16,14 +16,14 @@ namespace KiwiLight {
      */
     class ConfigurationSetting {
         public:
-        ConfigurationSetting(std::string name, double value);
+        ConfigurationSetting(std::string name, std::string value);
         std::string Name() { return this->name; };
-        void SetValue(double value);
-        double GetValue() { return this->value; };
+        void SetValue(std::string value);
+        std::string GetValue() { return this->value; };
 
         private:
         std::string name;
-        double value;
+        std::string value;
     };
 
     /**
@@ -32,10 +32,9 @@ namespace KiwiLight {
     class ConfigurationSettingsList {
         public:
         ConfigurationSettingsList();
-        ConfigurationSettingsList(XMLTag tag);
-        void AddSetting(std::string settingName, double value);
-        void SetSetting(std::string settingName, double value);
-        double GetSetting(std::string settingName);
+        void AddSetting(std::string settingName, std::string value);
+        void SetSetting(std::string settingName, std::string value);
+        std::string GetSetting(std::string settingName);
 
         private:
         std::vector<ConfigurationSetting> settings;
@@ -126,8 +125,23 @@ namespace KiwiLight {
      */
     class PreProcessor {
         public:
-        PreProcessor(ConfigurationSettingsList settings);
+        PreProcessor(ConfigurationSettingsList settings, bool FullPreprocessor);
         cv::Mat ProcessImage(cv::Mat img);
+
+        private:
+        bool isFullPreprocessor;
+
+        //threshold values for contrasting image
+        double threshold,
+            threshValue;
+        
+        int threshtype;
+
+        //dilation values for expanding, blurring, or dilating
+        int dilate;
+        
+        //what the camera looks for
+        Color targetColor;
     };
 
     /**
@@ -145,12 +159,15 @@ namespace KiwiLight {
     class Runner {
         public:
         Runner(std::string filename, bool debugging);
-        void SetSetting(std::string settingName, double value);
-        double GetSetting(std::string settingName);
+        void Loop();
+        void SetSetting(std::string settingName, std::string value);
+        std::string GetSetting(std::string settingName);
 
         private:
         ConfigurationSettingsList settings;
         void parseDocument(XMLDocument doc);
+        bool stop,
+             debug;
     };
 }
 

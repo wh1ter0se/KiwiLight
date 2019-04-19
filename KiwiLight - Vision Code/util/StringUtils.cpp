@@ -55,3 +55,16 @@ std::string StringUtils::Substring(std::string str, int begin, int end) {
 bool StringUtils::StringStartsWith(std::string str, std::string startsWith) {
     return ( StringUtils::Substring(str, 0, startsWith.length()) == startsWith );
 }
+
+
+int StringUtils::CountCharacters(std::string str, char character) {
+    int counter = 0;
+
+    for(int i=0; i<str.length(); i++) {
+        if(str.at(i) == character) {
+            counter++;
+        }
+    }
+
+    return counter;
+}
