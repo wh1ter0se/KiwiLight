@@ -12,7 +12,8 @@ using namespace KiwiLight;
  * Creates a new ExampleTarget with given ExampleContours, to model a real target.
  */
 ExampleTarget::ExampleTarget(int id, std::vector<ExampleContour> contours) {
-
+    this->id = id;
+    this->contours = contours;
 }
 
 /**

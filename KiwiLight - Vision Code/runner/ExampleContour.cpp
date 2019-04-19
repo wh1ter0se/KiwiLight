@@ -11,9 +11,9 @@ using namespace KiwiLight;
 /**
  * Creates an ExampleContour to model a real contour using the given information.
  */
-ExampleContour::ExampleContour(int x, int y, int width, int height, int angle, int solidity) {
-    this->x = x;
-    this->y = y;
+ExampleContour::ExampleContour(int id, Distance distFromCenter, int width, int height, int angle, double solidity) {
+    this->id = id;
+    this->distFromCenter = distFromCenter;
     this->width = width;
     this->height = height;
     this->angle = angle;

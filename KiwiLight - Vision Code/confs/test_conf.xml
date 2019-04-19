@@ -1,4 +1,4 @@
-<camera index="1">
+<camera index="0">
     <resolution>
         <width>600</width>
         <height>400</height>
@@ -14,7 +14,7 @@
     </cameraResolution>
     <preprocessor type="full">
         <targetThreshold>
-            <threshold>50</threshold>
+            <threshold>75</threshold>
             <maxValue>255</maxValue>
             <type>0</type>
         </targetThreshold>
@@ -28,10 +28,12 @@
     <postprocessor>
         <target id="0">
             <contour id="0">
-                <area error="1000">1500</area>
-                <aspectRatio error="0.2">1.0</aspectRatio>
-                <solidity error="0.2">1.0</solidity>
-                <angle error="5">0</angle>
+                <x>0</x>
+                <y>0</y>
+                <width>300</width>
+                <height>300</height>
+                <angle>0</angle>
+                <solidity>0.9</solidity>
             </contour>
         </target>
         <UDP>

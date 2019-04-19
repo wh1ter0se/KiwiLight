@@ -11,6 +11,7 @@ using namespace KiwiLight;
 
 Runner::Runner(std::string fileName, bool debugging) {
     this->debug = debugging;
+    this->postProcessorTargets = std::vector<ExampleTarget>();
     XMLDocument file = XMLDocument(fileName);
     if(file.HasContents()) {
         this->parseDocument(file);
@@ -31,10 +32,12 @@ void Runner::Loop() {
 
     //create preprocessor and then start!
     PreProcessor preprocessor = PreProcessor(this->settings, isFull);
+    PostProcessor postprocessor = PostProcessor(this->postProcessorTargets);
     //loops a lot until stopped
     while(!stop) {
         cv::Mat img = cam.GetImage();
         cv::Mat preprocessed = preprocessor.ProcessImage(img);
+        std::vector<Target> targets = postprocessor.ProcessImage(preprocessed);
         
         if(this->debug) {
             std::string confName = this->settings.GetSetting("confName");
@@ -87,5 +90,34 @@ void Runner::parseDocument(XMLDocument doc) {
             XMLTag udp = postprocess.GetTagsByName("UDP")[0];
                 this->settings.AddSetting("UDPAddress", udp.GetTagsByName("address")[0].Content());
                 this->settings.AddSetting("UDPPort", udp.GetTagsByName("port")[0].Content());
-        
+
+            std::vector<XMLTag> targets = postprocess.GetTagsByName("target");
+            for(int i=0; i<targets.size(); i++) {
+                XMLTag targetTag = targets[i];
+                std::vector<XMLTag> targContours = targetTag.GetTagsByName("contour");
+
+                int targetId = std::stoi(targetTag.GetAttributesByName("id")[0].Value());
+                std::vector<ExampleContour> contours;
+
+                //find all contours and populate the vector
+                for(int k=0; k<targContours.size(); k++) {
+                    XMLTag contour = targContours[k];
+                    int id = std::stoi(contour.GetAttributesByName("id")[0].Value());
+                    int x = std::stoi(contour.GetTagsByName("x")[0].Content());
+                    int y = std::stoi(contour.GetTagsByName("y")[0].Content());
+                    int distError = 50;
+                    Distance distFromCenter = Distance(x, y, distError);
+
+                    int width = std::stoi(contour.GetTagsByName("width")[0].Content());
+                    int height = std::stoi(contour.GetTagsByName("height")[0].Content());
+                    int angle = std::stoi(contour.GetTagsByName("angle")[0].Content());
+                    int solidity = std::stod(contour.GetTagsByName("solidity")[0].Content());
+
+                    ExampleContour newContour = ExampleContour(id, distFromCenter, width, height, angle, solidity);
+                    contours.push_back(newContour);
+                }
+
+                ExampleTarget newTarget = ExampleTarget(targetId, contours);
+                this->postProcessorTargets.push_back(newTarget);
+            }
 }

@@ -40,28 +40,6 @@ namespace KiwiLight {
         std::vector<ConfigurationSetting> settings;
     };
 
-    
-    class ExampleContour {
-        public:
-        ExampleContour(int x, int y, int width, int height, int angle, int solidity);
-        int X()           { return this->x;                    };
-        int Y()           { return this->y;                    };
-        int Width()       { return this->width;                };
-        int Height()      { return this->height;               };
-        int Angle()       { return this->angle;                };
-        int Area()        { return this->width * this->height; };
-        int AspectRatio() { return this->width / this->height; };
-        int Solidity()    { return this->solidity;             };
-
-        private:
-        int x,
-            y,
-            width,
-            height,
-            angle,
-            solidity;
-    };
-
 
     class Contour {
         public:
@@ -71,8 +49,8 @@ namespace KiwiLight {
         int Width()  { return this->width;  };
         int Height() { return this->height; };
         int Angle()  { return this->angle;  };
-        int Area()   { return this->area;   };
-        double AspectRatio() { return this->aspectRatio; };
+        int Area()   { return this->width * this->height;   };
+        double AspectRatio() { return this->width / (double) this->height; };
         double Solidity()    { return this->solidity;    };
 
         private:
@@ -81,13 +59,34 @@ namespace KiwiLight {
             y,
             width,
             height,
-            angle,
-            area;
+            angle;
         
-        double aspectRatio,
-               solidity;
+        double solidity;
     };
 
+    
+    class ExampleContour {
+        public:
+        ExampleContour(int id, Distance distFromCenter, int width, int height, int angle, double solidity);
+        bool IsContour(Contour contour);
+        int ID()     { return this->id; };
+        int DistX()  { return this->distFromCenter.X(); };
+        int DistY()  { return this->distFromCenter.Y(); };
+        int Width()  { return this->width; };
+        int Height() { return this->height; };
+        int Angle()  { return this->angle; };
+        double AspectRatio() { return this->width / (double) this->height; };
+        double Solidity()    { return this->solidity; };
+
+        private:
+        int id;
+        Distance distFromCenter;
+        int width,
+            height,
+            angle;
+        
+        double solidity;
+    };
 
     /**
      * Represents a target found in an image
@@ -149,8 +148,11 @@ namespace KiwiLight {
      */
     class PostProcessor {
         public:
-        PostProcessor(ConfigurationSettingsList settings);
+        PostProcessor(std::vector<ExampleTarget> targets);
         std::vector<Target> ProcessImage(cv::Mat img);
+
+        private:
+        std::vector<ExampleTarget> targets;
     };
 
     /**
@@ -165,6 +167,7 @@ namespace KiwiLight {
 
         private:
         ConfigurationSettingsList settings;
+        std::vector<ExampleTarget> postProcessorTargets;
         void parseDocument(XMLDocument doc);
         bool stop,
              debug;

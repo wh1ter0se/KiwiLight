@@ -19,15 +19,7 @@ Camera::Camera(int index) {
     this->streamingSuccessful = false;
     this->frameWidth = 600;
     this->frameHeight = 400;
-
-    std::cout << this->stream.set(cv::CAP_PROP_FRAME_WIDTH, this->frameWidth) << std::endl;
-    std::cout << this->stream.set(cv::CAP_PROP_FRAME_HEIGHT, this->frameHeight) << std::endl;
-
-    std::cout << "init w: " << this->stream.get(cv::CAP_PROP_FRAME_WIDTH) << std::endl;
-    std::cout << "init h: " << this->stream.get(cv::CAP_PROP_FRAME_HEIGHT) << std::endl;
-    std::cout.flush();
-
-    iteration = 0;
+    this->iteration = 0;
 
 }
 

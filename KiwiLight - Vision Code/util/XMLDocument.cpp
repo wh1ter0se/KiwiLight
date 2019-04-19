@@ -93,7 +93,7 @@ XMLDocument::XMLDocument(std::string fileName) {
 
                     //if there are spaces in the value, get rid of them
                     while(StringUtils::CountCharacters(attrValue, '"') < 2) {
-                        attrValue += nameAndAttrs[k+1];
+                        attrValue += " " + nameAndAttrs[k+1];
                         k++;
                     }
 
