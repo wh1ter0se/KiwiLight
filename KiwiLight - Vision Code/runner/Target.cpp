@@ -17,4 +17,41 @@ using namespace KiwiLight;
 Target::Target(int id, std::vector<Contour> contours) {
     this->id = id;
     this->contours = contours;
+    // this->x = 25;
+    // this->y = 25;
+    // this->width = 52;
+    // this->height = 52;
+
+    //to find the center of the target, average the x, y, w, h of all targets
+    int avgX = 0;
+    int avgY = 0;
+    int avgWidth = 0;
+    int avgHeight = 0;
+    for(int i=0; i<contours.size(); i++) {
+        avgX += contours[i].X();
+        avgY += contours[i].Y();
+        avgWidth += contours[i].Width();
+        avgHeight += contours[i].Height();
+    }
+
+    avgX /= contours.size();
+    avgY /= contours.size();
+    avgWidth /= contours.size();
+    avgHeight /= contours.size();
+
+    this->x = avgX += (avgWidth / 2);
+    this->y = avgY += (avgHeight / 2);
+    this->width = avgWidth;
+    this->height = avgHeight;
+}
+
+/**
+ * Returns a rectangle that represents the bounds of the target.
+ */
+cv::Rect Target::Bounds() {
+    //find the corner x and y because the local x and y are for the center
+    int trueX = this->x - (this->width / 2);
+    int trueY = this->y - (this->height / 2);
+
+    return cv::Rect(trueX, trueY, this->width, this->height);
 }

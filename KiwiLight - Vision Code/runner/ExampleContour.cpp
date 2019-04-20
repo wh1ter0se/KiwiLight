@@ -19,3 +19,8 @@ ExampleContour::ExampleContour(int id, Distance distFromCenter, int width, int h
     this->angle = angle;
     this->solidity = solidity;
 }
+
+
+bool ExampleContour::IsContour(Contour contour) {
+    return true;
+}

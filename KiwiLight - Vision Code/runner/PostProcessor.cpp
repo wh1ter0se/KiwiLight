@@ -32,6 +32,15 @@ std::vector<Target> PostProcessor::ProcessImage(cv::Mat img) {
     std::vector<Contour> objects = std::vector<Contour>();
     for(int i=0; i<contours.size(); i++) {
         Contour newContour = Contour(contours[i]);
+        objects.push_back(newContour);
+    }
+
+    for(int k=0; k<this->targets.size(); k++) {
+        std::vector<Target> targs = this->targets[k].GetTargets(objects);
+        //add results to our found targets
+        for(int a=0; a<targs.size(); a++) {
+            foundTargets.push_back(targs[a]);
+        }
     }
 
     return foundTargets;

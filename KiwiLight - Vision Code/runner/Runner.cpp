@@ -35,13 +35,25 @@ void Runner::Loop() {
     PostProcessor postprocessor = PostProcessor(this->postProcessorTargets);
     //loops a lot until stopped
     while(!stop) {
-        cv::Mat img = cam.GetImage();
+        cv::Mat img;
+        if(RunnerSettings::USE_CAMERA) {
+            img = cam.GetImage();
+        } else {
+            img = cv::imread("runner/runner_test_target.png");
+        }
         cv::Mat preprocessed = preprocessor.ProcessImage(img);
         std::vector<Target> targets = postprocessor.ProcessImage(preprocessed);
         
         if(this->debug) {
-            std::string confName = this->settings.GetSetting("confName");
-            cv::imshow(confName.c_str(), preprocessed);
+            cv::Mat out;
+            img.copyTo(out);
+
+            for(int i=0; i<targets.size(); i++) {
+                cv::rectangle(out, targets[i].Bounds(), cv::Scalar(255,0,0), 3);
+                cv::circle(out, targets[i].Center(), 3, cv::Scalar(255,255,0), 4);
+            }
+            std::string confName = this->settings.GetSetting("configName");
+            cv::imshow(confName.c_str(), out);
             cv::waitKey(5);
         }
     }

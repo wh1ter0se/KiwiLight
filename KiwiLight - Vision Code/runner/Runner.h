@@ -1,6 +1,7 @@
 #ifndef KiwiLight_RUNNER_H
 #define KiwiLight_RUNNER_H
 
+#include "Settings.h"
 #include "../util/Util.h"
 #include "opencv2/opencv.hpp"
 
@@ -94,15 +95,17 @@ namespace KiwiLight {
     class Target {
         public:
         Target(int id, std::vector<Contour> contours);
-        int X() { return this->x; };
-        int Y() { return this->y; };
+        cv::Point Center() { return cv::Point(this->x, this->y); };
+        cv::Rect Bounds();
 
         private:
         std::vector<Contour> contours;
 
         int id,
             x,
-            y;
+            y,
+            width,
+            height;
     };
 
 
