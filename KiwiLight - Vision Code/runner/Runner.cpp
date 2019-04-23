@@ -15,6 +15,16 @@ Runner::Runner(std::string fileName, bool debugging) {
     XMLDocument file = XMLDocument(fileName);
     if(file.HasContents()) {
         this->parseDocument(file);
+
+        //give some information to stdout about the config
+        std::cout << std::endl;
+        std::cout << "KiwiLight Runner starting..." << std::endl;
+        std::cout << "Mode: " << (debugging? "Debug" : "Running") << std::endl;
+        std::cout << "Configuration Name: " << this->settings.GetSetting("configName") << std::endl;
+        std::cout << "Preprocessor: " << this->settings.GetSetting("PreprocessorType") << std::endl;
+        std::cout << "Postprocessor: full" << std::endl;
+        std::cout << "Number of Targets: " << this->postProcessorTargets.size() << std::endl;
+        std::cout << std::endl;
     } else {
         std::cout << "sorry! the file could not be found. " << std::endl;
     }
@@ -39,7 +49,7 @@ void Runner::Loop() {
         if(RunnerSettings::USE_CAMERA) {
             img = cam.GetImage();
         } else {
-            img = cv::imread("runner/runner_test_target.png");
+            img = cv::imread("runner/dual.png");
         }
         cv::Mat preprocessed = preprocessor.ProcessImage(img);
         std::vector<Target> targets = postprocessor.ProcessImage(preprocessed);
@@ -115,17 +125,25 @@ void Runner::parseDocument(XMLDocument doc) {
                 for(int k=0; k<targContours.size(); k++) {
                     XMLTag contour = targContours[k];
                     int id = std::stoi(contour.GetAttributesByName("id")[0].Value());
-                    int x = std::stoi(contour.GetTagsByName("x")[0].Content());
-                    int y = std::stoi(contour.GetTagsByName("y")[0].Content());
-                    int distError = 50;
-                    Distance distFromCenter = Distance(x, y, distError);
-
-                    int width = std::stoi(contour.GetTagsByName("width")[0].Content());
-                    int height = std::stoi(contour.GetTagsByName("height")[0].Content());
+                    double x = std::stod(contour.GetTagsByName("x")[0].Content());
+                    double y = std::stod(contour.GetTagsByName("y")[0].Content());
+                    double distXError = std::stod(contour.GetTagsByName("x")[0].GetAttributesByName("error")[0].Value());
+                    double distYError = std::stod(contour.GetTagsByName("y")[0].GetAttributesByName("error")[0].Value());
                     int angle = std::stoi(contour.GetTagsByName("angle")[0].Content());
-                    int solidity = std::stod(contour.GetTagsByName("solidity")[0].Content());
+                    int angleError = std::stoi(contour.GetTagsByName("angle")[0].GetAttributesByName("error")[0].Value());
+                    double solidity = std::stod(contour.GetTagsByName("solidity")[0].Content());
+                    double solidError = std::stod(contour.GetTagsByName("solidity")[0].GetAttributesByName("error")[0].Value());
+                    double ar = std::stod(contour.GetTagsByName("aspectRatio")[0].Content());
+                    double arError = std::stod(contour.GetTagsByName("aspectRatio")[0].GetAttributesByName("error")[0].Value());
+                    int minArea = std::stoi(contour.GetTagsByName("minimumArea")[0].Content());
 
-                    ExampleContour newContour = ExampleContour(id, distFromCenter, width, height, angle, solidity);
+                    SettingPair distXPair = SettingPair(x, distXError);
+                    SettingPair distYPair = SettingPair(y, distYError);
+                    SettingPair anglePair = SettingPair(angle, angleError);
+                    SettingPair solidPair = SettingPair(solidity, solidError);
+                    SettingPair arPair    = SettingPair(ar, arError);
+
+                    ExampleContour newContour = ExampleContour(id, distXPair, distYPair, anglePair, arPair, solidPair, minArea);
                     contours.push_back(newContour);
                 }
 

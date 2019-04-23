@@ -17,32 +17,49 @@ using namespace KiwiLight;
 Target::Target(int id, std::vector<Contour> contours) {
     this->id = id;
     this->contours = contours;
-    // this->x = 25;
-    // this->y = 25;
-    // this->width = 52;
-    // this->height = 52;
 
-    //to find the center of the target, average the x, y, w, h of all targets
-    int avgX = 0;
-    int avgY = 0;
-    int avgWidth = 0;
-    int avgHeight = 0;
-    for(int i=0; i<contours.size(); i++) {
-        avgX += contours[i].X();
-        avgY += contours[i].Y();
-        avgWidth += contours[i].Width();
-        avgHeight += contours[i].Height();
+    if(contours.size() == 1) {
+        this->width = contours[0].Width();
+        this->height = contours[0].Height();
+        this->x = (this->width / 2) + contours[0].X();
+        this->y = (this->height / 2) + contours[0].Y();
+    } else {
+        int biggestX = -5000;
+        int smallestX = 5000;
+        int biggestY = -5000;
+        int smallestY = 5000;
+
+        int biggestXWidth = 0;
+        int biggestYHeight = 0; 
+
+        for(int i=0; i<contours.size(); i++) {
+            if(contours[i].X() > biggestX) {
+                biggestX = contours[i].X();
+                biggestXWidth = contours[i].Width();
+            } 
+            else if(contours[i].X() < smallestX) {
+                smallestX = contours[i].X();
+            }
+
+            if(contours[i].Y() > biggestY) {
+                biggestY = contours[i].Y();
+                biggestYHeight = contours[i].Height();
+            }
+            else if(contours[i].Y() < smallestY) {
+                smallestY = contours[i].Y();
+            }
+        }
+
+        this->width = (biggestX - smallestX) + biggestXWidth;
+        this->height = (biggestY - smallestY) + biggestYHeight;
+        this->x = (this->width / 2) + smallestX;
+        this->y = (this->height / 2) + smallestY;
+
+        // std::cout << "width: " << this->width << std::endl;
+        // std::cout << "height: " << this->height << std::endl;
+        // std::cout << "x: " << this->x << std::endl;
+        // std::cout << "y: " << this->y << std::endl;
     }
-
-    avgX /= contours.size();
-    avgY /= contours.size();
-    avgWidth /= contours.size();
-    avgHeight /= contours.size();
-
-    this->x = avgX += (avgWidth / 2);
-    this->y = avgY += (avgHeight / 2);
-    this->width = avgWidth;
-    this->height = avgHeight;
 }
 
 /**

@@ -37,7 +37,8 @@ std::vector<Target> PostProcessor::ProcessImage(cv::Mat img) {
 
     for(int k=0; k<this->targets.size(); k++) {
         std::vector<Target> targs = this->targets[k].GetTargets(objects);
-        //add results to our found targets
+
+        // add results to our found targets
         for(int a=0; a<targs.size(); a++) {
             foundTargets.push_back(targs[a]);
         }

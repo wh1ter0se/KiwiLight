@@ -104,21 +104,20 @@ namespace KiwiLight {
     };
 
     /**
-     * Represents a distance between two points, including an error.
+     * Represents a single value with an error.
      */
-    class Distance {
+    class SettingPair {
         public:
-        Distance() {};
-        Distance(int x, int y, int error);
-        int TrueDistance();
-        int X() { return this->x; };
-        int Y() { return this->y; };
-        int Error() { return this->error; };
+        SettingPair() {};
+        SettingPair(double value, double error);
+        double UpperBound();
+        double LowerBound();
+        double Value() { return this->value; };
+        double Error() { return this->error; };
 
         private:
-        int x,
-            y,
-            error;
+        double value,
+               error; 
     };
 
     /**

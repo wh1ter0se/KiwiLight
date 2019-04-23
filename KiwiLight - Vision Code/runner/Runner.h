@@ -68,25 +68,32 @@ namespace KiwiLight {
     
     class ExampleContour {
         public:
-        ExampleContour(int id, Distance distFromCenter, int width, int height, int angle, double solidity);
+        ExampleContour(int id,
+                       SettingPair distX,
+                       SettingPair distY,
+                       SettingPair angle,
+                       SettingPair aspectRatio,
+                       SettingPair solidity,
+                       int minimumArea);
+
         bool IsContour(Contour contour);
-        int ID()     { return this->id; };
-        int DistX()  { return this->distFromCenter.X(); };
-        int DistY()  { return this->distFromCenter.Y(); };
-        int Width()  { return this->width; };
-        int Height() { return this->height; };
-        int Angle()  { return this->angle; };
-        double AspectRatio() { return this->width / (double) this->height; };
-        double Solidity()    { return this->solidity; };
+        int ID() { return this->id; };
+        SettingPair DistX()       { return this->distX; };
+        SettingPair DistY()       { return this->distY; };
+        SettingPair Angle()       { return this->angle; };
+        SettingPair AspectRatio() { return this->aspectRatio; };
+        SettingPair Solidity()    { return this->solidity; };
+        int MinimumArea()         { return this->minimumArea; };
 
         private:
         int id;
-        Distance distFromCenter;
-        int width,
-            height,
-            angle;
-        
-        double solidity;
+        SettingPair distX,
+                    distY,
+                    angle,
+                    aspectRatio,
+                    solidity;
+
+        int minimumArea;
     };
 
     /**
@@ -118,6 +125,8 @@ namespace KiwiLight {
         std::vector<ExampleContour> Contours() { return this->contours; };
 
         private:
+        bool ArrayMaxed(int arr[], int size, int max);
+        bool ContainsDuplicates(int arr[], int size);
         int id;
         std::vector<ExampleContour> contours;
     };

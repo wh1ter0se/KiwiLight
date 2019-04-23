@@ -72,8 +72,8 @@ bin/XMLTag.o: util/XMLTag.cpp
 bin/XMLTagAttribute.o: util/XMLTagAttribute.cpp
 	$(CXX) -c -o bin/XMLTagAttribute.o util/XMLTagAttribute.cpp
 
-bin/Distance.o: util/Distance.cpp
-	$(CXX) -c -o bin/Distance.o util/Distance.cpp
+bin/SettingPair.o: util/SettingPair.cpp
+	$(CXX) -c -o bin/SettingPair.o util/SettingPair.cpp
 
 bin/Color.o: util/Color.cpp
 	$(CXX) -c -o bin/Color.o util/Color.cpp $(CV)
@@ -81,8 +81,8 @@ bin/Color.o: util/Color.cpp
 bin/Camera.o: util/Camera.cpp
 	$(CXX) -c -o bin/Camera.o util/Camera.cpp $(CV) $(GTK)
 
-lib/Util.a: bin/Flags.o bin/Shell.o bin/StringUtils.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/Distance.o bin/Color.o bin/Camera.o 
-	ar rs lib/Util.a bin/Flags.o bin/Shell.o bin/StringUtils.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/Distance.o bin/Color.o bin/Camera.o 
+lib/Util.a: bin/Flags.o bin/Shell.o bin/StringUtils.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/SettingPair.o bin/Color.o bin/Camera.o 
+	ar rs lib/Util.a bin/Flags.o bin/Shell.o bin/StringUtils.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/SettingPair.o bin/Color.o bin/Camera.o 
 
 #RUNNER
 bin/ConfigurationSetting.o: runner/ConfigurationSetting.cpp

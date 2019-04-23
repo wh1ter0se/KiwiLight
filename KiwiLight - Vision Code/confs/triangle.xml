@@ -7,7 +7,7 @@
         <setting name="exposure_absolute">155</setting>
     </settings>
 </camera>
-<configuration name="Test Configuration">
+<configuration name="Triangle Configuration">
     <cameraResolution>
         <width>600</width>
         <height>400</height>
@@ -28,12 +28,28 @@
     <postprocessor>
         <target id="0">
             <contour id="0">
-                <x error="100">0</x>
-                <y error="100">0</y>
+                <x error="1">-2</x>
+                <y error="1">0</y>
                 <angle error="10">0</angle>
-                <solidity error="0.25">0.9</solidity>
+                <solidity error="0.25">0.7</solidity>
                 <aspectRatio error="0.25">1</aspectRatio>
-                <minimumArea>1000</minimumArea>
+                <minimumArea>250</minimumArea>
+            </contour>
+            <contour id="1">
+                <x error="1">2</x>
+                <y error="1">0</y>
+                <angle error="10">0</angle>
+                <solidity error="0.25">0.7</solidity>
+                <aspectRatio error="0.25">1</aspectRatio>
+                <minimumArea>250</minimumArea>
+            </contour>
+            <contour id="2">
+                <x error="1">2</x>
+                <y error="1">0</y>
+                <angle error="10">0</angle>
+                <solidity error="0.25">0.7</solidity>
+                <aspectRatio error="0.25">1</aspectRatio>
+                <minimumArea>250</minimumArea>
             </contour>
         </target>
         <UDP>
