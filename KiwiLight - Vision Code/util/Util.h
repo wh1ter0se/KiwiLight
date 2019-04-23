@@ -5,6 +5,12 @@
 #include <stdlib.h>
 #include <fstream>
 #include "opencv2/opencv.hpp"
+#include "netdb.h"
+#include "unistd.h"
+#include "sys/socket.h"
+#include "sys/types.h"
+#include "netinet/in.h"
+#include "arpa/inet.h"
 
 
 using namespace cv;
@@ -39,6 +45,22 @@ namespace KiwiLight {
         static std::string Substring(std::string str, int begin, int end);
         static bool StringStartsWith(std::string str, std::string startsWith);
         static int CountCharacters(std::string str, char character);
+    };
+
+    /**
+     * A UDP sender utility that sends and recieves information to and from the RIO.
+     */
+    class UDP {
+        public:
+        UDP(){};
+        UDP(std::string dest_ip, int port);
+        void Send(std::string msg);
+        std::string Recieve();
+        void Close();
+
+        private:
+        int sock; //sock fd returned by socket() call
+        sockaddr_in server_address; //address of the server
     };
 
     class XMLTagAttribute {

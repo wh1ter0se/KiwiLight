@@ -101,7 +101,9 @@ namespace KiwiLight {
      */
     class Target {
         public:
+        Target() {};
         Target(int id, std::vector<Contour> contours);
+        int ID() { return this->id; };
         cv::Point Center() { return cv::Point(this->x, this->y); };
         cv::Rect Bounds();
 
@@ -178,11 +180,14 @@ namespace KiwiLight {
         std::string GetSetting(std::string settingName);
 
         private:
+        UDP udp;
         ConfigurationSettingsList settings;
         std::vector<ExampleTarget> postProcessorTargets;
         void parseDocument(XMLDocument doc);
         bool stop,
              debug;
+
+        int centerOffset;
     };
 }
 

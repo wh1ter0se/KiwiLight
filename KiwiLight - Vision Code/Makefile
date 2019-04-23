@@ -63,6 +63,9 @@ bin/Shell.o: util/Shell.cpp
 bin/StringUtils.o: util/StringUtils.cpp
 	$(CXX) -c -o bin/StringUtils.o util/StringUtils.cpp
 
+bin/UDP.o: util/UDP.cpp
+	$(CXX) -c -o bin/UDP.o util/UDP.cpp
+
 bin/XMLDocument.o: util/XMLDocument.cpp
 	$(CXX) -c -o bin/XMLDocument.o util/XMLDocument.cpp
 
@@ -81,8 +84,8 @@ bin/Color.o: util/Color.cpp
 bin/Camera.o: util/Camera.cpp
 	$(CXX) -c -o bin/Camera.o util/Camera.cpp $(CV) $(GTK)
 
-lib/Util.a: bin/Flags.o bin/Shell.o bin/StringUtils.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/SettingPair.o bin/Color.o bin/Camera.o 
-	ar rs lib/Util.a bin/Flags.o bin/Shell.o bin/StringUtils.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/SettingPair.o bin/Color.o bin/Camera.o 
+lib/Util.a: bin/Flags.o bin/Shell.o bin/StringUtils.o bin/UDP.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/SettingPair.o bin/Color.o bin/Camera.o 
+	ar rs lib/Util.a bin/Flags.o bin/Shell.o bin/StringUtils.o bin/UDP.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/SettingPair.o bin/Color.o bin/Camera.o 
 
 #RUNNER
 bin/ConfigurationSetting.o: runner/ConfigurationSetting.cpp

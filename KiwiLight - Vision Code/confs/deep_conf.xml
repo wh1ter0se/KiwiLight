@@ -26,6 +26,7 @@
         </targetColor>
     </preprocessor>
     <postprocessor>
+        <centerOffset>0</centerOffset>
         <target id="0">
             <contour id="0">
                 <x error="0.25">1.5</x>
@@ -43,6 +44,9 @@
                 <aspectRatio error="0.35">0.55</aspectRatio>
                 <minimumArea>250</minimumArea>
             </contour>
+            <knownWidth>12</knownWidth>
+            <calibratedDistance>36</calibratedDistance>
+            <distErrorCorrect>0.1</distErrorCorrect>
         </target>
         <UDP>
             <address>127.0.0.1</address>
