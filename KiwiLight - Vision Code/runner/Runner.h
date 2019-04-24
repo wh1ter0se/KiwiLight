@@ -102,8 +102,11 @@ namespace KiwiLight {
     class Target {
         public:
         Target() {};
-        Target(int id, std::vector<Contour> contours);
+        Target(int id, std::vector<Contour> contours, double knownHeight, double focalHeight, double distErrorCorrect, double calibratedDistance);
         int ID() { return this->id; };
+        double Distance();
+        int Angle(int imageCenterX);
+        int Angle(double distanceToTarget, int imageCenterX);
         cv::Point Center() { return cv::Point(this->x, this->y); };
         cv::Rect Bounds();
 
@@ -115,12 +118,17 @@ namespace KiwiLight {
             y,
             width,
             height;
+
+        double knownHeight,
+               focalHeight,
+               distErrorCorrect,
+               calibratedDistance;
     };
 
 
     class ExampleTarget {
         public:
-        ExampleTarget(int id, std::vector<ExampleContour> contours);
+        ExampleTarget(int id, std::vector<ExampleContour> contours, double knownHeight, double focalHeight, double distErrorCorrect, double calibratedDistance);
         std::vector<Target> GetTargets(std::vector<Contour> contours);
         bool isTarget(std::vector<Contour> contours);
         int ID() { return this->id; };
@@ -131,6 +139,11 @@ namespace KiwiLight {
         bool ContainsDuplicates(int arr[], int size);
         int id;
         std::vector<ExampleContour> contours;
+
+        double knownHeight,
+               focalHeight,
+               distErrorCorrect,
+               calibratedDistance;
     };
 
     /**

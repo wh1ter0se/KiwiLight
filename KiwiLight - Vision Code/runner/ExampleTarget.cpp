@@ -11,9 +11,13 @@ using namespace KiwiLight;
 /**
  * Creates a new ExampleTarget with given ExampleContours, to model a real target.
  */
-ExampleTarget::ExampleTarget(int id, std::vector<ExampleContour> contours) {
+ExampleTarget::ExampleTarget(int id, std::vector<ExampleContour> contours, double knownHeight, double focalHeight, double distErrorCorrect, double calibratedDistance) {
     this->id = id;
     this->contours = contours;
+    this->knownHeight = knownHeight;
+    this->focalHeight = focalHeight;
+    this->distErrorCorrect = distErrorCorrect;
+    this->calibratedDistance = calibratedDistance;
 }
 
 /**
@@ -43,7 +47,7 @@ std::vector<Target> ExampleTarget::GetTargets(std::vector<Contour> objects) {
                 std::vector<Contour> potentialTarget = std::vector<Contour>();
                 potentialTarget.push_back(validContours[i]);
                 if(isTarget(potentialTarget)) {
-                    Target newTarg = Target(this->id, potentialTarget);
+                    Target newTarg = Target(this->id, potentialTarget, this->knownHeight, this->focalHeight, this->distErrorCorrect, this->calibratedDistance);
                     foundTargets.push_back(newTarg);
                 }
             }
@@ -68,7 +72,7 @@ std::vector<Target> ExampleTarget::GetTargets(std::vector<Contour> objects) {
 
                     //test new target
                     if(isTarget(potentialTarget)) {
-                        Target newTarget = Target(this->id, potentialTarget);
+                        Target newTarget = Target(this->id, potentialTarget, this->knownHeight, this->focalHeight, this->distErrorCorrect, this->calibratedDistance);
                         foundTargets.push_back(newTarget);
                     }
                 }

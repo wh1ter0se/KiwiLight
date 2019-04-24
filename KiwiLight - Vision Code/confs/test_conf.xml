@@ -26,6 +26,7 @@
         </targetColor>
     </preprocessor>
     <postprocessor>
+        <centerOffset>0</centerOffset>
         <target id="0">
             <contour id="0">
                 <x error="100">0</x>

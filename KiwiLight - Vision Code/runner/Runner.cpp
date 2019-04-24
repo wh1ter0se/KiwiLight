@@ -88,17 +88,24 @@ void Runner::Loop() {
             coordY = -1,
             distance = -1,
             angle = 180;
+
+        std::string rioMessage = "";
         
-        //use the best target to fill in the information to send to the rio
-        coordX = bestTarget.Center().x;
-        coordY = bestTarget.Center().y;
+        if(targets.size() > 0) {
+            //use the best target to fill in the information to send to the rio
+            coordX = bestTarget.Center().x;
+            coordY = bestTarget.Center().y;
 
+            distance = bestTarget.Distance();
+
+            angle = bestTarget.Angle(distance, robotCenter);
+        }
         std::string x = std::to_string(coordX),
-                    y = std::to_string(coordY),
-                    d = std::to_string(distance),
-                    a = std::to_string(angle);
+                        y = std::to_string(coordY),
+                        d = std::to_string(distance),
+                        a = std::to_string(angle);
 
-        std::string rioMessage = ":" + x + "," + y + "," + d + "," + a + ";";
+        rioMessage = ":" + x + "," + y + "," + d + "," + a + ";";
         this->udp.Send(rioMessage);
         
         if(this->debug) {
@@ -220,7 +227,13 @@ void Runner::parseDocument(XMLDocument doc) {
                     contours.push_back(newContour);
                 }
 
-                ExampleTarget newTarget = ExampleTarget(targetId, contours);
+                //knownWidth, focalWidth, calibratedDistance, distErrorCorrect
+                double knownWidth = std::stod(targetTag.GetTagsByName("knownWidth")[0].Content());
+                double focalWidth = std::stod(targetTag.GetTagsByName("focalWidth")[0].Content());
+                double calibratedDistance = std::stod(targetTag.GetTagsByName("calibratedDistance")[0].Content());
+                double distErrorCorrect = std::stod(targetTag.GetTagsByName("distErrorCorrect")[0].Content());
+
+                ExampleTarget newTarget = ExampleTarget(targetId, contours, knownWidth, focalWidth, distErrorCorrect, calibratedDistance);
                 this->postProcessorTargets.push_back(newTarget);
             }
 }

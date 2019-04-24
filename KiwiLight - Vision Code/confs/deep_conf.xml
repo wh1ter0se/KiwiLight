@@ -45,6 +45,7 @@
                 <minimumArea>250</minimumArea>
             </contour>
             <knownWidth>12</knownWidth>
+            <focalWidth>300</focalWidth>
             <calibratedDistance>36</calibratedDistance>
             <distErrorCorrect>0.1</distErrorCorrect>
         </target>
