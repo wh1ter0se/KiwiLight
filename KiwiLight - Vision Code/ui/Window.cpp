@@ -50,14 +50,14 @@ void Window::SetSize(int w, int h) {
  */
 int Window::SetInterval(int interval, void(*method)()) {
     timeoutMethod = method;
-    return g_timeout_add(interval, GtkFunction(timeoutCallMethod), NULL);
+    return g_timeout_add(interval, GSourceFunc(timeoutCallMethod), NULL);
 }
 
 /**
  * Cancel an existing interval by given id
  */
 void Window::RemoveInterval(int id) {
-    gtk_timeout_remove(id);
+    g_source_remove(id);
 }
 
 /**

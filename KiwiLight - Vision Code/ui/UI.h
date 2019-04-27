@@ -4,14 +4,15 @@
 #include <iostream>
 #include <stdlib.h>
 #include <string.h>
-#include "gtk-2.0/gtk/gtk.h"
+#include "gtk-3.0/gtk/gtk.h"
+#include "opencv2/opencv.hpp"
 
 /**
  * the main header for the UI module for KiwiLight
  * Written By: Brach Knutson
  */
 
-
+using namespace cv;
 
 namespace KiwiLight {
 
@@ -80,8 +81,8 @@ namespace KiwiLight {
         Label(std::string text);
         void SetText(std::string text);
         std::string GetText() { return text; };
-        void SetFont(std::string font);
-        void SetFontSize(double size);
+        void SetName(std::string name);
+        void SetLineWrap(bool enabled);
         GtkWidget *GetWidget() { return this->label; };
 
         private:
@@ -99,13 +100,28 @@ namespace KiwiLight {
         TextBox() {};
         TextBox(std::string text);
         void SetText(std::string text);
-        void SetEditable(bool edit);
         void SetAlignment(double align);
         std::string GetText();
         GtkWidget *GetWidget() { return this->textbox; };
 
         private:
         GtkWidget *textbox;
+    };
+
+
+    class NumberBox : public Widget {
+        public:
+        NumberBox() {};
+        NumberBox(double min, double max, double value);
+        void SetValue(double value);
+        double GetValue();
+        GtkWidget *GetWidget() { return this->numberBox; };
+
+        private:
+        double min,
+            max;
+        
+        GtkWidget *numberBox;
     };
 
     /**
@@ -168,19 +184,6 @@ namespace KiwiLight {
     };
 
     /**
-     * A container that can align the objects inside of them.
-     */
-    class AlignmentContainer : public Widget {
-        public:
-        AlignmentContainer(int x, int y);
-        void Pack(GtkWidget *widget);
-        GtkWidget *GetWidget() { return this->aligncontainer; };
-
-        private:
-        GtkWidget *aligncontainer;
-    };
-
-    /**
     * An option that would show under a menu bar item.
     */
     class SubMenuItem : public Widget {
@@ -220,6 +223,33 @@ namespace KiwiLight {
     };
 
     /**
+     * Represents an image which can be displayed in an ImageFrame
+     */
+    class Image {
+        public:
+        Image(std::string fileName);
+        Image(cv::Mat img);
+        GdkPixbuf *ReturnImage() { return this->img; };
+
+        private:
+        GdkPixbuf *img;
+    };
+
+    /**
+     * An image frame which can display images.
+     */
+    class ImageFrame: public Widget {
+        public:
+        ImageFrame() {};
+        ImageFrame(Image img);
+        void Update(Image img);
+        GtkWidget *GetWidget() { return this->imgFrame; };
+
+        private:
+        GtkWidget *imgFrame;
+    };
+
+    /**
      * A singlular widget adjusting a camera setting
      */
     class CameraSetting : public Widget {
@@ -236,7 +266,7 @@ namespace KiwiLight {
         GtkWidget *camerasetting;
 
         Label  nameLabel;
-        TextBox input;
+        NumberBox input;
 
         std::string name,
                type;

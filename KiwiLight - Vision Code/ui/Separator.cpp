@@ -13,7 +13,7 @@ using namespace KiwiLight;
  */
 Separator::Separator(bool horizontal) {
     if(horizontal)
-        this->separator = gtk_hseparator_new();
+        this->separator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
     else
-        this->separator = gtk_vseparator_new();
+        this->separator = gtk_separator_new(GTK_ORIENTATION_VERTICAL);
 }

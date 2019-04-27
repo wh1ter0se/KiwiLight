@@ -27,7 +27,6 @@ Settings::Settings(int index) {
         panel.Pack_start(frameHeight.GetWidget(), true, false, 0);
 
     Label warning = Label("NOTE: Some resolutions may not be supported by your camera!");
-       // warning.SetFont("Monospace");
         panel.Pack_start(warning.GetWidget(), true, false, 0);
 
     Separator sep = Separator(true);
@@ -47,9 +46,9 @@ Settings::Settings(int index) {
         this->settings.push_back(CameraSetting(settingName, min, max, value));
         panel.Pack_start(this->settings[i].GetWidget(), true, false, 0);
 
-        //add a separator so it doesn't look like trash
-        Separator sep = Separator(true);
-            panel.Pack_start(sep.GetWidget(), true, false, 0);
+        // //add a separator so it doesn't look like trash
+        // Separator sep = Separator(true);
+        //     panel.Pack_start(sep.GetWidget(), true, false, 0);
     }
 
     Panel buttonPanel = Panel(true, 0);

@@ -1,0 +1,19 @@
+
+/**
+ * Stylesheet written for the KiwiLight UI.
+ * Written By: Brach Knutson
+ */
+
+window * {
+    background-color: rgb(25, 25, 25);
+    color: rgb(52, 117, 22);
+}
+
+#white {
+    color:rgb(212, 212, 212);
+}
+
+#header {
+    color:rgb(175, 175, 175);
+    font-size:16px;
+}

@@ -19,6 +19,26 @@ using namespace cv;
 namespace KiwiLight {
 
     /**
+     * Panel where configuration can be viewed
+     */
+    class ConfigPanel : public Widget {
+        public:
+        ConfigPanel();
+        void LoadConfig(std::string fileName);
+        GtkWidget *GetWidget() { return this->configPanel; };
+
+        private:
+        Panel panel;
+        Panel buttonPanel;
+        Label header;
+        Label description;
+        Button runConfig;
+        Button editConfig;
+        Button loadConfig;
+        GtkWidget *configPanel;
+    };
+
+    /**
      * A window where camera settings can be modified.
      */
     class Settings : public Widget {

@@ -13,6 +13,8 @@ using namespace KiwiLight;
  * Creates a new Camera using the device at the given index.
  */
 Camera::Camera(int index) {
+    std::cout << "c1" << std::endl;
+    std::cout.flush();
     this->stream = cv::VideoCapture(index);
     this->index = index;
     this->opened = true;
@@ -20,6 +22,8 @@ Camera::Camera(int index) {
     this->frameWidth = 600;
     this->frameHeight = 400;
     this->iteration = 0;
+    std::cout << "c2" << std::endl;
+    std::cout.flush();
 
 }
 
@@ -39,10 +43,10 @@ void Camera::Update() {
             cv::Mat img;
             bool success = stream.read(img);
             if(success) {
-                //show image in window on screen
-                std::string winName = "Camera Device " + std::to_string(index);
-                cv::imshow(winName.c_str(), img);
-                cv::waitKey(5);
+                // //show image in window on screen
+                // std::string winName = "Camera Device " + std::to_string(index);
+                // cv::imshow(winName.c_str(), img);
+                // cv::waitKey(5);
 
                 streamingSuccessful = true;
             }
@@ -105,7 +109,7 @@ void Camera::SetHeight(int height) {
 void Camera::Close() {
     if(this->opened) {
         this->stream.release();
-        cv::destroyAllWindows();
+        // cv::destroyAllWindows();
         this->opened = false;
     }
 }

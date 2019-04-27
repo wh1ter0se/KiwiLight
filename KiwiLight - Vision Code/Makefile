@@ -5,7 +5,7 @@
 
 CXX = g++
 CV = `pkg-config --cflags --libs opencv`
-GTK = `pkg-config --cflags --libs gtk+-2.0`
+GTK = `pkg-config --cflags --libs gtk+-3.0`
 
 #UI 
 bin/SubMenuItem.o: ui/SubMenuItem.cpp
@@ -16,9 +16,6 @@ bin/MenuItem.o: ui/MenuItem.cpp
 
 bin/MenuBar.o: ui/MenuBar.cpp
 	$(CXX) -c -o bin/MenuBar.o ui/MenuBar.cpp $(GTK)
-
-bin/AlignmentContainer.o: ui/AlignmentContainer.cpp
-	$(CXX) -c -o bin/AlignmentContainer.o ui/AlignmentContainer.cpp $(GTK)
 
 bin/Button.o: ui/Button.cpp
 	$(CXX) -c -o bin/Button.o ui/Button.cpp $(GTK)
@@ -44,14 +41,23 @@ bin/CheckBox.o: ui/CheckBox.cpp
 bin/TextBox.o: ui/TextBox.cpp
 	$(CXX) -c -o bin/TextBox.o ui/TextBox.cpp $(GTK)
 
+bin/NumberBox.o: ui/NumberBox.cpp
+	$(CXX) -c -o bin/NumberBox.o ui/NumberBox.cpp $(GTK)
+
+bin/Image.o: ui/Image.cpp
+	$(CXX) -c -o bin/Image.o ui/Image.cpp $(GTK)
+
+bin/ImageFrame.o: ui/ImageFrame.cpp
+	$(CXX) -c -o bin/ImageFrame.o ui/ImageFrame.cpp $(GTK) $(CV)
+
 bin/Window.o: ui/Window.cpp
 	$(CXX) -c -o bin/Window.o ui/Window.cpp $(GTK)
 
 bin/CameraSetting.o: ui/CameraSetting.cpp
 	$(CXX) -c -o bin/CameraSetting.o ui/CameraSetting.cpp $(GTK)
 
-lib/UI.a: bin/Button.o bin/Label.o bin/Panel.o bin/Frame.o bin/Separator.o bin/Slider.o bin/CheckBox.o bin/TextBox.o bin/Window.o bin/CameraSetting.o bin/AlignmentContainer.o bin/MenuBar.o bin/MenuItem.o bin/SubMenuItem.o
-	ar rs lib/UI.a bin/Button.o bin/Label.o bin/Panel.o bin/Frame.o bin/Separator.o bin/Slider.o bin/CheckBox.o bin/TextBox.o bin/Window.o bin/CameraSetting.o bin/AlignmentContainer.o bin/MenuBar.o bin/MenuItem.o bin/SubMenuItem.o
+lib/UI.a: bin/Button.o bin/Label.o bin/Panel.o bin/Frame.o bin/Separator.o bin/Slider.o bin/CheckBox.o bin/TextBox.o bin/NumberBox.o bin/Image.o bin/ImageFrame.o bin/Window.o bin/CameraSetting.o bin/MenuBar.o bin/MenuItem.o bin/SubMenuItem.o
+	ar rs lib/UI.a bin/Button.o bin/Label.o bin/Panel.o bin/Frame.o bin/Separator.o bin/Slider.o bin/CheckBox.o bin/TextBox.o bin/NumberBox.o bin/Image.o bin/ImageFrame.o bin/Window.o bin/CameraSetting.o bin/MenuBar.o bin/MenuItem.o bin/SubMenuItem.o
 
 #UTIL
 bin/Flags.o: util/Flags.cpp
@@ -123,12 +129,15 @@ lib/Runner.a: bin/ConfigurationSetting.o bin/ConfigurationSettingsList.o bin/Con
 bin/Kiwi.o: Kiwi.cpp
 	$(CXX) -c -o bin/Kiwi.o Kiwi.cpp $(GTK)
 
+bin/ConfigPanel.o: ConfigPanel.cpp
+	$(CXX) -c -o bin/ConfigPanel.o ConfigPanel.cpp $(GTK)
+
 bin/Settings.o: Settings.cpp
 	$(CXX) -c -o bin/Settings.o Settings.cpp $(GTK)
 
 #MAIN FILE
-KiwiLight: Main.cpp lib/UI.a lib/Util.a lib/Runner.a bin/Kiwi.o bin/Camera.o bin/Settings.o
-	$(CXX) -o KiwiLight Main.cpp bin/Kiwi.o bin/Settings.o lib/UI.a lib/Util.a lib/Runner.a $(CV) $(GTK)
+KiwiLight: Main.cpp lib/UI.a lib/Util.a lib/Runner.a bin/Kiwi.o bin/Camera.o bin/ConfigPanel.o bin/Settings.o
+	$(CXX) -o KiwiLight Main.cpp bin/Kiwi.o bin/ConfigPanel.o bin/Settings.o lib/UI.a lib/Util.a lib/Runner.a $(CV) $(GTK)
 
 RunnerTest: RunnerTest.cpp lib/UI.a lib/Util.a lib/Runner.a bin/Kiwi.o bin/Settings.o
 	$(CXX) -o RunnerTest RunnerTest.cpp lib/Runner.a lib/Util.a lib/UI.a $(CV) $(GTK)
@@ -136,6 +145,6 @@ RunnerTest: RunnerTest.cpp lib/UI.a lib/Util.a lib/Runner.a bin/Kiwi.o bin/Setti
 #UNINSTALL
 clean:
 	$(info Uninstalling KiwiLight Executables...)
-	rm lib/*
 	rm bin/*
+	rm lib/*
 	rm KiwiLight

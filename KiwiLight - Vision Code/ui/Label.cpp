@@ -23,23 +23,12 @@ void Label::SetText(std::string text) {
     this->text = text;
 }
 
-void Label::SetFont(std::string font) {
-    this->font = font;
 
-    std::string pango_string = font + " " + std::to_string(this->font_size);
-    gtk_widget_modify_font(this->label, 
-        pango_font_description_from_string(pango_string.c_str())
-    );
+void Label::SetName(std::string name) {
+    gtk_widget_set_name(this->label, name.c_str());
 }
 
-/**
- * Sets the font size of the label to the given size.
- */
-void Label::SetFontSize(double size) {
-    this->font_size = size;
-    
-    std::string pango_string = this->font + " " + std::to_string(size);
-    gtk_widget_modify_font(this->label, 
-        pango_font_description_from_string(pango_string.c_str())
-    );
+
+void Label::SetLineWrap(bool enabled) {
+    gtk_label_set_line_wrap(GTK_LABEL(this->label), enabled);
 }

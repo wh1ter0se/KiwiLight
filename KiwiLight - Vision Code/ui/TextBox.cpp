@@ -24,13 +24,6 @@ void TextBox::SetText(std::string text) {
 }
 
 /**
- * Sets the editable property of the textbox to the passed boolean.
- */
-void TextBox::SetEditable(bool edit) {
-    gtk_entry_set_editable(GTK_ENTRY(this->textbox), gboolean(edit));
-}
-
-/**
  * Sets the alignment of the entry. 0=left, 1=right
  */
 void TextBox::SetAlignment(double align) {

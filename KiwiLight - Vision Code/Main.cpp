@@ -20,44 +20,25 @@
 
 using namespace KiwiLight;
 
-Window win;
+// Window win;
 
-Panel content,
-      dataPanel,
-      cameraPanel,
-      cameraLabelPanel;
+Panel content;
 
-Frame configFrame,
-      cameraFrame;
-
-Label cameraLabel,
-      cameraStatus;
-
-TextBox CameraIndex;
-
-Button ApplyCameraIndex;
-
-Settings settings;
-
-MenuBar menubar;
+// MenuBar menubar;
 
 Camera cam;
+
+ImageFrame imgFrame;
 
 /**
  * Runs through a checklist and updates UI objects, utilities, etc.
  */
 void Update() {
-    cam.Update();
-    settings.Update();
-
-    cam.SetWidth(settings.GetWidth());
-    cam.SetHeight(settings.GetHeight());
-
-    if(!cam.isOpen()) {
-        cameraStatus.SetText("Error Streaming Camera!!!");
-    } else {
-        cameraStatus.SetText("");
-    }
+    std::cout << "1" << std::endl;
+    cv::Mat newImg = cam.GetImage();
+    Image imgForFrame = Image(newImg);
+    imgFrame.Update(imgForFrame);
+    std::cout << "2" << std::endl;
 }
 
 /**
@@ -65,15 +46,15 @@ void Update() {
  */
 void CreateMenuBar() {
     //create a new menubar
-    menubar = MenuBar();
+    MenuBar menubar = MenuBar();
         MenuItem file = MenuItem("File");
             SubMenuItem addConfig = SubMenuItem("New Configuration", Kiwi::AddConfig);
                 file.AddSubmenuItem(addConfig);
 
-            SubMenuItem openConfig = SubMenuItem("Open Config", Kiwi::OpenConfig);
+            SubMenuItem openConfig = SubMenuItem("Open Configuration", Kiwi::OpenConfig);
                 file.AddSubmenuItem(openConfig);
 
-            SubMenuItem saveConfig = SubMenuItem("SaveConfig", Kiwi::SaveConfig);
+            SubMenuItem saveConfig = SubMenuItem("Save Configuration", Kiwi::SaveConfig);
                 file.AddSubmenuItem(saveConfig);
 
             SubMenuItem quit = SubMenuItem("Quit", gtk_main_quit);
@@ -106,17 +87,6 @@ void CreateMenuBar() {
 }
 
 void OpenNewCamera() {
-    std::cout << "open camera" << std::endl;
-    std::cout.flush();
-
-    std::string indexString = CameraIndex.GetText();
-    
-    try {
-        int newIndex = std::stoi(indexString);
-        cam.SetIndex(newIndex);
-    } catch(...) {
-        CameraIndex.SetText(std::to_string(cam.GetIndex()));
-    }
     
 }
 
@@ -124,53 +94,47 @@ void OpenNewCamera() {
  * KIWILIGHT MAIN ENTRY POINT!!! 
  * KiwiLight will enter, create a UI, and start the main loop in this method.
  */
-int main() {
+int main(int argc, char *argv[]) {
     //lets make ourselves a ui
-    gtk_init(NULL, NULL);
+
+    std::cout << "m1" << std::endl;
+
+    gtk_init(&argc, &argv);
 
     cam = Camera(0);
 
-    win = Window();
+    std::cout << "m2" << std::endl;
+
+    Window win = Window();
+        win.SetSize(300,200);
         content = Panel(false, 5);
             CreateMenuBar();
-            dataPanel = Panel(true, 5);
-                configFrame = Frame("Config");
-                    dataPanel.Pack_start(configFrame.GetWidget(), true, false, 0);
-                
-                cameraFrame = Frame("Camera");
-                    cameraPanel = Panel(false, 0);
-                        cameraLabelPanel = Panel(true, 0);
-                            cameraLabel = Label("Camera Device ");
-                                cameraLabel.SetFont("Monospace");
-                                cameraLabel.SetFontSize(16.0);
-                                cameraLabelPanel.Pack_start(cameraLabel.GetWidget(), true, false, 0);
+            ConfigPanel conf = ConfigPanel();
+                content.Pack_start(conf.GetWidget(), true, true, 0);
 
-                            CameraIndex = TextBox("0");
-                                cameraLabelPanel.Pack_start(CameraIndex.GetWidget(), true, false, 0);
+                cv::Mat cvImg;
+                cvImg = cv::imread("runner/dual.png");
+                Image img = Image(cvImg);
+                ImageFrame imgFrame = ImageFrame(img);
+                    content.Pack_start(imgFrame.GetWidget(), true, false, 0);
 
-                            ApplyCameraIndex = Button("Open", OpenNewCamera);
-                                cameraLabelPanel.Pack_start(ApplyCameraIndex.GetWidget(), true, false, 0);
-                            
-                            cameraPanel.Pack_start(cameraLabelPanel.GetWidget(), true, false, 0);
+                Panel buttonPanel = Panel(true, 0);
+                    Button runButton = Button("Run", Kiwi::RunSelected);
+                        buttonPanel.Pack_start(runButton.GetWidget(), true, true, 0);
 
-                        cameraStatus = Label("");
-                            cameraStatus.SetFont("Monospace");
-                            cameraStatus.SetFontSize(11.0);
-                            cameraPanel.Pack_start(cameraStatus.GetWidget(), true, false, 0);
+                    Button editButton = Button("Edit", Kiwi::EditSelected);
+                        buttonPanel.Pack_start(editButton.GetWidget(), true, true, 0);
 
-                        settings = Settings(0);
-                            cameraPanel.Pack_start(settings.GetWidget(), true, false, 0);
-                        
-                        cameraFrame.Pack(cameraPanel.GetWidget());
-                    dataPanel.Pack_start(cameraFrame.GetWidget(), true, false, 0);
-
-                content.Pack_start(dataPanel.GetWidget(), true, false, 0);
-
+                    content.Pack_start(buttonPanel.GetWidget(), true, false, 0);
+                    
         win.SetPane(content);
-    
+
     //set events and show Window
     win.SetInterval(25, Update);
     win.Show();
+
+    std::cout << "m3" << std::endl;
+
     win.Main();
 
     return 0;

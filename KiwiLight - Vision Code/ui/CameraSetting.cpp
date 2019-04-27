@@ -44,19 +44,11 @@ CameraSetting::CameraSetting(std::string name, int min, int max, int value) {
 
     std::string nameString = this->name + " (" + boundString + ")";
 
-    Panel main = Panel(false, 0);
-        Panel nameAndInput = Panel(true, 5);
-            this->nameLabel = Label(nameString);
-                nameAndInput.Pack_start(nameLabel.GetWidget(), true, false, 0);
-
-            AlignmentContainer align = AlignmentContainer(1, 0);
-                this->input = TextBox(std::to_string(this->value));
-                    this->input.SetAlignment(1);
-                    align.Pack(this->input.GetWidget());
-
-                nameAndInput.Pack_start(align.GetWidget(), true ,true, 0);
-
-            main.Pack_start(nameAndInput.GetWidget(), true, false, 0);
+    Panel main = Panel(true, 0);
+        this->nameLabel = Label(nameString);
+            main.Pack_start(nameLabel.GetWidget(), true, true, 0);
+        this->input = NumberBox(min, max, value);
+            main.Pack_start(this->input.GetWidget(), true, true, 0);
 
     this->camerasetting = main.GetWidget();
 }
@@ -65,16 +57,7 @@ CameraSetting::CameraSetting(std::string name, int min, int max, int value) {
  * Gets and returns the value of the widget.
  */
 int CameraSetting::GetValue() {
-    std::string val = this->input.GetText();
-
-    //convert to int and return
-    try {
-        return std::stoi(val);
-    } catch(...) {
-        std::cout << "A A A A A A A A A" << std::endl;
-        std::cout.flush();
-        return this->value;
-    }
+    return (int) this->input.GetValue();
 }
 
 /**
@@ -82,6 +65,6 @@ int CameraSetting::GetValue() {
  */
 void CameraSetting::SetValue(int newValue) {
     this->value = newValue;
-    this->input.SetText(std::to_string(newValue));
+    this->input.SetValue((double) value);
 }
 
