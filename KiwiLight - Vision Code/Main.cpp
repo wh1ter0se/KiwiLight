@@ -26,7 +26,7 @@ Panel content;
 
 // MenuBar menubar;
 
-Camera cam;
+VideoCapture camera;
 
 ImageFrame imgFrame;
 
@@ -34,11 +34,18 @@ ImageFrame imgFrame;
  * Runs through a checklist and updates UI objects, utilities, etc.
  */
 void Update() {
-    std::cout << "1" << std::endl;
-    cv::Mat newImg = cam.GetImage();
-    Image imgForFrame = Image(newImg);
-    imgFrame.Update(imgForFrame);
-    std::cout << "2" << std::endl;
+    cv::Mat newImg;
+    bool success = camera.read(newImg);
+    if(success) {
+        //NOTE: Image MUST be converted to 32f before converting to rgb.
+        //      Not doing this step may result in a segmentation fault when displaying image.
+        newImg.convertTo(newImg, CV_32F);
+        cvtColor(newImg, newImg, COLOR_BGR2RGB);
+        newImg.convertTo(newImg, CV_8U);
+
+        Image imgForFrame = Image(newImg);
+        imgFrame.Update(imgForFrame);
+    }
 }
 
 /**
@@ -96,14 +103,9 @@ void OpenNewCamera() {
  */
 int main(int argc, char *argv[]) {
     //lets make ourselves a ui
-
-    std::cout << "m1" << std::endl;
-
     gtk_init(&argc, &argv);
 
-    cam = Camera(0);
-
-    std::cout << "m2" << std::endl;
+    camera = VideoCapture(0);
 
     Window win = Window();
         win.SetSize(300,200);
@@ -112,12 +114,18 @@ int main(int argc, char *argv[]) {
             ConfigPanel conf = ConfigPanel();
                 content.Pack_start(conf.GetWidget(), true, true, 0);
 
-                cv::Mat cvImg;
-                cvImg = cv::imread("runner/dual.png");
+                Mat cvImg;
+                camera.read(cvImg);
+
+                cvImg.convertTo(cvImg, CV_32F);
+                cvtColor(cvImg, cvImg, COLOR_BGR2RGB);
+                cvImg.convertTo(cvImg, CV_8U);
+
                 Image img = Image(cvImg);
-                ImageFrame imgFrame = ImageFrame(img);
+                imgFrame = ImageFrame(img);
                     content.Pack_start(imgFrame.GetWidget(), true, false, 0);
 
+                //make the panel containing the buttons
                 Panel buttonPanel = Panel(true, 0);
                     Button runButton = Button("Run", Kiwi::RunSelected);
                         buttonPanel.Pack_start(runButton.GetWidget(), true, true, 0);
@@ -130,10 +138,8 @@ int main(int argc, char *argv[]) {
         win.SetPane(content);
 
     //set events and show Window
-    win.SetInterval(25, Update);
+    win.SetInterval(75, Update);
     win.Show();
-
-    std::cout << "m3" << std::endl;
 
     win.Main();
 

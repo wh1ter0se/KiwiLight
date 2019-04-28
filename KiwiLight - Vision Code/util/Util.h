@@ -177,13 +177,13 @@ namespace KiwiLight {
         Camera() {};
         Camera(int index);
         cv::Mat GetImage();
-        void Update();
+        // void Update();
         void SetIndex(int index);
         void SetWidth(int width);
         void SetHeight(int height);
         int GetIndex() { return this->index; };
         bool isOpen() { return this->stream.isOpened() && this->streamingSuccessful; };
-        bool QueryPropertySupported(int propid);
+        // bool QueryPropertySupported(int propid);
 
         private:
         void Close();

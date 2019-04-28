@@ -45,7 +45,7 @@ bin/NumberBox.o: ui/NumberBox.cpp
 	$(CXX) -c -o bin/NumberBox.o ui/NumberBox.cpp $(GTK)
 
 bin/Image.o: ui/Image.cpp
-	$(CXX) -c -o bin/Image.o ui/Image.cpp $(GTK)
+	$(CXX) -c -o bin/Image.o ui/Image.cpp $(GTK) $(CV)
 
 bin/ImageFrame.o: ui/ImageFrame.cpp
 	$(CXX) -c -o bin/ImageFrame.o ui/ImageFrame.cpp $(GTK) $(CV)

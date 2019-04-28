@@ -247,6 +247,7 @@ namespace KiwiLight {
 
         private:
         GtkWidget *imgFrame;
+        GtkImage *realImg;
     };
 
     /**

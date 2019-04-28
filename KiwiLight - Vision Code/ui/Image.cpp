@@ -14,7 +14,6 @@ Image::Image(std::string fileName) {
 
 
 Image::Image(cv::Mat img) {
-    std::cout << "empty: " << img.empty() << std::endl;
     uchar *imgData = img.data;
     gboolean hasAlpha = FALSE;
     int imgWidth = img.cols;
@@ -32,4 +31,5 @@ Image::Image(cv::Mat img) {
                                          img.step,
                                          NULL,
                                          NULL);
+
 }

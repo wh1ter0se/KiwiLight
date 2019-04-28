@@ -13,7 +13,6 @@ using namespace KiwiLight;
  * Creates a new Camera using the device at the given index.
  */
 Camera::Camera(int index) {
-    std::cout << "c1" << std::endl;
     std::cout.flush();
     this->stream = cv::VideoCapture(index);
     this->index = index;
@@ -22,7 +21,6 @@ Camera::Camera(int index) {
     this->frameWidth = 600;
     this->frameHeight = 400;
     this->iteration = 0;
-    std::cout << "c2" << std::endl;
     std::cout.flush();
 
 }
@@ -31,49 +29,53 @@ Camera::Camera(int index) {
 cv::Mat Camera::GetImage() {
     cv::Mat img;
     bool success = this->stream.read(img);
+    if(!success) {
+        std::cout << "stream did oopsie" << std::endl;
+        std::cout.flush();
+    }
     return img;
 }
 
-/**
- * Updates the video stream shown on the screen. 
- */
-void Camera::Update() {
-    if(opened) {
-        if(this->stream.isOpened()) {
-            cv::Mat img;
-            bool success = stream.read(img);
-            if(success) {
-                // //show image in window on screen
-                // std::string winName = "Camera Device " + std::to_string(index);
-                // cv::imshow(winName.c_str(), img);
-                // cv::waitKey(5);
+// /**
+//  * Updates the video stream shown on the screen. 
+//  */
+// void Camera::Update() {
+//     if(opened) {
+//         if(this->stream.isOpened()) {
+//             cv::Mat img;
+//             bool success = stream.read(img);
+//             if(success) {
+//                 // //show image in window on screen
+//                 // std::string winName = "Camera Device " + std::to_string(index);
+//                 // cv::imshow(winName.c_str(), img);
+//                 // cv::waitKey(5);
 
-                streamingSuccessful = true;
-            }
-        } else {
-            streamingSuccessful = false;
-            if(iteration >= 10) {
-                Close();
-                Open();
-                iteration = 0;
-            } else {
-                iteration++;
-            }
-        } 
-    }
+//                 streamingSuccessful = true;
+//             }
+//         } else {
+//             streamingSuccessful = false;
+//             if(iteration >= 10) {
+//                 Close();
+//                 Open();
+//                 iteration = 0;
+//             } else {
+//                 iteration++;
+//             }
+//         } 
+//     }
 
-    if(Flags::GetFlag("CloseCamera")) {
-        Flags::LowerFlag("CloseCamera");
-        Close();
-        Flags::RaiseFlag("CamClosed");
-    }
+//     if(Flags::GetFlag("CloseCamera")) {
+//         Flags::LowerFlag("CloseCamera");
+//         Close();
+//         Flags::RaiseFlag("CamClosed");
+//     }
 
-    if(Flags::GetFlag("StartCamera")) {
-        Flags::LowerFlag("StartCamera");
-        Open();
-        Flags::RaiseFlag("CamOpened");
-    }
-}
+//     if(Flags::GetFlag("StartCamera")) {
+//         Flags::LowerFlag("StartCamera");
+//         Open();
+//         Flags::RaiseFlag("CamOpened");
+//     }
+// }
 
 /**
  * Closes the current camera, and opens the one on the given index.
@@ -81,7 +83,7 @@ void Camera::Update() {
 void Camera::SetIndex(int index) {
     this->opened = false;
     this->stream.release();
-    cv::destroyAllWindows();
+    // cv::destroyAllWindows();
 
     this->index = index;
     this->stream = cv::VideoCapture(index);
