@@ -20,13 +20,12 @@
 
 using namespace KiwiLight;
 
-// Window win;
-
 Panel content;
 
-// MenuBar menubar;
+NumberBox cameraIndex;
 
-VideoCapture camera;
+// Camera cam(0);
+VideoCapture cam(0);
 
 ImageFrame imgFrame;
 
@@ -34,18 +33,16 @@ ImageFrame imgFrame;
  * Runs through a checklist and updates UI objects, utilities, etc.
  */
 void Update() {
-    cv::Mat newImg;
-    bool success = camera.read(newImg);
-    if(success) {
-        //NOTE: Image MUST be converted to 32f before converting to rgb.
-        //      Not doing this step may result in a segmentation fault when displaying image.
-        newImg.convertTo(newImg, CV_32F);
-        cvtColor(newImg, newImg, COLOR_BGR2RGB);
-        newImg.convertTo(newImg, CV_8U);
+    cv::Mat img;
+    cam.read(img);
 
-        Image imgForFrame = Image(newImg);
-        imgFrame.Update(imgForFrame);
-    }
+    //convert the image to RGB (convert to 32f MUST be done)
+    //if 32f is not done, segfault is possible when displaying in GTK
+    img.convertTo(img, CV_32F);
+    cvtColor(img, img, COLOR_BGR2RGB);
+    img.convertTo(img, CV_8U);
+    Image forFrame = Image(img);
+    imgFrame.Update(forFrame);
 }
 
 /**
@@ -102,45 +99,60 @@ void OpenNewCamera() {
  * KiwiLight will enter, create a UI, and start the main loop in this method.
  */
 int main(int argc, char *argv[]) {
+    std::cout << "m1" << std::endl;
     //lets make ourselves a ui
     gtk_init(&argc, &argv);
-
-    camera = VideoCapture(0);
 
     Window win = Window();
         win.SetSize(300,200);
         content = Panel(false, 5);
             CreateMenuBar();
-            ConfigPanel conf = ConfigPanel();
-                content.Pack_start(conf.GetWidget(), true, true, 0);
+            
+            Panel header = Panel(true, 0);
 
-                Mat cvImg;
-                camera.read(cvImg);
+                Image banner = Image("banner_small.png");
+                ImageFrame logo = ImageFrame(banner);
+                    header.Pack_start(logo.GetWidget(), true, false, 0);
+                
+                Separator logoSep = Separator(false);
+                    header.Pack_start(logoSep.GetWidget(), true, false, 5);
+                
+                Label cameraLabel = Label("Camera: ");
+                    header.Pack_start(cameraLabel.GetWidget(), true, false, 0);
+                
+                cameraIndex = NumberBox(0, 100, 0);
+                    header.Pack_start(cameraIndex.GetWidget(), true, false, 0);
 
-                cvImg.convertTo(cvImg, CV_32F);
-                cvtColor(cvImg, cvImg, COLOR_BGR2RGB);
-                cvImg.convertTo(cvImg, CV_8U);
+                Button openCamButton = Button("Open", OpenNewCamera);
+                    header.Pack_start(openCamButton.GetWidget(), true, false, 0);
 
-                Image img = Image(cvImg);
-                imgFrame = ImageFrame(img);
-                    content.Pack_start(imgFrame.GetWidget(), true, false, 0);
+                content.Pack_start(header.GetWidget(), true, false, 0);
 
-                //make the panel containing the buttons
-                Panel buttonPanel = Panel(true, 0);
-                    Button runButton = Button("Run", Kiwi::RunSelected);
-                        buttonPanel.Pack_start(runButton.GetWidget(), true, true, 0);
+            Panel body = Panel(true, 0);
+                ConfigPanel configPanel = ConfigPanel();
+                    body.Pack_start(configPanel.GetWidget(), true, true, 0);
 
-                    Button editButton = Button("Edit", Kiwi::EditSelected);
-                        buttonPanel.Pack_start(editButton.GetWidget(), true, true, 0);
+                Panel imagePanel = Panel(false, 0);
+                    //inital image for the stream
+                    cv::Mat img;
+                    cam.read(img);
+                    img.convertTo(img, CV_32F);
+                    cvtColor(img, img, COLOR_BGR2RGB);
+                    img.convertTo(img, CV_8U);
+                    Image initalImage = Image(img);
+                    imgFrame = ImageFrame(initalImage);
+                        imagePanel.Pack_start(imgFrame.GetWidget(), true, false, 0);
 
-                    content.Pack_start(buttonPanel.GetWidget(), true, false, 0);
+                    body.Pack_start(imagePanel.GetWidget(), true, false, 0);
+
+                content.Pack_start(body.GetWidget(), true, false, 0);
                     
         win.SetPane(content);
 
     //set events and show Window
     win.SetInterval(75, Update);
     win.Show();
-
+    std::cout << "m2" << std::endl;
     win.Main();
 
     return 0;

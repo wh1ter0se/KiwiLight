@@ -57,7 +57,7 @@ void Runner::Loop() {
     while(!stop) {
         cv::Mat img;
         if(RunnerSettings::USE_CAMERA) {
-            img = cam.GetImage();
+            img = cam.GetImageMat();
         } else {
             img = cv::imread("runner/dual.png");
         }

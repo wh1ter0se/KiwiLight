@@ -1,4 +1,5 @@
-#include "UI.h"
+#include "Util.h"
+#include "gtk-3.0/gtk/gtk.h"
 
 /**
  * Source file for the Image class.

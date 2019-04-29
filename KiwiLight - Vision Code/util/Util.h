@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <fstream>
+#include "gtk-3.0/gtk/gtk.h"
 #include "opencv2/opencv.hpp"
 #include "netdb.h"
 #include "unistd.h"
@@ -170,13 +171,27 @@ namespace KiwiLight {
     };
 
     /**
+     * Represents an image which can be displayed in an ImageFrame
+     */
+    class Image {
+        public:
+        Image(std::string fileName);
+        Image(cv::Mat img);
+        GdkPixbuf *ReturnImage() { return this->img; };
+
+        private:
+        GdkPixbuf *img;
+    };
+
+    /**
      * Represents a USB camera or built in webcam.
      */
     class Camera {
         public:
         Camera() {};
         Camera(int index);
-        cv::Mat GetImage();
+        cv::Mat GetImageMat();
+        Image GetImage();
         // void Update();
         void SetIndex(int index);
         void SetWidth(int width);

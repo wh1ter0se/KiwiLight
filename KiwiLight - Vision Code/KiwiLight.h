@@ -30,8 +30,13 @@ namespace KiwiLight {
         private:
         Panel panel;
         Panel buttonPanel;
-        Label header;
-        Label description;
+        Label header,
+              fileLabel,
+              PreProcessorLabel,
+              PostProcessorLabel,
+              TargetLabel,
+              UDPAddressLabel,
+              UDPPortLabel;
         Button runConfig;
         Button editConfig;
         Button loadConfig;

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <string.h>
+#include "../util/Util.h"
 #include "gtk-3.0/gtk/gtk.h"
 #include "opencv2/opencv.hpp"
 
@@ -223,24 +224,11 @@ namespace KiwiLight {
     };
 
     /**
-     * Represents an image which can be displayed in an ImageFrame
-     */
-    class Image {
-        public:
-        Image(std::string fileName);
-        Image(cv::Mat img);
-        GdkPixbuf *ReturnImage() { return this->img; };
-
-        private:
-        GdkPixbuf *img;
-    };
-
-    /**
      * An image frame which can display images.
      */
     class ImageFrame: public Widget {
         public:
-        ImageFrame() {};
+        ImageFrame();
         ImageFrame(Image img);
         void Update(Image img);
         GtkWidget *GetWidget() { return this->imgFrame; };

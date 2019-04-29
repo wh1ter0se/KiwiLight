@@ -26,7 +26,7 @@ Camera::Camera(int index) {
 }
 
 
-cv::Mat Camera::GetImage() {
+cv::Mat Camera::GetImageMat() {
     cv::Mat img;
     bool success = this->stream.read(img);
     if(!success) {
@@ -34,6 +34,17 @@ cv::Mat Camera::GetImage() {
         std::cout.flush();
     }
     return img;
+}
+
+Image Camera::GetImage() {
+    cv::Mat img = this->GetImageMat();
+
+    //convert the image to RGB (convert to 32f MUST be done)
+    //if 32f is not done, segfault is possible when displaying in GTK
+    img.convertTo(img, CV_32F);
+    cvtColor(img, img, COLOR_BGR2RGB);
+    img.convertTo(img, CV_8U);
+    return Image(img);
 }
 
 // /**
