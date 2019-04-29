@@ -26,3 +26,8 @@ ImageFrame::ImageFrame(Image img) {
 void ImageFrame::Update(Image img) {
     gtk_image_set_from_pixbuf(GTK_IMAGE(this->imgFrame), img.ReturnImage());
 }
+
+
+void ImageFrame::SetName(std::string name) {
+    gtk_widget_set_name(this->imgFrame, name.c_str());
+}

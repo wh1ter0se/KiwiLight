@@ -21,3 +21,8 @@ MenuBar::MenuBar() {
 void MenuBar::AddItem(MenuItem item) {
     gtk_menu_shell_append(GTK_MENU_SHELL(this->menubar), item.GetWidget());
 }
+
+
+void MenuBar::SetName(std::string name) {
+    gtk_widget_set_name(this->menubar, name.c_str());
+}

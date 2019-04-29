@@ -24,3 +24,8 @@ void NumberBox::SetValue(double value) {
 double NumberBox::GetValue() {
     return gtk_spin_button_get_value(GTK_SPIN_BUTTON(this->numberBox));
 }
+
+
+void NumberBox::SetName(std::string name) {
+    gtk_widget_set_name(this->numberBox, name.c_str());
+}

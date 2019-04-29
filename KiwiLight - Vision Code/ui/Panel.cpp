@@ -32,3 +32,8 @@ void Panel::Pack_start(GtkWidget *widget, bool expand, bool fill, int pad) {
 void Panel::Pack_end(GtkWidget *widget, bool expand, bool fill, int pad) {
     gtk_box_pack_end(GTK_BOX(this->panel), widget, gboolean(expand), gboolean(fill), pad);
 }
+
+
+void Panel::SetName(std::string name) {
+    gtk_widget_set_name(this->panel, name.c_str());
+}

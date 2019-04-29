@@ -4,9 +4,51 @@
  * Written By: Brach Knutson
  */
 
-window * {
-    background-color: rgb(25, 25, 25);
+window, window * {
+    background-color: rgb(24, 24, 24);
     color: rgb(52, 117, 22);
+}
+
+menubar,
+menubar * {
+    background-color: rgb(50, 50, 50);
+}
+
+menubar label {
+    background-color:transparent;
+    color:white;
+}
+
+button,
+button * {
+    background-color:black;
+    border-radius: 0px;
+    border-style:solid;
+    border-width:5px;
+    border-color:black;
+    padding:0px;
+}
+
+button:hover, button:hover * {
+    transition: 150ms ease-out;
+    background-color:rgb(39, 39, 39);
+}
+
+button:active, button:active * {
+    transition: 150ms ease-out;
+    background-color:rgb(17, 53, 3);
+}
+
+button:disabled {
+    color:rgb(7, 22, 1);
+}
+
+#mainHeader {
+    background-color:rgb(40, 40, 40);
+}
+
+#mainHeader > label {
+    background-color:transparent;
 }
 
 #white {
@@ -15,5 +57,5 @@ window * {
 
 #header {
     color:rgb(175, 175, 175);
-    font-size:16px;
+    font-size:30px;
 }

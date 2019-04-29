@@ -29,3 +29,8 @@ void CheckBox::SetState(bool checked) {
 bool CheckBox::GetState() {
     return gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(this->checkbox));
 }
+
+
+void CheckBox::SetName(std::string name) {
+    gtk_widget_set_name(this->checkbox, name.c_str());
+}

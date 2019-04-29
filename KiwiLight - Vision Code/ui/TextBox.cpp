@@ -36,3 +36,8 @@ void TextBox::SetAlignment(double align) {
 std::string TextBox::GetText() {
     return gtk_entry_get_text(GTK_ENTRY(this->textbox));
 }
+
+
+void TextBox::SetName(std::string name) {
+    gtk_widget_set_name(this->textbox, name.c_str());
+}

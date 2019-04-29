@@ -22,3 +22,8 @@ Frame::Frame(std::string label) {
 void Frame::Pack(GtkWidget *widget) {
     gtk_container_add(GTK_CONTAINER(this->frame), widget);
 }
+
+
+void Frame::SetName(std::string name) {
+    gtk_widget_set_name(this->frame, name.c_str());
+}

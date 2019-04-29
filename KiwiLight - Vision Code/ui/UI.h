@@ -23,6 +23,7 @@ namespace KiwiLight {
     class Widget {
         public:
         virtual GtkWidget *GetWidget() = 0;
+        virtual void SetName(std::string name) = 0;
     };
 
     /**
@@ -36,6 +37,7 @@ namespace KiwiLight {
         void Pack_end(GtkWidget *widget, bool expand, bool fill, int pad);
         void Show() { gtk_widget_show_all(this->panel); };
         GtkWidget *GetWidget() { return panel; };
+        void SetName(std::string name);
 
         private:
         GtkWidget *panel;
@@ -48,6 +50,7 @@ namespace KiwiLight {
         Frame(std::string label);
         void Pack(GtkWidget *widget);
         GtkWidget *GetWidget() { return this->frame; };
+        void SetName(std::string name);
 
         private:
         GtkWidget *frame;
@@ -65,7 +68,9 @@ namespace KiwiLight {
         int SetInterval(int interval, void(*method)());
         void RemoveInterval(int id);
         void Main() { gtk_main(); };
+        void SetCSS(std::string fileName);
         GtkWidget *GetWidget() { return this->window; };
+        void SetName(std::string name);
         
         private:
         GtkWidget *window;
@@ -84,7 +89,12 @@ namespace KiwiLight {
         std::string GetText() { return text; };
         void SetName(std::string name);
         void SetLineWrap(bool enabled);
+        void SetJustify(int justify);
         GtkWidget *GetWidget() { return this->label; };
+
+        static const int JUSTIFY_LEFT = 0,
+                          JUSTIFY_RIGHT = 1,
+                          JUSTIFY_CENTER = 2;
 
         private:
         std::string text;
@@ -104,6 +114,7 @@ namespace KiwiLight {
         void SetAlignment(double align);
         std::string GetText();
         GtkWidget *GetWidget() { return this->textbox; };
+        void SetName(std::string name);
 
         private:
         GtkWidget *textbox;
@@ -117,6 +128,7 @@ namespace KiwiLight {
         void SetValue(double value);
         double GetValue();
         GtkWidget *GetWidget() { return this->numberBox; };
+        void SetName(std::string name);
 
         private:
         double min,
@@ -135,6 +147,7 @@ namespace KiwiLight {
         void SetState(bool checked);
         bool GetState();
         GtkWidget *GetWidget() { return this->checkbox; };
+        void SetName(std::string name);
 
         private:
         GtkWidget *checkbox;
@@ -150,6 +163,7 @@ namespace KiwiLight {
         void SetValue(double value);
         double GetValue();
         GtkWidget *GetWidget() { return this->slider; };
+        void SetName(std::string name);
 
         private:
         GtkWidget *slider;
@@ -162,6 +176,7 @@ namespace KiwiLight {
         public:
         Separator(bool horizontal);
         GtkWidget *GetWidget() { return this->separator; };
+        void SetName(std::string name);
 
         private:
         GtkWidget *separator;
@@ -178,6 +193,7 @@ namespace KiwiLight {
         std::string GetText() { return text; };
         void SetCallback( void(*callback)() );
         GtkWidget *GetWidget() { return this->button; };
+        void SetName(std::string name);
 
         private:
         std::string text;
@@ -191,6 +207,7 @@ namespace KiwiLight {
         public:
         SubMenuItem(std::string name, void(*callback)());
         GtkWidget *GetWidget() { return this->submenuitem; };
+        void SetName(std::string name);
 
         private:
         GtkWidget *submenuitem;
@@ -204,6 +221,7 @@ namespace KiwiLight {
         MenuItem(std::string name);
         void AddSubmenuItem(SubMenuItem item);
         GtkWidget *GetWidget() { return this->menuitem; };
+        void SetName(std::string name);
 
         private:
         GtkWidget *menuitem;
@@ -218,6 +236,7 @@ namespace KiwiLight {
         MenuBar();
         void AddItem(MenuItem item);
         GtkWidget *GetWidget() { return this->menubar; };
+        void SetName(std::string name);
 
         private:
         GtkWidget *menubar;
@@ -232,6 +251,7 @@ namespace KiwiLight {
         ImageFrame(Image img);
         void Update(Image img);
         GtkWidget *GetWidget() { return this->imgFrame; };
+        void SetName(std::string name);
 
         private:
         GtkWidget *imgFrame;
@@ -250,6 +270,7 @@ namespace KiwiLight {
         void Destroy();
         std::string GetName() { return name; };
         GtkWidget *GetWidget() { return this->camerasetting; };
+        void SetName(std::string name);
 
         private:
         GtkWidget *camerasetting;
@@ -258,7 +279,7 @@ namespace KiwiLight {
         NumberBox input;
 
         std::string name,
-               type;
+                    type;
 
         int min, 
             max,

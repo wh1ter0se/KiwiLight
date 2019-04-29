@@ -17,3 +17,8 @@ Separator::Separator(bool horizontal) {
     else
         this->separator = gtk_separator_new(GTK_ORIENTATION_VERTICAL);
 }
+
+
+void Separator::SetName(std::string name) {
+    gtk_widget_set_name(this->separator, name.c_str());
+}

@@ -68,3 +68,7 @@ void CameraSetting::SetValue(int newValue) {
     this->input.SetValue((double) value);
 }
 
+
+void CameraSetting::SetName(std::string name) {
+    gtk_widget_set_name(this->camerasetting, name.c_str());
+}

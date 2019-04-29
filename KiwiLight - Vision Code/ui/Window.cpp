@@ -68,7 +68,21 @@ void Window::Show() {
 }
 
 
+void Window::SetCSS(std::string fileName) {
+    GtkCssProvider *css = gtk_css_provider_new();
+    GdkDisplay *disp = gdk_display_get_default();
+    GdkScreen *screen = gdk_screen_get_default();
+    gtk_css_provider_load_from_path(css, fileName.c_str(), NULL);
+    gtk_style_context_add_provider_for_screen(screen, GTK_STYLE_PROVIDER(css), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION); 
+}
+
+
 gboolean Window::timeoutCallMethod() {
     timeoutMethod();
     return TRUE;
+}
+
+
+void Window::SetName(std::string name) {
+    gtk_widget_set_name(this->window, name.c_str());
 }

@@ -26,3 +26,8 @@ void Button::SetText(std::string text) {
 void Button::SetCallback( void(*callback)() ) {
     
 }
+
+
+void Button::SetName(std::string name) {
+    gtk_widget_set_name(this->button, name.c_str());
+}

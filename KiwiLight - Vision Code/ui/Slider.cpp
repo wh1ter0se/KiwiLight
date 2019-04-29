@@ -22,3 +22,8 @@ void Slider::SetValue(double value) {
 double Slider::GetValue() {
     return gtk_range_get_value(GTK_RANGE(this->slider));
 }
+
+
+void Slider::SetName(std::string name) {
+    gtk_widget_set_name(this->slider, name.c_str());
+}

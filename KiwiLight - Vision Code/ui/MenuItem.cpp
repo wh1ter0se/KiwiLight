@@ -20,3 +20,8 @@ MenuItem::MenuItem(std::string name) {
 void MenuItem::AddSubmenuItem(SubMenuItem item) {
     gtk_menu_shell_append(GTK_MENU_SHELL(this->menu), item.GetWidget());
 }
+
+
+void MenuItem::SetName(std::string name) {
+    gtk_widget_set_name(this->menu, name.c_str());
+}

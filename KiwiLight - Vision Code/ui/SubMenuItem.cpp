@@ -15,3 +15,7 @@ SubMenuItem::SubMenuItem(std::string name, void(* callback)()) {
     this->submenuitem = gtk_menu_item_new_with_label(name.c_str());
     g_signal_connect(this->submenuitem, "activate", G_CALLBACK(callback), NULL); // connect the callback to the menu item.
 }
+
+void SubMenuItem::SetName(std::string name) {
+    gtk_widget_set_name(this->submenuitem, name.c_str());
+}

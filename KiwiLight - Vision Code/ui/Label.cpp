@@ -32,3 +32,21 @@ void Label::SetName(std::string name) {
 void Label::SetLineWrap(bool enabled) {
     gtk_label_set_line_wrap(GTK_LABEL(this->label), enabled);
 }
+
+void Label::SetJustify(int justify) {
+    GtkJustification justification;
+    switch(justify) {
+        case 0:
+        justification = GTK_JUSTIFY_LEFT;
+        break;
+
+        case 1:
+        justification = GTK_JUSTIFY_RIGHT;
+        break;
+
+        default:
+        justification = GTK_JUSTIFY_CENTER;
+    }
+
+    gtk_label_set_justify(GTK_LABEL(this->label), justification);
+}

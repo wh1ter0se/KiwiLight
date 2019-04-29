@@ -26,9 +26,11 @@ namespace KiwiLight {
         ConfigPanel();
         void LoadConfig(std::string fileName);
         GtkWidget *GetWidget() { return this->configPanel; };
+        void SetName(std::string name);
 
         private:
         Panel panel;
+        Panel informationPanel;
         Panel buttonPanel;
         Label header,
               fileLabel,
