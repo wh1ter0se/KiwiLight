@@ -17,36 +17,171 @@
 /* disclosed and distribution is accompanied by the same license */
 /*---------------------------------------------------------------*/
 
-
+using namespace cv;
 using namespace KiwiLight;
 
 Panel content;
 
 NumberBox cameraIndex;
 
-// Camera cam(0);
+ConfigPanel configPanel;
+
+Label cameraStatusLabel;
+
 VideoCapture cam;
 
 ImageFrame imgFrame;
 
-bool displayingImage = false;
+Runner runner;
+
+bool displayingImage = false,
+     cameraOpen = true,
+     useRunner = false;
 
 /**
  * Runs through a checklist and updates UI objects, utilities, etc.
  */
 void Update() {
+    cv::Mat img;
+    bool success = true; //did the videocapture work correctly?
+
+    //to prevent interval overlap, do this if-statement thing
     if(!displayingImage) {
         displayingImage = true;
-        cv::Mat img;
-        cam.read(img);
-        img.convertTo(img, CV_16U);
-        cvtColor(img, img, COLOR_BGR2RGB);
-        img.convertTo(img, CV_8U);
-        Image forFrame = Image(img);
-        imgFrame.Update(forFrame);
+
+        if(useRunner) {
+            success = true;
+            runner.Iterate();
+            img = runner.GetOutputImage();
+        } else {
+            success = cam.read(img);
+        }
+
+        if(success) {
+            //convert image to 16 bit for bgr-rgb conversion. Not doing this step may result in segfault
+            img.convertTo(img, CV_16U);
+            cvtColor(img, img, COLOR_BGR2RGB);
+            img.convertTo(img, CV_8U);
+
+            //display image
+            Image forFrame = Image(img);
+            imgFrame.Update(forFrame);
+            cameraStatusLabel.SetText("");
+        } else {
+            cameraOpen = false;
+            cameraStatusLabel.SetText("Error Streaming Camera!!!");
+        }
+
         displayingImage = false;
     }
+}
 
+void OpenNewCamera() {
+    if(!useRunner) {
+        int newIndex = cameraIndex.GetValue();
+
+        cam.release();
+        cam.~VideoCapture();
+        cam = VideoCapture(newIndex);
+
+        //unfreeze the stream
+        displayingImage = false;
+    }
+}
+
+
+/**
+ * Opens a form for the user to create a new vision config.
+ */
+void AddConfig() {
+    std::cout << "new config" << std::endl;
+    std::cout.flush();
+}
+
+/**
+ * Saves the config currently in the editor.
+ */
+void SaveConfig() {
+    std::cout << "save config" << std::endl;
+    std::cout.flush();
+}
+
+/**
+ * Runs the selected config, or does nothing if nothing is selected.
+ */
+void RunSelected() {
+    std::cout << "run selected from MAIN" << std::endl;
+    std::cout.flush();
+}
+
+/**
+ * Sets up the config to start when the computer boots up
+ */
+void ConfStartConfigOnBoot() {
+    std::cout << "conf start on boot" << std::endl;
+    std::cout.flush();
+}
+
+/**
+ * Compiles the config and leaves it there.
+ */
+void CompileConfig() {
+    std::cout << "compile config" << std::endl;
+    std::cout.flush();
+}
+
+/**
+ * Opens a file menu to open a config.
+ */
+void OpenConfig() {
+    if(useRunner) {
+        runner.Stop();
+    }
+    cam.~VideoCapture();
+    FileChooser chooser = FileChooser(true);
+    std::string file = chooser.Show();
+    if(file != "") {
+        configPanel.LoadConfig(file);
+        runner = Runner(file, true);
+        useRunner = true;
+    }
+}
+
+/**
+ * Returns camera stream back to normal streaming, no extra processing.
+ */
+void StopUsingRunner() {
+    if(useRunner) {
+        useRunner = false;
+        runner.Stop();
+        cam = VideoCapture((int) cameraIndex.GetValue());
+        displayingImage = false;
+        std::cout.flush();
+    }
+}
+
+/**
+ * Edits the selected config, or does nothing if nothing is selected.
+ */
+void EditSelected() {
+    std::cout << "edit selected from MAIN" << std::endl;
+    std::cout.flush();
+}
+
+/**
+ * Shows the about menu and flexes about how Foximus Prime is a cool FRC team
+ */
+void ShowAbout() {
+    std::cout << "show about menu" << std::endl;
+    std::cout.flush();
+}
+
+/**
+ * directs you to the github repo where tutorials for the app are shown
+ */
+void HELPME() {
+    std::cout << "HELP" << std::endl;
+    std::cout.flush();
 }
 
 /**
@@ -57,14 +192,18 @@ void CreateMenuBar() {
     MenuBar menubar = MenuBar();
         menubar.SetName("hover_gray");
         MenuItem file = MenuItem("File");
-            SubMenuItem addConfig = SubMenuItem("New Configuration", Kiwi::AddConfig);
+            SubMenuItem addConfig = SubMenuItem("New Configuration", AddConfig);
                 file.AddSubmenuItem(addConfig);
 
-            SubMenuItem openConfig = SubMenuItem("Open Configuration", Kiwi::OpenConfig);
+            SubMenuItem openConfig = SubMenuItem("Open Configuration", OpenConfig);
                 file.AddSubmenuItem(openConfig);
 
-            SubMenuItem saveConfig = SubMenuItem("Save Configuration", Kiwi::SaveConfig);
+            SubMenuItem saveConfig = SubMenuItem("Save Configuration", SaveConfig);
                 file.AddSubmenuItem(saveConfig);
+
+            SubMenuItem stopConfig = SubMenuItem("Close Config", StopUsingRunner);
+                file.AddSubmenuItem(stopConfig);
+
 
             SubMenuItem quit = SubMenuItem("Quit", gtk_main_quit);
                 file.AddSubmenuItem(quit);
@@ -72,22 +211,22 @@ void CreateMenuBar() {
             menubar.AddItem(file);
 
         MenuItem config = MenuItem("Config");
-            SubMenuItem runConfig = SubMenuItem("Run Config", Kiwi::RunSelected);
+            SubMenuItem runConfig = SubMenuItem("Run Config", RunSelected);
                 config.AddSubmenuItem(runConfig);
 
-            SubMenuItem compConfig = SubMenuItem("Compile Config", Kiwi::CompileConfig);
+            SubMenuItem compConfig = SubMenuItem("Compile Config", CompileConfig);
                 config.AddSubmenuItem(compConfig);
 
-            SubMenuItem confBoot = SubMenuItem("Configure Start on Boot", Kiwi::ConfStartConfigOnBoot);
+            SubMenuItem confBoot = SubMenuItem("Configure Start on Boot", ConfStartConfigOnBoot);
                 config.AddSubmenuItem(confBoot);
 
             menubar.AddItem(config);
 
         MenuItem help = MenuItem("Help");
-            SubMenuItem about = SubMenuItem("About", Kiwi::ShowAbout);
+            SubMenuItem about = SubMenuItem("About", ShowAbout);
                 help.AddSubmenuItem(about);
 
-            SubMenuItem helpme = SubMenuItem("How the heck does this work?", Kiwi::HELPME);
+            SubMenuItem helpme = SubMenuItem("How the heck does this work?", HELPME);
                 help.AddSubmenuItem(helpme);
 
             menubar.AddItem(help);
@@ -95,9 +234,6 @@ void CreateMenuBar() {
     content.Pack_start(menubar.GetWidget(), false, false, 0);
 }
 
-void OpenNewCamera() {
-    
-}
 
 /**
  * KIWILIGHT MAIN ENTRY POINT!!! 
@@ -142,10 +278,13 @@ int main(int argc, char *argv[]) {
 
                     header.Pack_start(cameraIndexPanel.GetWidget(), false, false, 0);
 
+                    cameraStatusLabel = Label("");
+                        header.Pack_start(cameraStatusLabel.GetWidget(), false, false, 10);
+
                 content.Pack_start(header.GetWidget(), false, false, 0);
 
             Panel body = Panel(true, 0);
-                ConfigPanel configPanel = ConfigPanel();
+                configPanel = ConfigPanel("");
                     body.Pack_start(configPanel.GetWidget(), false, false, 0);
 
                 Panel imagePanel = Panel(false, 0);
@@ -162,7 +301,6 @@ int main(int argc, char *argv[]) {
                     body.Pack_start(imagePanel.GetWidget(), true, false, 0);
 
                 content.Pack_start(body.GetWidget(), true, false, 0);
-                    
         win.SetPane(content);
 
     //set events and show Window

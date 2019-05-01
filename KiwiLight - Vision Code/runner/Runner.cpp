@@ -15,135 +15,145 @@ Runner::Runner(std::string fileName, bool debugging) {
     XMLDocument file = XMLDocument(fileName);
     if(file.HasContents()) {
         this->parseDocument(file);
-
-        //use the information from XML file to init the UDP
-        std::string udpAddr = this->settings.GetSetting("UDPAddress");
-        int udpPort = std::stoi(this->settings.GetSetting("UDPPort"));
-        this->udp = UDP(udpAddr, udpPort);
-
-        //give some information to stdout about the config
-        std::cout << std::endl;
-        std::cout << "------------------------------------" << std::endl;
-        std::cout << "KiwiLight Runner starting..." << std::endl;
-        std::cout << "  Mode: " << (debugging? "Debug" : "Running") << std::endl;
-        std::cout << "  Configuration Name: " << this->settings.GetSetting("configName") << std::endl;
-        std::cout << "  Preprocessor: " << this->settings.GetSetting("PreprocessorType") << std::endl;
-        std::cout << "  Postprocessor: full" << std::endl;
-        std::cout << "    Number of Targets: " << this->postProcessorTargets.size() << std::endl;
-        std::cout << "  UDP Destination Address: " << this->settings.GetSetting("UDPAddress") << std::endl;
-        std::cout << "  UDP Port: " << this->settings.GetSetting("UDPPort") << std::endl;
-        std::cout << "------------------------------------" << std::endl;
-
-        std::cout << std::endl;
     } else {
         std::cout << "sorry! the file could not be found. " << std::endl;
-    }
+    }  
 
+    bool isFull = (this->settings.GetSetting("PreprocessorType") == "full");
+    int cameraIndex = std::stoi(this->settings.GetSetting("cameraIndex"));
+    this->preprocessor = PreProcessor(this->settings, isFull);
+    this->postprocessor = PostProcessor(this->postProcessorTargets);
+    this->cap = VideoCapture(cameraIndex);
     this->stop = false;
 }
 
 
 void Runner::Loop() {
-    int cameraIndex = std::stoi(this->settings.GetSetting("cameraIndex"));
-    Camera cam = Camera(cameraIndex);
+    //give some information to stdout about the config
+    std::cout << std::endl;
+    std::cout << "------------------------------------" << std::endl;
+    std::cout << "KiwiLight Runner starting..." << std::endl;
+    std::cout << "  Mode: " << (this->debug? "Debug" : "Running") << std::endl;
+    std::cout << "  Configuration Name: " << this->settings.GetSetting("configName") << std::endl;
+    std::cout << "  Preprocessor: " << this->settings.GetSetting("PreprocessorType") << std::endl;
+    std::cout << "  Postprocessor: full" << std::endl;
+    std::cout << "    Number of Targets: " << this->postProcessorTargets.size() << std::endl;
+    std::cout << "  UDP Destination Address: " << this->settings.GetSetting("UDPAddress") << std::endl;
+    std::cout << "  UDP Port: " << this->settings.GetSetting("UDPPort") << std::endl;
+    std::cout << "------------------------------------" << std::endl;
+    std::cout << std::endl;
 
-    //determine whether the preprocessor handles all image preprocessing or not
-    bool isFull = (this->settings.GetSetting("PreprocessorType") == "full");
+     //use the information from XML file to init the UDP
+    std::string udpAddr = this->settings.GetSetting("UDPAddress");
+    int udpPort = std::stoi(this->settings.GetSetting("UDPPort"));
+    UDP udp = UDP(udpAddr, udpPort);
 
-    //create preprocessor and then start!
-    PreProcessor preprocessor = PreProcessor(this->settings, isFull);
-    PostProcessor postprocessor = PostProcessor(this->postProcessorTargets);
     //loops a lot until stopped
     while(!stop) {
-        cv::Mat img;
-        if(RunnerSettings::USE_CAMERA) {
-            img = cam.GetImageMat();
-        } else {
-            img = cv::imread("runner/dual.png");
+        std::string rioString = Iterate();
+        udp.Send(rioString);
+    }
+}
+
+
+std::string Runner::Iterate() {
+    cv::Mat img;
+    if(RunnerSettings::USE_CAMERA) {
+        bool success = this->cap.read(img);
+        if(!success) {
+            //print out a message and exit the method call
+            std::cout << "CAMERA GRAB FAILED!! "; //ya, no endline boiiii
+            return "";
         }
-        cv::Mat preprocessed = preprocessor.ProcessImage(img);
-        std::vector<Target> targets = postprocessor.ProcessImage(preprocessed);
+    } else {
+        img = cv::imread("runner/dual.png");
+    }
+    cv::Mat preprocessed = this->preprocessor.ProcessImage(img);
+    std::vector<Target> targets = this->postprocessor.ProcessImage(preprocessed);
+    //find the percieved robot center using this->centerOffset
+    int trueCenter = (std::stoi(this->settings.GetSetting("cameraWidth")) / 2);
+    int robotCenter = trueCenter;
+    //offset the true center here
 
-        //find the percieved robot center using this->centerOffset
-        int trueCenter = (std::stoi(this->settings.GetSetting("cameraWidth")) / 2);
-        int robotCenter = trueCenter;
-        //offset the true center here
+    //find the target that is closest to the robot center
+    Target bestTarget;
+    int closestDist = 5000; // closest x distance to the center
+    for(int i=0; i<targets.size(); i++) {
+        Target targ = targets[i];
+        int distFromCenter = robotCenter - targ.Center().x;
+        distFromCenter = abs(distFromCenter);
 
-        //find the target that is closest to the robot center
-        Target bestTarget;
-        int closestDist = 5000; // closest x distance to the center
-        for(int i=0; i<targets.size(); i++) {
-            Target targ = targets[i];
-            int distFromCenter = robotCenter - targ.Center().x;
-            distFromCenter = abs(distFromCenter);
-
-            if(distFromCenter < closestDist) {
-                closestDist = distFromCenter;
-                bestTarget = targ;
-            }
-        }
-
-        //figure out which target to send and then send the target
-        int coordX = -1,
-            coordY = -1,
-            distance = -1,
-            angle = 180;
-
-        std::string rioMessage = "";
-        
-        if(targets.size() > 0) {
-            //use the best target to fill in the information to send to the rio
-            coordX = bestTarget.Center().x;
-            coordY = bestTarget.Center().y;
-
-            distance = bestTarget.Distance();
-
-            angle = bestTarget.Angle(distance, robotCenter);
-        }
-        std::string x = std::to_string(coordX),
-                        y = std::to_string(coordY),
-                        d = std::to_string(distance),
-                        a = std::to_string(angle);
-
-        rioMessage = ":" + x + "," + y + "," + d + "," + a + ";";
-        this->udp.Send(rioMessage);
-        
-        if(this->debug) {
-            cv::Mat out;
-            img.copyTo(out);
-
-            //write the out string onto the image
-            cv::putText(out, rioMessage, cv::Point(5, 15), cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar(0,0,255), 2);
-            
-            //draw a line where the perceived robot center is
-            int camHeight = std::stoi(this->settings.GetSetting("cameraHeight"));
-            cv::Point lineTopPoint    = cv::Point(robotCenter, 0);
-            cv::Point lineBottomPoint = cv::Point(robotCenter, camHeight);
-
-            cv::line(out, lineTopPoint, lineBottomPoint, cv::Scalar(255,0,255));
-
-            for(int i=0; i<targets.size(); i++) {
-                cv::rectangle(out, targets[i].Bounds(), cv::Scalar(255,0,0), 3);
-                cv::circle(out, targets[i].Center(), 3, cv::Scalar(255,255,0), 4);
-                
-                //draw the id number of the target on the image
-                std::string id = std::to_string(targets[i].ID());
-                cv::Point textPoint = targets[i].Center();
-                textPoint.x -= (targets[i].Bounds().width / 2);
-                textPoint.y -= (targets[i].Bounds().height / 2);
-                textPoint.x += 5;
-                textPoint.y += 5;
-                cv::putText(out, id, textPoint, cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar(0,0,255), 2);
-            }
-
-            //draw a special dot in the center of the target for which we send data
-            cv::circle(out, bestTarget.Center(), 2, cv::Scalar(0,255,255), 3);
-
-            std::string confName = this->settings.GetSetting("configName");
-            cv::imshow(confName.c_str(), out);
-            cv::waitKey(5);
+        if(distFromCenter < closestDist) {
+            closestDist = distFromCenter;
+            bestTarget = targ;
         }
     }
+
+    //figure out which target to send and then send the target
+    int coordX = -1,
+        coordY = -1,
+        distance = -1,
+        angle = 180;
+
+    std::string rioMessage = "";
+
+    
+    if(targets.size() > 0) {
+        //use the best target to fill in the information to send to the rio
+        coordX = bestTarget.Center().x;
+        coordY = bestTarget.Center().y;
+
+        distance = bestTarget.Distance();
+
+        angle = bestTarget.Angle(distance, robotCenter);
+    }
+    std::string x = std::to_string(coordX),
+                    y = std::to_string(coordY),
+                    d = std::to_string(distance),
+                    a = std::to_string(angle);
+
+    rioMessage = ":" + x + "," + y + "," + d + "," + a + ";";
+    
+    if(this->debug) {
+        cv::Mat out;
+        img.copyTo(out);
+
+        //write the out string onto the image
+        cv::putText(out, rioMessage, cv::Point(5, 15), cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar(0,0,255), 2);
+        
+        //draw a line where the perceived robot center is
+        int camHeight = std::stoi(this->settings.GetSetting("cameraHeight"));
+        cv::Point lineTopPoint    = cv::Point(robotCenter, 0);
+        cv::Point lineBottomPoint = cv::Point(robotCenter, camHeight);
+
+        cv::line(out, lineTopPoint, lineBottomPoint, cv::Scalar(255,0,255));
+
+        for(int i=0; i<targets.size(); i++) {
+            cv::rectangle(out, targets[i].Bounds(), cv::Scalar(255,0,0), 3);
+            cv::circle(out, targets[i].Center(), 3, cv::Scalar(255,255,0), 4);
+            
+            //draw the id number of the target on the image
+            std::string id = std::to_string(targets[i].ID());
+            cv::Point textPoint = targets[i].Center();
+            textPoint.x -= (targets[i].Bounds().width / 2);
+            textPoint.y -= (targets[i].Bounds().height / 2);
+            textPoint.x += 5;
+            textPoint.y += 5;
+            cv::putText(out, id, textPoint, cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar(0,0,255), 2);
+        }
+
+        //draw a special dot in the center of the target for which we send data
+        cv::circle(out, bestTarget.Center(), 2, cv::Scalar(0,255,255), 3);
+        
+        this->outputImage = out;
+    }
+
+    return rioMessage;
+}
+
+
+void Runner::Stop() {
+    this->cap.~VideoCapture();
 }
 
 

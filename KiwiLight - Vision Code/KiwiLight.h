@@ -23,7 +23,8 @@ namespace KiwiLight {
      */
     class ConfigPanel : public Widget {
         public:
-        ConfigPanel();
+        ConfigPanel() {};
+        ConfigPanel(std::string configFilePath);
         void LoadConfig(std::string fileName);
         GtkWidget *GetWidget() { return this->configPanel; };
         void SetName(std::string name);
@@ -70,22 +71,6 @@ namespace KiwiLight {
         int camWidth,
             camHeight;
         GtkWidget *settingsWidget;
-    };
-
-    /**
-     * A UI event manager, which keeps static callbacks in one place
-     */
-    class Kiwi {
-        public:
-        static void ShowAbout();
-        static void HELPME();
-        static void AddConfig();
-        static void SaveConfig();
-        static void RunSelected();
-        static void OpenConfig();
-        static void ConfStartConfigOnBoot();
-        static void CompileConfig();
-        static void EditSelected();
     };
 }
 

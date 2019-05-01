@@ -258,6 +258,18 @@ namespace KiwiLight {
         GtkImage *realImg;
     };
 
+    class FileChooser {
+        public:
+        FileChooser() {};
+        FileChooser(bool writing);
+        std::string Show();
+        GtkWidget *GetWidget() { return this->filechooser; };
+        void SetName(std::string name);
+
+        private:
+        GtkWidget *filechooser;
+    };
+
     /**
      * A singlular widget adjusting a camera setting
      */

@@ -182,35 +182,6 @@ namespace KiwiLight {
         private:
         GdkPixbuf *img;
     };
-
-    /**
-     * Represents a USB camera or built in webcam.
-     */
-    class Camera {
-        public:
-        Camera() {};
-        Camera(int index);
-        cv::Mat GetImageMat();
-        Image GetImage();
-        // void Update();
-        void SetIndex(int index);
-        void SetWidth(int width);
-        void SetHeight(int height);
-        int GetIndex() { return this->index; };
-        bool isOpen() { return this->stream.isOpened() && this->streamingSuccessful; };
-        // bool QueryPropertySupported(int propid);
-
-        private:
-        void Close();
-        void Open();
-        int iteration, 
-            index,
-            frameWidth,
-            frameHeight;
-        bool opened,
-             streamingSuccessful;
-        cv::VideoCapture stream;
-    };
 }
 
 #endif

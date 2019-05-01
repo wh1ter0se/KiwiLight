@@ -44,6 +44,9 @@ bin/TextBox.o: ui/TextBox.cpp
 bin/NumberBox.o: ui/NumberBox.cpp
 	$(CXX) -c -o bin/NumberBox.o ui/NumberBox.cpp $(GTK)
 
+bin/FileChooser.o: ui/FileChooser.cpp
+	$(CXX) -c -o bin/FileChooser.o ui/FileChooser.cpp $(GTK)
+
 bin/ImageFrame.o: ui/ImageFrame.cpp
 	$(CXX) -c -o bin/ImageFrame.o ui/ImageFrame.cpp $(GTK) $(CV)
 
@@ -53,8 +56,8 @@ bin/Window.o: ui/Window.cpp
 bin/CameraSetting.o: ui/CameraSetting.cpp
 	$(CXX) -c -o bin/CameraSetting.o ui/CameraSetting.cpp $(GTK)
 
-lib/UI.a: bin/Button.o bin/Label.o bin/Panel.o bin/Frame.o bin/Separator.o bin/Slider.o bin/CheckBox.o bin/TextBox.o bin/NumberBox.o bin/ImageFrame.o bin/Window.o bin/CameraSetting.o bin/MenuBar.o bin/MenuItem.o bin/SubMenuItem.o
-	ar rs lib/UI.a bin/Button.o bin/Label.o bin/Panel.o bin/Frame.o bin/Separator.o bin/Slider.o bin/CheckBox.o bin/TextBox.o bin/NumberBox.o bin/ImageFrame.o bin/Window.o bin/CameraSetting.o bin/MenuBar.o bin/MenuItem.o bin/SubMenuItem.o
+lib/UI.a: bin/Button.o bin/Label.o bin/Panel.o bin/Frame.o bin/Separator.o bin/Slider.o bin/CheckBox.o bin/TextBox.o bin/NumberBox.o bin/FileChooser.o bin/ImageFrame.o bin/Window.o bin/CameraSetting.o bin/MenuBar.o bin/MenuItem.o bin/SubMenuItem.o
+	ar rs lib/UI.a bin/Button.o bin/Label.o bin/Panel.o bin/Frame.o bin/Separator.o bin/Slider.o bin/CheckBox.o bin/TextBox.o bin/NumberBox.o bin/FileChooser.o bin/ImageFrame.o bin/Window.o bin/CameraSetting.o bin/MenuBar.o bin/MenuItem.o bin/SubMenuItem.o
 
 #UTIL
 bin/Flags.o: util/Flags.cpp
@@ -87,11 +90,8 @@ bin/Color.o: util/Color.cpp
 bin/Image.o: util/Image.cpp
 	$(CXX) -c -o bin/Image.o util/Image.cpp $(GTK) $(CV)
 
-bin/Camera.o: util/Camera.cpp
-	$(CXX) -c -o bin/Camera.o util/Camera.cpp $(GTK) $(CV)
-
-lib/Util.a: bin/Flags.o bin/Shell.o bin/StringUtils.o bin/UDP.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/SettingPair.o bin/Color.o bin/Image.o bin/Camera.o 
-	ar rs lib/Util.a bin/Flags.o bin/Shell.o bin/StringUtils.o bin/UDP.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/SettingPair.o bin/Color.o bin/Image.o bin/Camera.o 
+lib/Util.a: bin/Flags.o bin/Shell.o bin/StringUtils.o bin/UDP.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/SettingPair.o bin/Color.o bin/Image.o 
+	ar rs lib/Util.a bin/Flags.o bin/Shell.o bin/StringUtils.o bin/UDP.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/SettingPair.o bin/Color.o bin/Image.o
 
 #RUNNER
 bin/ConfigurationSetting.o: runner/ConfigurationSetting.cpp
@@ -126,9 +126,6 @@ lib/Runner.a: bin/ConfigurationSetting.o bin/ConfigurationSettingsList.o bin/Con
 
 #ROOT
 
-bin/Kiwi.o: Kiwi.cpp
-	$(CXX) -c -o bin/Kiwi.o Kiwi.cpp $(GTK)
-
 bin/ConfigPanel.o: ConfigPanel.cpp
 	$(CXX) -c -o bin/ConfigPanel.o ConfigPanel.cpp $(GTK)
 
@@ -136,10 +133,10 @@ bin/Settings.o: Settings.cpp
 	$(CXX) -c -o bin/Settings.o Settings.cpp $(GTK)
 
 #MAIN FILE
-KiwiLight: Main.cpp lib/UI.a lib/Util.a lib/Runner.a bin/Kiwi.o bin/Camera.o bin/ConfigPanel.o bin/Settings.o
-	$(CXX) -o KiwiLight Main.cpp bin/Kiwi.o bin/ConfigPanel.o bin/Settings.o lib/UI.a lib/Util.a lib/Runner.a $(CV) $(GTK)
+KiwiLight: Main.cpp lib/UI.a lib/Util.a lib/Runner.a bin/ConfigPanel.o bin/Settings.o
+	$(CXX) -o KiwiLight Main.cpp bin/ConfigPanel.o bin/Settings.o lib/Runner.a lib/Util.a lib/UI.a $(CV) $(GTK)
 
-RunnerTest: RunnerTest.cpp lib/UI.a lib/Util.a lib/Runner.a bin/Kiwi.o bin/Settings.o
+RunnerTest: RunnerTest.cpp lib/UI.a lib/Util.a lib/Runner.a bin/Settings.o
 	$(CXX) -o RunnerTest RunnerTest.cpp lib/Runner.a lib/Util.a lib/UI.a $(CV) $(GTK)
 
 #UNINSTALL

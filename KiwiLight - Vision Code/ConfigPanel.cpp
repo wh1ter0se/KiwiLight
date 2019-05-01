@@ -7,10 +7,13 @@
 
 using namespace KiwiLight;
 
+extern void RunSelected(); //from Main.cpp
+extern void EditSelected(); //from Main.cpp
+
 /**
  * Creates a new config panel. No configuration will be loaded.
  */
-ConfigPanel::ConfigPanel() {
+ConfigPanel::ConfigPanel(std::string configFilePath) {
     this->panel = Panel(false, 5);
         this->header = Label("Configuration: (none loaded)");
             this->header.SetName("header");
@@ -43,13 +46,17 @@ ConfigPanel::ConfigPanel() {
             this->panel.Pack_start(sep.GetWidget(), true, false, 5);
         
         this->buttonPanel = Panel(true, 0);
-            this->editConfig = Button("Edit", Kiwi::EditSelected);
+            this->editConfig = Button("Edit", EditSelected);
                 this->buttonPanel.Pack_start(editConfig.GetWidget(), true, true, 0);
 
-            this->runConfig = Button("Run", Kiwi::RunSelected);
+            this->runConfig = Button("Run", RunSelected);
                 this->buttonPanel.Pack_start(runConfig.GetWidget(), true, true, 0);
 
             this->panel.Pack_start(this->buttonPanel.GetWidget(), true, true, 0);
+
+    if(configFilePath != "") {
+        this->LoadConfig(configFilePath);
+    }
 
     this->configPanel = this->panel.GetWidget();
 }
@@ -58,8 +65,27 @@ ConfigPanel::ConfigPanel() {
  * Loads the config described the the file at fileName.
  */
 void ConfigPanel::LoadConfig(std::string fileName) {
-    std::cout << "load file: " << fileName << std::endl;
-    std::cout.flush();
+    //create an xmldocument to parse and then find all information needed to fill out the label
+    XMLDocument file = XMLDocument(fileName);
+
+    XMLTag config = file.GetTagsByName("configuration")[0];
+        std::string name = config.GetAttributesByName("name")[0].Value();
+        std::string preProcessorType = config.GetTagsByName("preprocessor")[0].GetAttributesByName("type")[0].Value();
+        std::string postProcessorType = "full";
+        std::string numTargets = std::to_string(config.GetTagsByName("postprocessor")[0].GetTagsByName("target").size());
+
+        XMLTag UDPTag = config.GetTagsByName("postprocessor")[0].GetTagsByName("UDP")[0];
+            std::string udpAddress = UDPTag.GetTagsByName("address")[0].Content();
+            std::string udpPort    = UDPTag.GetTagsByName("port")[0].Content();
+
+    //set the label texts for the informational panel with the found information
+    this->header.SetText("Configuration: " + name);
+    this->fileLabel.SetText("File: " + fileName);
+    this->PreProcessorLabel.SetText("Preprocessor: " + preProcessorType);
+    this->PostProcessorLabel.SetText("Postprocessor: " + postProcessorType);
+    this->TargetLabel.SetText("Targets: " + numTargets);
+    this->UDPAddressLabel.SetText("UDP Address: " + udpAddress);
+    this->UDPPortLabel.SetText("UDP Port: " + udpPort);
 }
 
 

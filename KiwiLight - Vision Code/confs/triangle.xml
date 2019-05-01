@@ -26,6 +26,7 @@
         </targetColor>
     </preprocessor>
     <postprocessor>
+        <centerOffset>0</centerOffset>
         <target id="0">
             <contour id="0">
                 <x error="1">-2</x>
@@ -35,22 +36,10 @@
                 <aspectRatio error="0.25">1</aspectRatio>
                 <minimumArea>250</minimumArea>
             </contour>
-            <contour id="1">
-                <x error="1">2</x>
-                <y error="1">0</y>
-                <angle error="10">0</angle>
-                <solidity error="0.25">0.7</solidity>
-                <aspectRatio error="0.25">1</aspectRatio>
-                <minimumArea>250</minimumArea>
-            </contour>
-            <contour id="2">
-                <x error="1">2</x>
-                <y error="1">0</y>
-                <angle error="10">0</angle>
-                <solidity error="0.25">0.7</solidity>
-                <aspectRatio error="0.25">1</aspectRatio>
-                <minimumArea>250</minimumArea>
-            </contour>
+            <knownWidth>12</knownWidth>
+            <focalWidth>300</focalWidth>
+            <calibratedDistance>36</calibratedDistance>
+            <distErrorCorrect>0.1</distErrorCorrect>
         </target>
         <UDP>
             <address>127.0.0.1</address>

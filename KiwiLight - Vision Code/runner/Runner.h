@@ -151,6 +151,7 @@ namespace KiwiLight {
      */
     class PreProcessor {
         public:
+        PreProcessor() {};
         PreProcessor(ConfigurationSettingsList settings, bool FullPreprocessor);
         cv::Mat ProcessImage(cv::Mat img);
 
@@ -175,6 +176,7 @@ namespace KiwiLight {
      */
     class PostProcessor {
         public:
+        PostProcessor() {};
         PostProcessor(std::vector<ExampleTarget> targets);
         std::vector<Target> ProcessImage(cv::Mat img);
 
@@ -187,16 +189,25 @@ namespace KiwiLight {
      */
     class Runner {
         public:
+        Runner() {};
         Runner(std::string filename, bool debugging);
         void Loop();
+        void Stop();
+        std::string Iterate();
+        cv::Mat GetOutputImage() { return this->outputImage; };
         void SetSetting(std::string settingName, std::string value);
         std::string GetSetting(std::string settingName);
 
         private:
-        UDP udp;
+        void parseDocument(XMLDocument doc);
+
+        VideoCapture cap;
+        PreProcessor preprocessor;
+        PostProcessor postprocessor;
+
+        cv::Mat outputImage;
         ConfigurationSettingsList settings;
         std::vector<ExampleTarget> postProcessorTargets;
-        void parseDocument(XMLDocument doc);
         bool stop,
              debug;
 
