@@ -8,8 +8,7 @@
 
 using namespace KiwiLight;
 
-Slider::Slider(std::string label, int min, int max, double step, double value) {
-    // this->slider = gtk_hscale_new_with_range(min, max, step);
+Slider::Slider(double min, double max, double step, double value) {
     this->slider = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, min, max, step);
     gtk_range_set_value(GTK_RANGE(this->slider), gdouble(value));
 }

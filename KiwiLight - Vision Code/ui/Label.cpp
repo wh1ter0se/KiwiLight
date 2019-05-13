@@ -12,7 +12,7 @@ using namespace KiwiLight;
  * Creates a new label.
  */
 Label::Label(std::string text) {
-    this->label = gtk_label_new(text.c_str());
+    this->label = gtk_label_new(text.c_str()); 
 }
 
 /**

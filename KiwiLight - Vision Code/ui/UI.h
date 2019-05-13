@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../util/Util.h"
+#include "../runner/Runner.h"
 #include "gtk-3.0/gtk/gtk.h"
 #include "opencv2/opencv.hpp"
 
@@ -49,6 +50,7 @@ namespace KiwiLight {
         Frame() {};
         Frame(std::string label);
         void Pack(GtkWidget *widget);
+        void Unpack(GtkWidget *widget);
         GtkWidget *GetWidget() { return this->frame; };
         void SetName(std::string name);
 
@@ -61,7 +63,8 @@ namespace KiwiLight {
      */
     class Window : public Widget {
         public:
-        Window();
+        Window() {};
+        Window(GtkWindowType type);
         void SetPane(Panel pane);
         void Show();
         void SetSize(int w, int h);
@@ -159,7 +162,7 @@ namespace KiwiLight {
     class Slider : public Widget {
         public:
         Slider() {};
-        Slider(std::string label, int min, int max, double step, double value);
+        Slider(double min, double max, double step, double value);
         void SetValue(double value);
         double GetValue();
         GtkWidget *GetWidget() { return this->slider; };
@@ -258,7 +261,7 @@ namespace KiwiLight {
         GtkImage *realImg;
     };
 
-    class FileChooser {
+    class FileChooser : public Widget {
         public:
         FileChooser() {};
         FileChooser(bool writing);
@@ -268,6 +271,23 @@ namespace KiwiLight {
 
         private:
         GtkWidget *filechooser;
+    };
+
+    class LabeledSlider : public Widget {
+        public:
+        LabeledSlider() {};
+        LabeledSlider(std::string label, double min, double max, double step, double value);
+        double GetValue();
+        void SetValue(double value);
+        void SetLabel(std::string text);
+        GtkWidget *GetWidget() { return this->labeledslider; };
+        void SetName(std::string name);
+
+        private:
+        Panel panel;
+        Label label;
+        Slider slider;
+        GtkWidget *labeledslider;
     };
 
     /**
@@ -296,6 +316,144 @@ namespace KiwiLight {
         int min, 
             max,
             value;
+    };
+
+    /**
+     * A window where camera settings can be modified.
+     */
+    class Settings : public Widget {
+        public:
+        Settings() {};
+        Settings(int index);
+        // ~Settsings();
+        void Update();
+        void UpdateValue();
+        void Show() { gtk_widget_show_all(this->settingsWidget); };
+        int GetWidth() { return camWidth; };
+        int GetHeight() { return camHeight; };
+        GtkWidget *GetWidget() { return settingsWidget; };
+        void SetName(std::string name);
+
+        private:
+        static void ScheduleApplySettings();
+        static void FRCSettings();
+        int searchAndReturnValue(std::string searchString, std::string term);
+        CameraSetting frameWidth,
+                      frameHeight;
+        std::vector<CameraSetting> settings;
+        int camWidth,
+            camHeight;
+        GtkWidget *settingsWidget;
+    };
+
+
+    enum ConfigEditorFrame {
+        EDITOR_CAMERA,
+        EDITOR_TARGET,
+        EDITOR_RUNNER
+    };
+
+
+    class ConfigRunnerEditor : public Widget {
+        public:
+        ConfigRunnerEditor() {};
+        ConfigRunnerEditor(std::string fileName);
+        void Update();
+        ConfigurationSettingsList GetSettings();
+        GtkWidget *GetWidget() { return this->configrunnereditor; };
+        void SetName(std::string name);
+
+        private:
+        Panel panel;
+        GtkWidget *configrunnereditor;
+    };
+
+
+    class ConfigTargetEditor : public Widget {
+        public:
+        ConfigTargetEditor() {};
+        ConfigTargetEditor(std::string fileName);
+        void Update();
+        XMLTag GetTarget();
+        GtkWidget *GetWidget() { return this->configtargeteditor; };
+        void SetName(std::string name);
+
+        private:
+        Panel panel;
+        NumberBox ContourID;
+        
+        //sliders used to adjust contour distance from center of target
+        LabeledSlider ContourDistX,
+                      ContourDistY,
+                      ContourDistErr;
+
+        //sliders used to adjust contour shape and other properties
+        LabeledSlider ContourAngle,
+                      ContourAngleErr,
+                      ContourSolidity,
+                      ContourSolidityErr,
+                      ContourAR,
+                      ContourARError,
+                      ContourMinArea;
+            
+        
+        GtkWidget *configtargeteditor;
+    };
+
+
+    class ConfigCameraEditor : public Widget {
+        public:
+        ConfigCameraEditor() {};
+        ConfigCameraEditor(int index);
+        void Update();
+        void StartApply();
+        GtkWidget *GetWidget() { return this->configcameraeditor; };
+        void SetName(std::string name);
+
+        private:
+        Panel panel;
+        Slider camExposure,
+               camWhiteBalance,
+               camBrightness;
+
+        CheckBox autoExp,
+                 autoWB;
+
+        GtkWidget *configcameraeditor;
+    };
+
+
+    class ConfigEditor : public Widget {
+        public:
+        ConfigEditor() {};
+        ConfigEditor(std::string fileName);
+        void Update();
+        void Save();
+        cv::Mat GetOutputImage() { return this->out; };
+        GtkWidget *GetWidget() { return this->configeditor; };
+        void SetName(std::string name);
+
+        private:
+        void NextPage();
+        void PrevPage();
+
+        Runner runner;
+
+        cv::Mat out;
+
+        Window window;
+        Panel content;
+        Panel buttonPanel;
+        Settings cameraSettings;
+        ConfigTargetEditor targetEditor;
+        ConfigRunnerEditor runnerEditor;
+
+        ConfigEditorFrame currentFrame;
+
+        Button nextButton;
+        Button prevButton;
+        
+        GtkWidget *configeditor;
     };
 }
 

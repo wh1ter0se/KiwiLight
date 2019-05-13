@@ -26,6 +26,8 @@ NumberBox cameraIndex;
 
 ConfigPanel configPanel;
 
+ConfigEditor configEditor;
+
 Label cameraStatusLabel;
 
 VideoCapture cam;
@@ -35,8 +37,10 @@ ImageFrame imgFrame;
 Runner runner;
 
 bool displayingImage = false,
-     cameraOpen = true,
-     useRunner = false;
+     cameraOpen = true;
+
+UIMode uiMode;
+
 
 /**
  * Runs through a checklist and updates UI objects, utilities, etc.
@@ -49,12 +53,15 @@ void Update() {
     if(!displayingImage) {
         displayingImage = true;
 
-        if(useRunner) {
+        if(uiMode == UIMode::UI_RUNNER) {
             success = true;
             runner.Iterate();
             img = runner.GetOutputImage();
-        } else {
+        } else if (uiMode == UIMode::UI_STREAM) {
             success = cam.read(img);
+        } else if(uiMode == UIMode::UI_EDITOR) {
+            success = true;
+            img = configEditor.GetOutputImage();
         }
 
         if(success) {
@@ -74,10 +81,40 @@ void Update() {
 
         displayingImage = false;
     }
+
+    //update editor outside of displaying image because it has the ability to stop the camera
+    if(uiMode == UIMode::UI_EDITOR) {
+        configEditor.Update();
+    }
+
+    //check for update flags
+    if(Flags::GetFlag("CloseCamera")) {
+        Flags::LowerFlag("CloseCamera");
+        cameraOpen = false;
+        displayingImage = true; //block out updating image so nothing uses camera
+        if(uiMode == UIMode::UI_RUNNER) {
+            runner.Stop();
+        } else {
+            cam.~VideoCapture();
+        }
+        
+        Flags::RaiseFlag("CameraClosed");
+    }
+
+    if(Flags::GetFlag("StartCamera")) {
+        Flags::LowerFlag("StartCamera");
+        cameraOpen = true;
+        displayingImage = false;
+        if(uiMode == UIMode::UI_RUNNER) {
+            runner.Start();
+        } else if(uiMode == UIMode::UI_RUNNER) {
+            cam = VideoCapture(cameraIndex.GetValue());
+        }
+    }
 }
 
 void OpenNewCamera() {
-    if(!useRunner) {
+    if(uiMode == UIMode::UI_STREAM) {
         int newIndex = cameraIndex.GetValue();
 
         cam.release();
@@ -134,7 +171,7 @@ void CompileConfig() {
  * Opens a file menu to open a config.
  */
 void OpenConfig() {
-    if(useRunner) {
+    if(uiMode == UIMode::UI_RUNNER) {
         runner.Stop();
     }
     cam.~VideoCapture();
@@ -143,7 +180,7 @@ void OpenConfig() {
     if(file != "") {
         configPanel.LoadConfig(file);
         runner = Runner(file, true);
-        useRunner = true;
+        uiMode = UIMode::UI_RUNNER;
     }
 }
 
@@ -151,12 +188,12 @@ void OpenConfig() {
  * Returns camera stream back to normal streaming, no extra processing.
  */
 void StopUsingRunner() {
-    if(useRunner) {
-        useRunner = false;
+    if(uiMode == UIMode::UI_RUNNER) {
+        uiMode = UIMode::UI_STREAM;
         runner.Stop();
+        configPanel.Clear();
         cam = VideoCapture((int) cameraIndex.GetValue());
         displayingImage = false;
-        std::cout.flush();
     }
 }
 
@@ -164,8 +201,15 @@ void StopUsingRunner() {
  * Edits the selected config, or does nothing if nothing is selected.
  */
 void EditSelected() {
-    std::cout << "edit selected from MAIN" << std::endl;
-    std::cout.flush();
+    if(uiMode == UIMode::UI_RUNNER) {
+        runner.Stop();
+        configEditor = ConfigEditor(runner.GetFileName());
+    } else if(uiMode == UIMode::UI_STREAM) {
+        cam.~VideoCapture();
+        configEditor = ConfigEditor("confs/generic.xml");
+    }
+
+    uiMode = UIMode::UI_EDITOR;
 }
 
 /**
@@ -244,8 +288,9 @@ int main(int argc, char *argv[]) {
     gtk_init(&argc, &argv);
 
     cam = VideoCapture(0);
+    uiMode = UIMode::UI_STREAM;
 
-    Window win = Window();
+    Window win = Window(GTK_WINDOW_TOPLEVEL);
         win.SetCSS("ui/Style.css");
         win.SetSize(300,200);
         content = Panel(false, 0);

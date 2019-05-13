@@ -14,6 +14,7 @@ extern void EditSelected(); //from Main.cpp
  * Creates a new config panel. No configuration will be loaded.
  */
 ConfigPanel::ConfigPanel(std::string configFilePath) {
+    this->configFile = configFilePath;
     this->panel = Panel(false, 5);
         this->header = Label("Configuration: (none loaded)");
             this->header.SetName("header");
@@ -86,6 +87,17 @@ void ConfigPanel::LoadConfig(std::string fileName) {
     this->TargetLabel.SetText("Targets: " + numTargets);
     this->UDPAddressLabel.SetText("UDP Address: " + udpAddress);
     this->UDPPortLabel.SetText("UDP Port: " + udpPort);
+}
+
+
+void ConfigPanel::Clear() {
+    this->header.SetText("Configuration: (none loaded)");
+    this->fileLabel.SetText("File: (none)");
+    this->PreProcessorLabel.SetText("Preprocessor: (none)");
+    this->PostProcessorLabel.SetText("Postprocessor: (none)");
+    this->TargetLabel.SetText("Targets: (none)");
+    this->UDPAddressLabel.SetText("UDP Address: (none)");
+    this->UDPPortLabel.SetText("UDP Port: (none)");
 }
 
 

@@ -193,7 +193,9 @@ namespace KiwiLight {
         Runner(std::string filename, bool debugging);
         void Loop();
         void Stop();
+        void Start();
         std::string Iterate();
+        std::string GetFileName() { return this->src; };
         cv::Mat GetOutputImage() { return this->outputImage; };
         void SetSetting(std::string settingName, std::string value);
         std::string GetSetting(std::string settingName);
@@ -204,6 +206,8 @@ namespace KiwiLight {
         VideoCapture cap;
         PreProcessor preprocessor;
         PostProcessor postprocessor;
+
+        std::string src;
 
         cv::Mat outputImage;
         ConfigurationSettingsList settings;

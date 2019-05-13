@@ -10,6 +10,7 @@ using namespace KiwiLight;
 
 
 Runner::Runner(std::string fileName, bool debugging) {
+    this->src = fileName;
     this->debug = debugging;
     this->postProcessorTargets = std::vector<ExampleTarget>();
     XMLDocument file = XMLDocument(fileName);
@@ -18,7 +19,6 @@ Runner::Runner(std::string fileName, bool debugging) {
     } else {
         std::cout << "sorry! the file could not be found. " << std::endl;
     }  
-
     bool isFull = (this->settings.GetSetting("PreprocessorType") == "full");
     int cameraIndex = std::stoi(this->settings.GetSetting("cameraIndex"));
     this->preprocessor = PreProcessor(this->settings, isFull);
@@ -113,7 +113,6 @@ std::string Runner::Iterate() {
                     a = std::to_string(angle);
 
     rioMessage = ":" + x + "," + y + "," + d + "," + a + ";";
-    
     if(this->debug) {
         cv::Mat out;
         img.copyTo(out);
@@ -154,6 +153,13 @@ std::string Runner::Iterate() {
 
 void Runner::Stop() {
     this->cap.~VideoCapture();
+    this->stop = true;
+}
+
+
+void Runner::Start() {
+    int cameraIndex = std::stoi(this->settings.GetSetting("cameraIndex"));
+    this->cap = VideoCapture(cameraIndex);
 }
 
 

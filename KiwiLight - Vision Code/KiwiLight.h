@@ -26,6 +26,8 @@ namespace KiwiLight {
         ConfigPanel() {};
         ConfigPanel(std::string configFilePath);
         void LoadConfig(std::string fileName);
+        void Clear();
+        std::string GetConfig() { return this->configFile; };
         GtkWidget *GetWidget() { return this->configPanel; };
         void SetName(std::string name);
 
@@ -43,35 +45,17 @@ namespace KiwiLight {
         Button runConfig;
         Button editConfig;
         Button loadConfig;
+        std::string configFile;
         GtkWidget *configPanel;
     };
 
-    /**
-     * A window where camera settings can be modified.
-     */
-    class Settings : public Widget {
-        public:
-        Settings() {};
-        Settings(int index);
-        // ~Settsings();
-        void Update();
-        void UpdateValue();
-        void Show() { gtk_widget_show_all(this->settingsWidget); };
-        int GetWidth() { return camWidth; };
-        int GetHeight() { return camHeight; };
-        GtkWidget *GetWidget() { return settingsWidget; };
 
-        private:
-        static void ScheduleApplySettings();
-        static void FRCSettings();
-        int searchAndReturnValue(std::string searchString, std::string term);
-        CameraSetting frameWidth,
-                      frameHeight;
-        std::vector<CameraSetting> settings;
-        int camWidth,
-            camHeight;
-        GtkWidget *settingsWidget;
+    enum UIMode {
+        UI_STREAM,
+        UI_RUNNER,
+        UI_EDITOR
     };
+
 }
 
 #endif

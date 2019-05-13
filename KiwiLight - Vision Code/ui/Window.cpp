@@ -21,8 +21,8 @@ void(*Window::timeoutMethod)() = 0;
 /**
  * Creates a new window.
  */
-Window::Window() {
-    this->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+Window::Window(GtkWindowType type) {
+    this->window = gtk_window_new(type);
     g_signal_connect(this->window, "delete-event", G_CALLBACK(delete_event), NULL);
     g_signal_connect(this->window, "destroy", G_CALLBACK(Destroy), NULL);
     gtk_container_set_border_width(GTK_CONTAINER(this->window), 0);
