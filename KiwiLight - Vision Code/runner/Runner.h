@@ -13,6 +13,14 @@
 namespace KiwiLight {
 
     /**
+     * Descriptor enumeration for the type of preprocessor being used
+     */
+    enum PreProcessorType {
+        FULL,
+        PARTIAL
+    };
+
+    /**
      * Represents a single setting that is used by either the PostProcessor or Preprocessor.
      */
     class ConfigurationSetting {

@@ -379,7 +379,20 @@ namespace KiwiLight {
         void SetName(std::string name);
 
         private:
+        PreProcessorType currentPreProcessor;
+
         Panel panel;
+
+        CheckBox fullPreProcessor,
+                 partialPreProcessor;
+
+        NumberBox colorH,
+                  colorS,
+                  colorV;
+
+        LabeledSlider thresholdValue,
+                      dilationFactor;
+
         NumberBox ContourID;
         
         //sliders used to adjust contour distance from center of target
