@@ -32,7 +32,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
                         settingsContent.Pack_start(settingsHeader.GetWidget(), false, false, 0);
                     this->cameraSettings = Settings(0);
                         settingsContent.Pack_start(this->cameraSettings.GetWidget(), false, false, 0);
-                    this->content.Pack_start(settingsContent.GetWidget(), false, false, 0);
+                    this->content.Pack_start(settingsContent.GetWidget(), true, true, 0);
 
                 Panel targetContent = Panel(false, 0);
                     Label targetHeader = Label("Targeting");
@@ -40,7 +40,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
                         targetContent.Pack_start(targetHeader.GetWidget(), false, false, 0);
                     this->targetEditor = ConfigTargetEditor(fileName);
                         targetContent.Pack_start(this->targetEditor.GetWidget(), false, false, 0);
-                    this->content.Pack_start(targetContent.GetWidget(), false, false, 0);
+                    this->content.Pack_start(targetContent.GetWidget(), true, true, 0);
 
                 Panel runnerContent = Panel(false, 0);
                     Label runnerHeader = Label("Runner");
@@ -48,7 +48,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
                         runnerContent.Pack_start(runnerHeader.GetWidget(), false, false, 0);
                     this->runnerEditor = ConfigRunnerEditor(fileName);
                         runnerContent.Pack_start(this->runnerEditor.GetWidget(), false, false, 0);
-                    this->content.Pack_start(runnerContent.GetWidget(), false, false, 0);
+                    this->content.Pack_start(runnerContent.GetWidget(), true, true, 0);
 
             this->window.SetPane(this->content);
 

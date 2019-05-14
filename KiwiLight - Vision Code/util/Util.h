@@ -81,6 +81,7 @@ namespace KiwiLight {
      */
     class XMLTag {
         public:
+        XMLTag() {};
         XMLTag(std::string name);
         XMLTag(std::string name, std::vector<XMLTagAttribute> attributes);
         XMLTag(std::string name, std::vector<XMLTag> children);

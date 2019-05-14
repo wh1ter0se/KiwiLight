@@ -29,8 +29,8 @@
         <centerOffset>0</centerOffset>
         <target id="0">
             <contour id="0">
-                <x error="100">0</x>
-                <y error="100">0</y>
+                <x error="5">0</x>
+                <y error="5">0</y>
                 <angle error="10">0</angle>
                 <solidity error="0.25">0.9</solidity>
                 <aspectRatio error="0.25">1</aspectRatio>

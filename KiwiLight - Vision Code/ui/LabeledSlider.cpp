@@ -9,7 +9,7 @@ using namespace KiwiLight;
 
 
 LabeledSlider::LabeledSlider(std::string label, double min, double max, double step, double value) {
-    this->panel = Panel(false, 5);
+    this->panel = Panel(false, 0);
         this->label = Label(label.c_str());
             this->panel.Pack_start(this->label.GetWidget(), false, false, 0);
         this->slider = Slider(min, max, step, value);

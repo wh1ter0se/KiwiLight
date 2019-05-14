@@ -395,10 +395,12 @@ namespace KiwiLight {
 
         NumberBox ContourID;
         
+        NumberBox ContourDistX,
+                  ContourDistY;
+
         //sliders used to adjust contour distance from center of target
-        LabeledSlider ContourDistX,
-                      ContourDistY,
-                      ContourDistErr;
+        LabeledSlider ContourDistXErr,
+                      ContourDistYErr;
 
         //sliders used to adjust contour shape and other properties
         LabeledSlider ContourAngle,
@@ -406,9 +408,10 @@ namespace KiwiLight {
                       ContourSolidity,
                       ContourSolidityErr,
                       ContourAR,
-                      ContourARError,
+                      ContourARErr,
                       ContourMinArea;
             
+        Button learnTarget;
         
         GtkWidget *configtargeteditor;
     };
