@@ -141,6 +141,7 @@ namespace KiwiLight {
         bool isTarget(std::vector<Contour> contours);
         int ID() { return this->id; };
         std::vector<ExampleContour> Contours() { return this->contours; };
+        ExampleContour GetExampleContourByID(int id);
 
         private:
         bool ArrayMaxed(int arr[], int size, int max);
@@ -205,6 +206,7 @@ namespace KiwiLight {
         std::string Iterate();
         std::string GetFileName() { return this->src; };
         cv::Mat GetOutputImage() { return this->outputImage; };
+        ExampleTarget GetExampleTargetByID(int id);
         void SetSetting(std::string settingName, std::string value);
         std::string GetSetting(std::string settingName);
 

@@ -39,7 +39,7 @@ UDP::UDP(std::string dest_ip, int port) {
     while(true) {
         //now connect
         int connect_result = connect(this->sock, (sockaddr*) &this->server_address, sizeof(this->server_address));
-        if(connect_result > -1)
+        if(connect_result > -1) //the connection was the big good
             break;
     }
 

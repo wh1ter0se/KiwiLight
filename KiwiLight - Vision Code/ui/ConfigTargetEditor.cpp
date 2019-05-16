@@ -11,14 +11,18 @@ using namespace KiwiLight;
 static void learnTargetPressed() {
     std::cout << "learn target" << std::endl;
     std::cout.flush();
+
+    ConfirmationDialog test = ConfirmationDialog("aaaaaaaaaa");
+    test.ShowAndGetResponse();
 }
 
 /**
  * Creates a new ConfigTargetEditor editing the targets in the file at fileName
  */
-ConfigTargetEditor::ConfigTargetEditor(std::string fileName) {
+ConfigTargetEditor::ConfigTargetEditor(std::string fileName, Runner runner) {
     XMLDocument document = XMLDocument(fileName);
     this->currentPreProcessor = PreProcessorType::FULL; //because the checkbox defaults to full
+    this->runner = runner;
     this->panel = Panel(false, 0);
         
         XMLTag configurationTag = document.GetTagsByName("configuration")[0];
@@ -29,6 +33,7 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName) {
             XMLTag preprocessorTag = configurationTag.GetTagsByName("preprocessor")[0];
             
             Label preprocessorPanelHeader = Label("Preprocessor");
+                preprocessorPanelHeader.SetName("subHeader");
                 preprocessorPanel.Pack_start(preprocessorPanelHeader.GetWidget(), false, false, 0);
 
             //chooser for whether or not the preprocessor is full or partial
@@ -96,9 +101,14 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName) {
                 Label postprocessorPanelHeader = Label("Postprocessor");
                     postprocessorPanel.Pack_start(postprocessorPanelHeader.GetWidget(), false, false, 0);
 
+                Label contourHeader = Label("Contours");
+                    contourHeader.SetName("subHeader");
+                    postprocessorPanel.Pack_start(contourHeader.GetWidget(), false, false, 0);
+
                 //the panel where the user can chooser which contour they are editing
                 Panel postprocessorContourChooser = Panel(true, 3);
                     Label postprocessorChooserHeader = Label("Contour:");
+                        postprocessorChooserHeader.SetName("gray");
                         postprocessorContourChooser.Pack_start(postprocessorChooserHeader.GetWidget(), false ,false, 0);
 
                     this->ContourID = NumberBox(0.0, 8.0, 0.0);
@@ -134,13 +144,9 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName) {
                         distXPanel.Pack_start(xLabel.GetWidget(), false, false, 0);
 
                     this->ContourDistX = NumberBox(0.0, 100.0, 0.0);
-                        int realDistX = std::stoi(firstContour.GetTagsByName("x")[0].Content());
-                        this->ContourDistX.SetValue((double) realDistX);
                         distXPanel.Pack_start(this->ContourDistX.GetWidget(), false, false, 0);
 
                     this->ContourDistXErr = LabeledSlider("Error", 0.0, 100.0, 1, 5);
-                        int realDistXErr = std::stoi(firstContour.GetTagsByName("x")[0].GetAttributesByName("error")[0].Value());
-                        this->ContourDistXErr.SetValue((double) realDistXErr);
                         distXPanel.Pack_start(this->ContourDistXErr.GetWidget(), true, true, 0);
 
                     this->panel.Pack_start(distXPanel.GetWidget(), true, true, 0);
@@ -150,13 +156,9 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName) {
                         distYPanel.Pack_start(yLabel.GetWidget(), false, false, 0);
 
                     this->ContourDistY = NumberBox(0.0, 100.0, 0.0);
-                        int realDistY = std::stoi(firstContour.GetTagsByName("y")[0].Content());
-                        this->ContourDistY.SetValue((double) realDistY);
                         distYPanel.Pack_start(this->ContourDistY.GetWidget(), false, false, 0);
 
                     this->ContourDistYErr = LabeledSlider("Error", 0.0, 100.0, 1, 5);
-                        int realDistYErr = std::stoi(firstContour.GetTagsByName("y")[0].GetAttributesByName("error")[0].Value());
-                        this->ContourDistYErr.SetValue((double) realDistYErr);
                         distYPanel.Pack_start(this->ContourDistYErr.GetWidget(), true ,true, 0);
 
                     this->panel.Pack_start(distYPanel.GetWidget(), true, true, 0);
@@ -164,13 +166,9 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName) {
                 //angle editor
                 Panel anglePanel = Panel(true, 0);
                     this->ContourAngle = LabeledSlider("Angle", -360.0, 360.0, 0.05, 0);
-                        int realAngle = std::stoi(firstContour.GetTagsByName("angle")[0].Content());
-                        this->ContourAngle.SetValue((double) realAngle);
-                    anglePanel.Pack_start(this->ContourAngle.GetWidget(), true, true, 0);
+                        anglePanel.Pack_start(this->ContourAngle.GetWidget(), true, true, 0);
 
                     this->ContourAngleErr = LabeledSlider("Angle Error", 0.0, 50.0, 0.05, 5.0);
-                        int realAngleErr = std::stoi(firstContour.GetTagsByName("angle")[0].GetAttributesByName("error")[0].Value());
-                        this->ContourAngleErr.SetValue((double) realAngleErr);
                         anglePanel.Pack_start(this->ContourAngleErr.GetWidget(), true, true, 0);
 
                     this->panel.Pack_start(anglePanel.GetWidget(), true, true, 0);
@@ -178,8 +176,6 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName) {
                 //solidity editor
                 Panel solidPanel = Panel(true, 0);
                     this->ContourSolidity = LabeledSlider("Solidity", 0.0, 1.0, 0.01, 0.9);
-                        double realSolidity = std::stod(firstContour.GetTagsByName("solidity")[0].Content());
-                        this->ContourSolidity.SetValue(realSolidity);
                         solidPanel.Pack_start(this->ContourSolidity.GetWidget(), true, true, 0);
 
                     this->ContourSolidityErr = LabeledSlider("Solidity Error", 0.0, 1.0, 0.01, 0.3);
@@ -192,26 +188,22 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName) {
                 //AR editor
                 Panel ARPanel = Panel(true, 0);
                     this->ContourAR = LabeledSlider("Aspect Ratio", 0.1, 10.0, 0.01, 1.0);
-                        double realAR = std::stod(firstContour.GetTagsByName("aspectRatio")[0].Content());
-                        this->ContourAR.SetValue(realAR);
                         ARPanel.Pack_start(this->ContourAR.GetWidget(), true, true, 0);
                     
                     this->ContourARErr = LabeledSlider("Aspect Ratio Error", 0.0, 10.0, 0.01, 0.2);
-                        double realARErr = std::stod(firstContour.GetTagsByName("aspectRatio")[0].GetAttributesByName("error")[0].Value());
-                        this->ContourARErr.SetValue(realARErr);
                         ARPanel.Pack_start(this->ContourARErr.GetWidget(), true, true, 0);
 
                     this->panel.Pack_start(ARPanel.GetWidget(), true, true, 0);
 
                 //minimum area editor
                 this->ContourMinArea = LabeledSlider("Minimum Area:", 5, 10000, 5, 350);
-                    int realMinArea = std::stoi(firstContour.GetTagsByName("minimumArea")[0].Content());
-                    this->ContourMinArea.SetValue((double) realMinArea);
                     this->panel.Pack_start(this->ContourMinArea.GetWidget(), false, false, 0);
 
                 this->learnTarget = Button("Learn Target", learnTargetPressed);
                     this->panel.Pack_start(this->learnTarget.GetWidget(), false, false, 0);
-                
+
+    //set the sliders to the values for contour 0
+    this->SetValues(0);
     this->configtargeteditor = this->panel.GetWidget();
 }
 
@@ -238,6 +230,13 @@ void ConfigTargetEditor::Update() {
             this->partialPreProcessor.SetState(true);
         }
     }
+
+    int currentRequestedContour = this->ContourID.GetValue();
+    if(currentRequestedContour != this->lastRequestedContour) {
+        //the requested contour has changed in last frame, update values
+        SetValues(currentRequestedContour);
+        this->lastRequestedContour = currentRequestedContour;
+    }
 }
 
 /**
@@ -250,4 +249,35 @@ XMLTag ConfigTargetEditor::GetTarget() {
 
 void ConfigTargetEditor::SetName(std::string name) {
     gtk_widget_set_name(this->configtargeteditor, name.c_str());
+}
+
+
+/**
+ * Sets the slider values for contour with the passed id.
+ */
+void ConfigTargetEditor::SetValues(int contourID) {
+    ExampleContour contourToDisplay = this->runner.GetExampleTargetByID(0).GetExampleContourByID(contourID);
+
+    //set contour dist X values
+    this->ContourDistX.SetValue(contourToDisplay.DistX().Value());
+    this->ContourDistXErr.SetValue(contourToDisplay.DistX().Error());
+    
+    //set contour dist Y values
+    this->ContourDistY.SetValue(contourToDisplay.DistY().Value());
+    this->ContourDistYErr.SetValue(contourToDisplay.DistY().Error());
+
+    //set contour angle values
+    this->ContourAngle.SetValue(contourToDisplay.Angle().Value());
+    this->ContourAngleErr.SetValue(contourToDisplay.Angle().Error());
+
+    //set contour solidity values
+    this->ContourSolidity.SetValue(contourToDisplay.Solidity().Value());
+    this->ContourSolidityErr.SetValue(contourToDisplay.Solidity().Error());
+
+    //set contour aspect ratio values
+    this->ContourAR.SetValue(contourToDisplay.AspectRatio().Value());
+    this->ContourARErr.SetValue(contourToDisplay.AspectRatio().Error());
+
+    //set contour minimum area values
+    this->ContourMinArea.SetValue(contourToDisplay.MinimumArea());
 }

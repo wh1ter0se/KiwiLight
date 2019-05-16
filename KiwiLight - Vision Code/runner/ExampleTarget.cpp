@@ -168,6 +168,19 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
     return (targetContours.size() == 0);
 }
 
+/**
+ * Returns the exampleContour with "id". returns the first contour if none found.
+ */
+ExampleContour ExampleTarget::GetExampleContourByID(int id) {
+    for(int i=0; i<this->contours.size(); i++) {
+        if(this->contours[i].ID() == id) {
+            return this->contours[i];
+        }
+    }
+    std::cout << "WARNING: ExampleContour with id " << id << " does not exist in target with id " << this->ID() << "!" << std::endl;
+    return this->contours[0];
+}
+
 
 bool ExampleTarget::ArrayMaxed(int arr[], int size, int max) {
     if(arr[size - 1] < max) {

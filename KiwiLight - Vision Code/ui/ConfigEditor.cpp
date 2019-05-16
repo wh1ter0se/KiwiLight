@@ -38,7 +38,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
                     Label targetHeader = Label("Targeting");
                         targetHeader.SetName("header");
                         targetContent.Pack_start(targetHeader.GetWidget(), false, false, 0);
-                    this->targetEditor = ConfigTargetEditor(fileName);
+                    this->targetEditor = ConfigTargetEditor(fileName, this->runner);
                         targetContent.Pack_start(this->targetEditor.GetWidget(), false, false, 0);
                     this->content.Pack_start(targetContent.GetWidget(), true, true, 0);
 

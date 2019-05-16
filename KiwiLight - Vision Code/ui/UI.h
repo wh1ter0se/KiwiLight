@@ -204,6 +204,21 @@ namespace KiwiLight {
     };
 
     /**
+     * A blocking dialog with "ok" and "cancel" buttons.
+     */
+    class ConfirmationDialog : public Widget {
+        public:
+        ConfirmationDialog() {};
+        ConfirmationDialog(std::string message);
+        bool ShowAndGetResponse();
+        GtkWidget *GetWidget() { return this->dialog; };
+        void SetName(std::string name);
+
+        private:
+        GtkWidget *dialog;
+    };
+
+    /**
     * An option that would show under a menu bar item.
     */
     class SubMenuItem : public Widget {
@@ -325,7 +340,6 @@ namespace KiwiLight {
         public:
         Settings() {};
         Settings(int index);
-        // ~Settsings();
         void Update();
         void UpdateValue();
         void Show() { gtk_widget_show_all(this->settingsWidget); };
@@ -365,6 +379,18 @@ namespace KiwiLight {
 
         private:
         Panel panel;
+
+        Label distToTarget;
+
+        TextBox UDPAddr,
+                UDPPort;
+
+        //sliders used to adjust distance settings
+        LabeledSlider TargetWidth,
+                      TargetFocalWidth,
+                      TargetDistErrCorrect,
+                      TargetCalibratedDistance;
+
         GtkWidget *configrunnereditor;
     };
 
@@ -372,14 +398,18 @@ namespace KiwiLight {
     class ConfigTargetEditor : public Widget {
         public:
         ConfigTargetEditor() {};
-        ConfigTargetEditor(std::string fileName);
+        ConfigTargetEditor(std::string fileName, Runner runner);
         void Update();
         XMLTag GetTarget();
         GtkWidget *GetWidget() { return this->configtargeteditor; };
         void SetName(std::string name);
 
         private:
+        void SetValues(int contourID);
+
+        int lastRequestedContour; //last recorded number in the contours box
         PreProcessorType currentPreProcessor;
+        Runner runner;
 
         Panel panel;
 

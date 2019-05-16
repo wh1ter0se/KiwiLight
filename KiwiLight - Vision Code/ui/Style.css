@@ -61,3 +61,12 @@ window:not(dialog) button:disabled {
     color:rgb(175, 175, 175);
     font-size:30px;
 }
+
+#subHeader {
+    color:rgb(143, 143, 143);
+    font-size:18px;
+}
+
+#gray {
+    color:rgb(143, 143, 143);
+}

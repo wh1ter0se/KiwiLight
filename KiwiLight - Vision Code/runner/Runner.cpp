@@ -8,7 +8,9 @@
 using namespace cv;
 using namespace KiwiLight;
 
-
+/**
+ * Creates a new runner which runs the configuration described by the given file
+ */
 Runner::Runner(std::string fileName, bool debugging) {
     this->src = fileName;
     this->debug = debugging;
@@ -27,7 +29,10 @@ Runner::Runner(std::string fileName, bool debugging) {
     this->stop = false;
 }
 
-
+/**
+ * Puts the runner in a constant loop, and sends finished UDP messages.
+ * This method would be used in normal FRC situations
+ */
 void Runner::Loop() {
     //give some information to stdout about the config
     std::cout << std::endl;
@@ -55,7 +60,9 @@ void Runner::Loop() {
     }
 }
 
-
+/**
+ * Performs one iteration of the main loop, but does not send any file UDP messages.
+ */
 std::string Runner::Iterate() {
     cv::Mat img;
     if(RunnerSettings::USE_CAMERA) {
@@ -150,29 +157,58 @@ std::string Runner::Iterate() {
     return rioMessage;
 }
 
+/**
+ * Returns the example target at the given id. Returns the 0th exampletarget if id is out of bounds.
+ */
+ExampleTarget Runner::GetExampleTargetByID(int id) {
+    for(int i=0; i<this->postProcessorTargets.size(); i++) {
+        if(postProcessorTargets[i].ID() == id) {
+            return postProcessorTargets[i];
+        }
+    }
+    std::cout << "WARNING: Target at ID " << id << " does not exist!" << std::endl;
+    return postProcessorTargets[0];
+}
 
+/**
+ * Stops runner and releases camera. Camera function will not be granted to anything else
+ * unless this method is called.
+ */
 void Runner::Stop() {
     this->cap.~VideoCapture();
     this->stop = true;
 }
 
-
+/**
+ * Restarts the camera stream associated with this runner.
+ * This should only be called if Stop() has been called.
+ * NOTE: THIS METHOD DOES NOT CALL LOOP(). Loop() must be called separately.
+ */
 void Runner::Start() {
     int cameraIndex = std::stoi(this->settings.GetSetting("cameraIndex"));
     this->cap = VideoCapture(cameraIndex);
 }
 
-
+/**
+ * Sets the runner settings settingName to value. This method will only work if 
+ * the runner is initalized as debugging, to protect from setting changes in mid-match.
+ */
 void Runner::SetSetting(std::string settingName, std::string value) {
-    this->settings.SetSetting(settingName, value);
+    if(this->debug) {
+        this->settings.SetSetting(settingName, value);
+    }
 }
 
-
+/**
+ * Returns the value of the settings at settingName.
+ */
 std::string Runner::GetSetting(std::string settingName) {
     return this->settings.GetSetting(settingName);
 }
 
-
+/**
+ * Parses the XMLdocument doc and initalizes all runner settings and variables.
+ */
 void Runner::parseDocument(XMLDocument doc) {
     this->settings = ConfigurationSettingsList();
 
