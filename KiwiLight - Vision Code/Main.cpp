@@ -78,7 +78,6 @@ void Update() {
             cameraOpen = false;
             cameraStatusLabel.SetText("Error Streaming Camera!!!");
         }
-
         displayingImage = false;
     }
 
@@ -126,21 +125,15 @@ void OpenNewCamera() {
     }
 }
 
-
-/**
- * Opens a form for the user to create a new vision config.
- */
-void AddConfig() {
-    std::cout << "new config" << std::endl;
-    std::cout.flush();
-}
-
 /**
  * Saves the config currently in the editor.
  */
 void SaveConfig() {
-    std::cout << "save config" << std::endl;
-    std::cout.flush();
+    if(uiMode = UIMode::UI_EDITOR) {
+        configEditor.Save();
+    } else {
+        std::cout << "oops! there be no big config bro" << std::endl;
+    }
 }
 
 /**
@@ -210,6 +203,14 @@ void EditSelected() {
     }
 
     uiMode = UIMode::UI_EDITOR;
+}
+
+/**
+ * Opens a form for the user to create a new vision config.
+ */
+void AddConfig() {
+    //will edit generic xml as new file
+    EditSelected();
 }
 
 /**

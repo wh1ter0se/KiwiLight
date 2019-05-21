@@ -10,20 +10,45 @@ using namespace KiwiLight;
 
 ImageFrame::ImageFrame() {
     // this->imgFrame = gtk_image_new();
+    this->constantWidth = 0;
+    this->constantHeight = 0;
+    this->hasConstantResolution = false;
 }
 
 /**
  * Creates a new ImageFrame displaying the given image.
  */
 ImageFrame::ImageFrame(Image img) {
+    this->constantWidth = 0;
+    this->constantHeight = 0;
+    this->hasConstantResolution = false;
     this->imgFrame = gtk_image_new();
     gtk_image_set_from_pixbuf(GTK_IMAGE(this->imgFrame), img.ReturnImage());
+}
+
+
+void ImageFrame::SetConstantResolution(int width, int height) {
+    this->constantWidth = width;
+    this->constantHeight = height;
+    this->hasConstantResolution = true;
+
+    //update for changes to take effect
+    this->Update(Image());
+}
+
+
+void ImageFrame::SetHasConstantResolution(bool hasConstantResolution) {
+    this->hasConstantResolution = hasConstantResolution;
 }
 
 /**
  * Draws the Image in the ImageFrame.
  */
 void ImageFrame::Update(Image img) {
+    if(this->hasConstantResolution) {
+        img.Resize(this->constantWidth, this->constantHeight);
+    }
+
     gtk_image_set_from_pixbuf(GTK_IMAGE(this->imgFrame), img.ReturnImage());
 }
 

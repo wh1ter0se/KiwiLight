@@ -8,21 +8,13 @@
 using namespace cv;
 using namespace KiwiLight;
 
-
-static void PageNext() {
-    Flags::RaiseFlag("EditorNextPage");
-}
-
-static void PagePrev() {
-    Flags::RaiseFlag("EditorPrevPage");
-}
-
 /**
  * Creates a window to edit the bassed file.
  */
 ConfigEditor::ConfigEditor(std::string fileName) {
     this->runner = Runner(fileName, true);
-    this->currentFrame = ConfigEditorFrame::EDITOR_CAMERA;
+    this->editorMode = EditorMode::USE_RUNNER;
+    this->currentDoc = XMLDocument(fileName);
 
     this->window = Window(GTK_WINDOW_TOPLEVEL);
         this->content = Panel(true, 5);
@@ -66,24 +58,38 @@ void ConfigEditor::Update() {
     this->targetEditor.Update();
     this->runnerEditor.Update();
 
-    if(Flags::GetFlag("EditorNextPage")) {
-        Flags::LowerFlag("EditorNextPage");
-        this->NextPage();
-    }
-    if(Flags::GetFlag("EditorPrevPage")) {
-        Flags::LowerFlag("EditorPrevPage");
-        this->PrevPage();
+    if(this->editorMode == EditorMode::USE_RUNNER) {
+        this->runner.Iterate();
+        this->out = this->runner.GetOutputImage();
+    } else if(this->editorMode == EditorMode::USE_LEARNER) {
+        this->learner.Update();
+        this->out = this->learner.GetOutputImage();
     }
 
-    this->runner.Iterate();
-    this->out = this->runner.GetOutputImage();
+    // //check for flag signals
+    if(Flags::GetFlag("StartLearner")) {
+        Flags::LowerFlag("StartLearner");
+        
+        //create a new learner and then switch to learner mode
+        XMLTag preprocessorTag = this->currentDoc.GetTagsByName("configuration")[0].GetTagsByName("preprocessor")[0];
+        this->learner = ConfigLearner(preprocessorTag, this->runner.GetVideoStream());
+        this->editorMode = EditorMode::USE_LEARNER;
+    }
+
+    if(Flags::GetFlag("StopLearner")) {
+        Flags::LowerFlag("StopLearner");
+        this->editorMode = EditorMode::USE_RUNNER;
+    }
 }
 
 /**
  * Causes the editor to save the config to file.
  */
 void ConfigEditor::Save() {
-    std::cout << "save" << std::endl;
+    XMLDocument newDoc = XMLDocument();
+
+    std::cout << "iiii" << std::endl;
+    std::cout.flush();
 }
 
 
@@ -91,49 +97,3 @@ void ConfigEditor::SetName(std::string name) {
     gtk_widget_set_name(this->configeditor, name.c_str());
 }
 
-
-/**
- * ORDER OF PAGES: camera - target - runner
- */
-
-/**
- * Shifts to the next page
- */
-void ConfigEditor::NextPage() {
-    // switch(this->currentFrame) {
-    //     case ConfigEditorFrame::EDITOR_CAMERA:
-    //         std::cout << "yeet 2" << std::endl;
-    //         this->currentFrame = ConfigEditorFrame::EDITOR_TARGET;
-    //         this->contentFrame.Unpack(this->cameraSettings.GetWidget());
-    //         this->contentFrame.Pack(this->targetEditor.GetWidget());
-    //     break;
-
-    //     case ConfigEditorFrame::EDITOR_TARGET:
-    //         std::cout << "yeet 3" << std::endl;
-    //         this->currentFrame = ConfigEditorFrame::EDITOR_RUNNER;
-    //         this->contentFrame.Unpack(this->targetEditor.GetWidget());
-    //         this->contentFrame.Pack(this->runnerEditor.GetWidget());
-    //     break;
-    // }
-}
-
-/**
- * Shifts to the previous page
- */
-void ConfigEditor::PrevPage() {
-    // switch(this->currentFrame) {
-    //     case ConfigEditorFrame::EDITOR_RUNNER:
-    //         std::cout << "yeet 2" << std::endl;
-    //         this->currentFrame = ConfigEditorFrame::EDITOR_TARGET;
-    //         this->contentFrame.Unpack(this->runnerEditor.GetWidget());
-    //         this->contentFrame.Pack(this->targetEditor.GetWidget());
-    //     break;
-
-    //     case ConfigEditorFrame::EDITOR_TARGET:
-    //         std::cout << "yeet 1" << std::endl;
-    //         this->currentFrame = ConfigEditorFrame::EDITOR_CAMERA;
-    //         this->contentFrame.Unpack(this->targetEditor.GetWidget());
-    //         this->contentFrame.Pack(this->cameraSettings.GetWidget());
-    //     break;
-    // }
-}

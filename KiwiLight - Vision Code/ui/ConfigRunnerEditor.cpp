@@ -9,6 +9,12 @@ using namespace cv;
 using namespace KiwiLight;
 
 
+static void tuneDistancePressed() {
+    std::cout << "tune distance" << std::endl;
+    std::cout.flush();
+}
+
+
 ConfigRunnerEditor::ConfigRunnerEditor(std::string fileName) {
 
     //define the xml file we will be parsing, and get the postprocessor tag to pull information from it
@@ -92,12 +98,50 @@ ConfigRunnerEditor::ConfigRunnerEditor(std::string fileName) {
 
             this->panel.Pack_start(errorCorrectPanel.GetWidget(), true, true, 0);
 
+        this->tuneDistance = Button("Tune Distance", tuneDistancePressed);
+            this->panel.Pack_start(this->tuneDistance.GetWidget(), false ,false, 0);
+
+        //panel where the output images will show up
+        Panel imagePanel = Panel(true, 0);
+
+            //panel with image for original image
+            Panel originalImagePanel = Panel(false, 3);
+                Label originalImageHeader = Label("Original Image");
+                    originalImagePanel.Pack_start(originalImageHeader.GetWidget(), false, false, 0);
+
+                //make default blank image for the original image frame
+                Image originalImageImage = Image();
+
+                // this->originalImage = ImageFrame(originalImageImage);
+                //     // this->originalImage.SetConstantResolution(160, 80);
+                //     originalImagePanel.Pack_start(this->originalImage.GetWidget(), false, false, 0);
+
+                imagePanel.Pack_start(originalImagePanel.GetWidget(), false, false, 0);
+
+            //panel with image for processed image
+            Panel processedImagePanel = Panel(false, 3);
+                Label processedImageHeader = Label("Processed Image");
+                    processedImagePanel.Pack_start(processedImageHeader.GetWidget(), false, false, 0);
+
+                //default blank image for this one too
+                Image processedImageImage = Image();
+                
+                // this->processedImage = ImageFrame(processedImageImage);
+                //     // this->processedImage.SetConstantResolution(160, 80);
+                //     processedImagePanel.Pack_start(this->processedImage.GetWidget(), false, false, 0);
+
+                imagePanel.Pack_start(processedImagePanel.GetWidget(), false, false, 0);
+
+            this->panel.Pack_start(imagePanel.GetWidget(), false, false, 0);
+
     this->configrunnereditor = panel.GetWidget();
 }
 
-
+/**
+ * Updates the sliders and output images. Runner is needed for output images
+ */
 void ConfigRunnerEditor::Update() {
-
+   
 }
 
 

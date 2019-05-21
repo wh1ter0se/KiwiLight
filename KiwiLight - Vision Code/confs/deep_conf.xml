@@ -8,10 +8,10 @@
     </settings>
 </camera>
 <configuration name="Deep Space Configuration">
-    <cameraResolution>
+    <!-- <cameraResolution>
         <width>600</width>
         <height>400</height>
-    </cameraResolution>
+    </cameraResolution> -->
     <preprocessor type="partial">
         <targetThreshold>
             <threshold>75</threshold>

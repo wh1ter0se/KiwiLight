@@ -22,10 +22,10 @@ Runner::Runner(std::string fileName, bool debugging) {
         std::cout << "sorry! the file could not be found. " << std::endl;
     }  
     bool isFull = (this->settings.GetSetting("PreprocessorType") == "full");
-    int cameraIndex = std::stoi(this->settings.GetSetting("cameraIndex"));
+    this->cameraIndex = std::stoi(this->settings.GetSetting("cameraIndex"));
     this->preprocessor = PreProcessor(this->settings, isFull);
     this->postprocessor = PostProcessor(this->postProcessorTargets);
-    this->cap = VideoCapture(cameraIndex);
+    this->cap = VideoCapture(this->cameraIndex);
     this->stop = false;
 }
 
@@ -65,6 +65,7 @@ void Runner::Loop() {
  */
 std::string Runner::Iterate() {
     cv::Mat img;
+    cv::Mat out; //output image we draw on for debugging
     if(RunnerSettings::USE_CAMERA) {
         bool success = this->cap.read(img);
         if(!success) {
@@ -75,8 +76,10 @@ std::string Runner::Iterate() {
     } else {
         img = cv::imread("runner/dual.png");
     }
-    cv::Mat preprocessed = this->preprocessor.ProcessImage(img);
-    std::vector<Target> targets = this->postprocessor.ProcessImage(preprocessed);
+    img.copyTo(this->originalImage);
+    img = this->preprocessor.ProcessImage(img);
+    img.copyTo(out);
+    std::vector<Target> targets = this->postprocessor.ProcessImage(img);
     //find the percieved robot center using this->centerOffset
     int trueCenter = (std::stoi(this->settings.GetSetting("cameraWidth")) / 2);
     int robotCenter = trueCenter;
@@ -121,8 +124,7 @@ std::string Runner::Iterate() {
 
     rioMessage = ":" + x + "," + y + "," + d + "," + a + ";";
     if(this->debug) {
-        cv::Mat out;
-        img.copyTo(out);
+        cv::cvtColor(out, out, cv::COLOR_GRAY2RGB);
 
         //write the out string onto the image
         cv::putText(out, rioMessage, cv::Point(5, 15), cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar(0,0,255), 2);
@@ -175,6 +177,7 @@ ExampleTarget Runner::GetExampleTargetByID(int id) {
  * unless this method is called.
  */
 void Runner::Stop() {
+    std::cout << "runner stop" << std::endl;
     this->cap.~VideoCapture();
     this->stop = true;
 }

@@ -172,16 +172,20 @@ namespace KiwiLight {
     };
 
     /**
-     * Represents an image which can be displayed in an ImageFrame
+     * Represents an image which can be displayed in an ImageFrame, but really just a wrapper for
+     * converting cv::Mat to GdkPixbuf
      */
     class Image {
         public:
+        Image();
         Image(std::string fileName);
         Image(cv::Mat img);
-        GdkPixbuf *ReturnImage() { return this->img; };
+        void Resize(int width, int height);
+        cv::Mat ReturnImageCVMat() { return this->img; };
+        GdkPixbuf *ReturnImage();
 
         private:
-        GdkPixbuf *img;
+        cv::Mat img;
     };
 }
 

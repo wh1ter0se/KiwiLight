@@ -194,18 +194,40 @@ namespace KiwiLight {
     };
 
     /**
+     * utility that learns a seen target
+     */
+    class ConfigLearner {
+        public:
+        ConfigLearner() {};
+        ConfigLearner(XMLTag preprocessor, VideoCapture stream);
+        XMLTag LearnTarget();
+        void Update();
+        void Stop();
+        cv::Mat GetOutputImage() { return this->out; };
+
+        private:
+        VideoCapture stream;
+        cv::Mat out;
+        PreProcessor preprocessor;
+        ConfigurationSettingsList configsettings;
+    };
+
+    /**
      * Handles everything vision from taking images to send coordinates to a RoboRIO(or other UDP destination)
      */
     class Runner {
         public:
         Runner() {};
         Runner(std::string filename, bool debugging);
+        int GetCameraIndex() { return this->cameraIndex; };
         void Loop();
         void Stop();
         void Start();
         std::string Iterate();
         std::string GetFileName() { return this->src; };
+        cv::Mat GetOriginalImage() { return this->originalImage; };
         cv::Mat GetOutputImage() { return this->outputImage; };
+        cv::VideoCapture GetVideoStream() { return this->cap; };
         ExampleTarget GetExampleTargetByID(int id);
         void SetSetting(std::string settingName, std::string value);
         std::string GetSetting(std::string settingName);
@@ -218,8 +240,10 @@ namespace KiwiLight {
         PostProcessor postprocessor;
 
         std::string src;
+        int cameraIndex;
 
-        cv::Mat outputImage;
+        cv::Mat outputImage,
+                originalImage;
         ConfigurationSettingsList settings;
         std::vector<ExampleTarget> postProcessorTargets;
         bool stop,

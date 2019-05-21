@@ -9,11 +9,18 @@ using namespace cv;
 using namespace KiwiLight;
 
 static void learnTargetPressed() {
-    std::cout << "learn target" << std::endl;
-    std::cout.flush();
+    Flags::RaiseFlag("StartLearner");
 
-    ConfirmationDialog test = ConfirmationDialog("aaaaaaaaaa");
-    test.ShowAndGetResponse();
+    ConfirmationDialog confirmLearn = ConfirmationDialog("aaaaaaaaaa");
+    bool userWantsLearn = confirmLearn.ShowAndGetResponse();
+
+    if(userWantsLearn) {
+        std::cout << "learn" << std::endl;
+        Flags::RaiseFlag("StopLearner");
+    } else {
+        std::cout << "no learn" << std::endl;
+        Flags::RaiseFlag("StopLearner");
+    }
 }
 
 /**
@@ -146,7 +153,7 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName, Runner runner) {
                     this->ContourDistX = NumberBox(0.0, 100.0, 0.0);
                         distXPanel.Pack_start(this->ContourDistX.GetWidget(), false, false, 0);
 
-                    this->ContourDistXErr = LabeledSlider("Error", 0.0, 100.0, 1, 5);
+                    this->ContourDistXErr = LabeledSlider("Error", 0.0, 100.0, 0.05, 5);
                         distXPanel.Pack_start(this->ContourDistXErr.GetWidget(), true, true, 0);
 
                     this->panel.Pack_start(distXPanel.GetWidget(), true, true, 0);
@@ -158,7 +165,7 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName, Runner runner) {
                     this->ContourDistY = NumberBox(0.0, 100.0, 0.0);
                         distYPanel.Pack_start(this->ContourDistY.GetWidget(), false, false, 0);
 
-                    this->ContourDistYErr = LabeledSlider("Error", 0.0, 100.0, 1, 5);
+                    this->ContourDistYErr = LabeledSlider("Error", 0.0, 100.0, 0.05, 5);
                         distYPanel.Pack_start(this->ContourDistYErr.GetWidget(), true ,true, 0);
 
                     this->panel.Pack_start(distYPanel.GetWidget(), true, true, 0);

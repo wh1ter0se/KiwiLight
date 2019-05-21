@@ -12,7 +12,7 @@
         <width>600</width>
         <height>400</height>
     </cameraResolution>
-    <preprocessor type="partial">
+    <preprocessor type="full">
         <targetThreshold>
             <threshold>75</threshold>
             <maxValue>255</maxValue>

@@ -267,13 +267,18 @@ namespace KiwiLight {
         public:
         ImageFrame();
         ImageFrame(Image img);
+        void SetConstantResolution(int width, int height);
+        void SetHasConstantResolution(bool hasConstantResolution);
         void Update(Image img);
         GtkWidget *GetWidget() { return this->imgFrame; };
         void SetName(std::string name);
 
         private:
+        bool hasConstantResolution;
+        int constantWidth,
+            constantHeight;
+
         GtkWidget *imgFrame;
-        GtkImage *realImg;
     };
 
     class FileChooser : public Widget {
@@ -360,14 +365,6 @@ namespace KiwiLight {
         GtkWidget *settingsWidget;
     };
 
-
-    enum ConfigEditorFrame {
-        EDITOR_CAMERA,
-        EDITOR_TARGET,
-        EDITOR_RUNNER
-    };
-
-
     class ConfigRunnerEditor : public Widget {
         public:
         ConfigRunnerEditor() {};
@@ -390,6 +387,11 @@ namespace KiwiLight {
                       TargetFocalWidth,
                       TargetDistErrCorrect,
                       TargetCalibratedDistance;
+
+        Button tuneDistance;
+
+        ImageFrame originalImage,
+                   processedImage;
 
         GtkWidget *configrunnereditor;
     };
@@ -469,6 +471,12 @@ namespace KiwiLight {
     };
 
 
+    enum EditorMode {
+        USE_RUNNER,
+        USE_LEARNER
+    };
+
+
     class ConfigEditor : public Widget {
         public:
         ConfigEditor() {};
@@ -480,10 +488,10 @@ namespace KiwiLight {
         void SetName(std::string name);
 
         private:
-        void NextPage();
-        void PrevPage();
-
         Runner runner;
+        ConfigLearner learner;
+        EditorMode editorMode;
+        XMLDocument currentDoc;
 
         cv::Mat out;
 
@@ -493,12 +501,6 @@ namespace KiwiLight {
         Settings cameraSettings;
         ConfigTargetEditor targetEditor;
         ConfigRunnerEditor runnerEditor;
-
-        ConfigEditorFrame currentFrame;
-
-        Button nextButton;
-        Button prevButton;
-        
         GtkWidget *configeditor;
     };
 }

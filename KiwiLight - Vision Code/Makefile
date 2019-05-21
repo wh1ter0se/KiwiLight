@@ -133,14 +133,17 @@ bin/PostProcessor.o: runner/PostProcessor.cpp
 bin/PreProcessor.o: runner/PreProcessor.cpp
 	$(CXX) -c -o bin/PreProcessor.o runner/PreProcessor.cpp $(GTK) $(CV)
 
+bin/ConfigLearner.o: runner/ConfigLearner.cpp
+	$(CXX) -c -o bin/ConfigLearner.o runner/ConfigLearner.cpp $(GTK) $(CV)
+
 bin/Runner.o: runner/Runner.cpp
 	$(CXX) -c -o bin/Runner.o runner/Runner.cpp $(GTK) $(CV)
 
 bin/Target.o: runner/Target.cpp
 	$(CXX) -c -o bin/Target.o runner/Target.cpp $(GTK) $(CV)
 
-lib/Runner.a: bin/ConfigurationSetting.o bin/ConfigurationSettingsList.o bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/Runner.o bin/Target.o
-	ar rs lib/Runner.a bin/Runner.o bin/ConfigurationSetting.o bin/ConfigurationSettingsList.o bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/Target.o
+lib/Runner.a: bin/ConfigurationSetting.o bin/ConfigurationSettingsList.o bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/ConfigLearner.o bin/Runner.o bin/Target.o
+	ar rs lib/Runner.a bin/Runner.o bin/ConfigLearner.o bin/ConfigurationSetting.o bin/ConfigurationSettingsList.o bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/Target.o
 
 #ROOT
 
@@ -149,7 +152,7 @@ bin/ConfigPanel.o: ConfigPanel.cpp
 
 #MAIN FILE
 KiwiLight: Main.cpp lib/UI.a lib/Util.a lib/Runner.a bin/ConfigPanel.o
-	$(CXX) -o KiwiLight Main.cpp bin/ConfigPanel.o lib/Runner.a lib/UI.a lib/Util.a $(CV) $(GTK)
+	$(CXX) -o KiwiLight Main.cpp bin/ConfigPanel.o lib/UI.a lib/Runner.a lib/Util.a $(CV) $(GTK)
 
 RunnerTest: RunnerTest.cpp lib/UI.a lib/Util.a lib/Runner.a bin/Settings.o
 	$(CXX) -o RunnerTest RunnerTest.cpp lib/Runner.a lib/Util.a lib/UI.a $(CV) $(GTK)
