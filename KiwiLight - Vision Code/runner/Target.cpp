@@ -58,11 +58,6 @@ Target::Target(int id, std::vector<Contour> contours, double knownHeight, double
         this->height = (biggestY - smallestY) + biggestYHeight;
         this->x = (this->width / 2) + smallestX;
         this->y = (this->height / 2) + smallestY;
-
-        // std::cout << "width: " << this->width << std::endl;
-        // std::cout << "height: " << this->height << std::endl;
-        // std::cout << "x: " << this->x << std::endl;
-        // std::cout << "y: " << this->y << std::endl;
     }
 }
 

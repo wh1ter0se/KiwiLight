@@ -8,10 +8,10 @@
     </settings>
 </camera>
 <configuration name="Test Configuration">
-    <cameraResolution>
-        <width>600</width>
-        <height>400</height>
-    </cameraResolution>
+    <constantResize>
+        <width>200</width>
+        <height>145</height>
+    </constantResize>
     <preprocessor type="full">
         <targetThreshold>
             <threshold>75</threshold>

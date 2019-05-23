@@ -65,21 +65,26 @@ void Update() {
         }
 
         if(success) {
-            //convert image to 16 bit for bgr-rgb conversion. Not doing this step may result in segfault
-            img.convertTo(img, CV_16U);
-            cvtColor(img, img, COLOR_BGR2RGB);
-            img.convertTo(img, CV_8U);
+            // try {
+                //convert image to 16 bit for bgr-rgb conversion. Not doing this step may result in segfault
+                img.convertTo(img, CV_16U);
+                cvtColor(img, img, COLOR_BGR2RGB);
+                img.convertTo(img, CV_8U);
 
-            //display image
-            Image forFrame = Image(img);
-            imgFrame.Update(forFrame);
-            cameraStatusLabel.SetText("");
+                //display image
+                Image forFrame = Image(img);
+                imgFrame.Update(forFrame);
+                cameraStatusLabel.SetText("");
+            // } catch(cv::Exception ex) {
+                // std::cout << "WARNING: IMAGE DISPLAY ERROR DETECTED!" << std::endl;
+            // }
         } else {
             cameraOpen = false;
             cameraStatusLabel.SetText("Error Streaming Camera!!!");
         }
         displayingImage = false;
     }
+
 
     //update editor outside of displaying image because it has the ability to stop the camera
     if(uiMode == UIMode::UI_EDITOR) {
@@ -352,7 +357,7 @@ int main(int argc, char *argv[]) {
     //set events and show Window
     win.SetInterval(75, Update);
     win.Show();
-    win.Main();
+    win.Main(); //MAIN LOOP
 
     return 0;
 }

@@ -11,7 +11,7 @@ using namespace KiwiLight;
 static void learnTargetPressed() {
     Flags::RaiseFlag("StartLearner");
 
-    ConfirmationDialog confirmLearn = ConfirmationDialog("aaaaaaaaaa");
+    ConfirmationDialog confirmLearn = ConfirmationDialog("Ensure that the target is focused in the camera's view so that a blue box is drawn around it.\nWhen this is done, press OK.");
     bool userWantsLearn = confirmLearn.ShowAndGetResponse();
 
     if(userWantsLearn) {
@@ -31,6 +31,7 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName, Runner runner) {
     this->currentPreProcessor = PreProcessorType::FULL; //because the checkbox defaults to full
     this->runner = runner;
     this->panel = Panel(false, 0);
+
         
         XMLTag configurationTag = document.GetTagsByName("configuration")[0];
 
@@ -251,6 +252,35 @@ void ConfigTargetEditor::Update() {
  */
 XMLTag ConfigTargetEditor::GetTarget() {
 
+}
+
+
+double ConfigTargetEditor::GetPropertyValue(int contour, TargetProperty property) {
+    int currentContour = this->lastRequestedContour;
+    SetValues(contour);
+
+    double finalValue = -1.0;
+    //find out which property is requested and then return its value
+    switch(property) {
+        case TargetProperty::DIST_X:
+            finalValue = this->ContourDistX.GetValue();
+            break;
+        case TargetProperty::DIST_Y:
+            finalValue = this->ContourDistY.GetValue();
+            break;
+        case TargetProperty::ANGLE:
+            finalValue = this->ContourAngle.GetValue();
+            break;
+        case TargetProperty::SOLIDITY:
+            finalValue = this->ContourSolidity.GetValue();
+            break;
+        case TargetProperty::MINIMUM_AREA:
+            finalValue = this->ContourMinArea.GetValue();
+            break;
+    }
+
+    SetValues(currentContour);
+    return finalValue;
 }
 
 

@@ -54,17 +54,32 @@ ConfigEditor::ConfigEditor(std::string fileName) {
  */
 void ConfigEditor::Update() {
     //update the trinity for its functionality
-    this->cameraSettings.Update();
-    this->targetEditor.Update();
-    this->runnerEditor.Update();
-
+    
     if(this->editorMode == EditorMode::USE_RUNNER) {
         this->runner.Iterate();
         this->out = this->runner.GetOutputImage();
     } else if(this->editorMode == EditorMode::USE_LEARNER) {
-        this->learner.Update();
+        double minimumArea = this->targetEditor.GetPropertyValue(0, TargetProperty::MINIMUM_AREA);
+        this->learner.Update((int) minimumArea);
         this->out = this->learner.GetOutputImage();
     }
+
+    this->cameraSettings.Update();
+    this->targetEditor.Update();
+    this->runnerEditor.Update(this->runner.GetOriginalImage(), this->out);
+
+
+    //update preprocessor settings in runner
+
+    //update target settings in runner
+
+    //update image resize settings in runner
+    int newSizeX = (int) this->runnerEditor.GetProperty(RunnerProperty::IMAGE_WIDTH);
+    int newSizeY = (int) this->runnerEditor.GetProperty(RunnerProperty::IMAGE_HEIGHT);
+    Size newSize = Size(newSizeX, newSizeY);
+    this->runner.SetImageResize(newSize);
+
+    //update image distance info in runner
 
     // //check for flag signals
     if(Flags::GetFlag("StartLearner")) {

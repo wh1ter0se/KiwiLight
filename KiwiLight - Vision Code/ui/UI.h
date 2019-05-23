@@ -365,11 +365,23 @@ namespace KiwiLight {
         GtkWidget *settingsWidget;
     };
 
+
+    enum RunnerProperty {
+        IMAGE_WIDTH,
+        IMAGE_HEIGHT,
+        TRUE_WIDTH,
+        PERCEIVED_WIDTH,
+        CALIBRATED_DISTANCE,
+        ERROR_CORRECTION
+    };
+
+
     class ConfigRunnerEditor : public Widget {
         public:
         ConfigRunnerEditor() {};
         ConfigRunnerEditor(std::string fileName);
-        void Update();
+        void Update(cv::Mat originalImage, cv::Mat processedImage);
+        double GetProperty(RunnerProperty prop);
         ConfigurationSettingsList GetSettings();
         GtkWidget *GetWidget() { return this->configrunnereditor; };
         void SetName(std::string name);
@@ -381,6 +393,10 @@ namespace KiwiLight {
 
         TextBox UDPAddr,
                 UDPPort;
+
+        //sliders used to adjust image resize
+        LabeledSlider imageResizeX,
+                      imageResizeY;
 
         //sliders used to adjust distance settings
         LabeledSlider TargetWidth,
@@ -396,6 +412,17 @@ namespace KiwiLight {
         GtkWidget *configrunnereditor;
     };
 
+    /**
+     * Describes the names of certain properties of a target.
+     */
+    enum TargetProperty {
+        DIST_X,
+        DIST_Y,
+        ANGLE,
+        SOLIDITY,
+        MINIMUM_AREA
+    };
+
 
     class ConfigTargetEditor : public Widget {
         public:
@@ -403,6 +430,7 @@ namespace KiwiLight {
         ConfigTargetEditor(std::string fileName, Runner runner);
         void Update();
         XMLTag GetTarget();
+        double GetPropertyValue(int contour, TargetProperty property);
         GtkWidget *GetWidget() { return this->configtargeteditor; };
         void SetName(std::string name);
 

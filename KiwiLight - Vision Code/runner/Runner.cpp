@@ -20,13 +20,23 @@ Runner::Runner(std::string fileName, bool debugging) {
         this->parseDocument(file);
     } else {
         std::cout << "sorry! the file could not be found. " << std::endl;
-    }  
+    }
+    //figure out constant resize
+    int resizeX = std::stoi(this->settings.GetSetting("resizeX"));
+    int resizeY = std::stoi(this->settings.GetSetting("resizeY"));
+    this->constantResize = Size(resizeX, resizeY);
+
     bool isFull = (this->settings.GetSetting("PreprocessorType") == "full");
     this->cameraIndex = std::stoi(this->settings.GetSetting("cameraIndex"));
     this->preprocessor = PreProcessor(this->settings, isFull);
     this->postprocessor = PostProcessor(this->postProcessorTargets);
     this->cap = VideoCapture(this->cameraIndex);
     this->stop = false;
+}
+
+
+void Runner::SetImageResize(Size sz) {
+    this->constantResize = sz;
 }
 
 /**
@@ -55,6 +65,7 @@ void Runner::Loop() {
 
     //loops a lot until stopped
     while(!stop) {
+        //run algorithm and get the udp message to send to rio
         std::string rioString = Iterate();
         udp.Send(rioString);
     }
@@ -76,6 +87,7 @@ std::string Runner::Iterate() {
     } else {
         img = cv::imread("runner/dual.png");
     }
+    resize(img, img, this->constantResize);
     img.copyTo(this->originalImage);
     img = this->preprocessor.ProcessImage(img);
     img.copyTo(out);
@@ -153,7 +165,7 @@ std::string Runner::Iterate() {
         //draw a special dot in the center of the target for which we send data
         cv::circle(out, bestTarget.Center(), 2, cv::Scalar(0,255,255), 3);
         
-        this->outputImage = out;
+        out.copyTo(this->outputImage);
     }
 
     return rioMessage;
@@ -225,6 +237,11 @@ void Runner::parseDocument(XMLDocument doc) {
             //do things for the settings here
     XMLTag config = doc.GetTagsByName("configuration")[0];
         this->settings.AddSetting("configName", config.GetAttributesByName("name")[0].Value());
+
+        XMLTag constResize = config.GetTagsByName("constantResize")[0];
+            this->settings.AddSetting("resizeX", constResize.GetTagsByName("width")[0].Content());
+            this->settings.AddSetting("resizeY", constResize.GetTagsByName("height")[0].Content());
+
         XMLTag preprocess = config.GetTagsByName("preprocessor")[0];
             this->settings.AddSetting("PreprocessorType", preprocess.GetAttributesByName("type")[0].Value());
             XMLTag threshold = preprocess.GetTagsByName("targetThreshold")[0];

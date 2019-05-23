@@ -54,6 +54,19 @@ ConfigRunnerEditor::ConfigRunnerEditor(std::string fileName) {
         Separator sep = Separator(true);
             this->panel.Pack_start(sep.GetWidget(), false, false, 0);
 
+        Label imageResizeHeader = Label("Image Resize");
+            imageResizeHeader.SetName("subHeader");
+            this->panel.Pack_start(imageResizeHeader.GetWidget(), true, true, 0);
+
+        Panel imageResizePanel = Panel(true, 0);
+            this->imageResizeX = LabeledSlider("Image Width", 25, 800, 1, 200);
+                imageResizePanel.Pack_start(this->imageResizeX.GetWidget(), true, true, 0);
+
+            this->imageResizeY = LabeledSlider("Image Height", 25, 800, 1, 145);
+                imageResizePanel.Pack_start(this->imageResizeY.GetWidget(), true ,true, 0);
+
+            this->panel.Pack_start(imageResizePanel.GetWidget(), true ,true, 0);
+
         Label distanceHeader = Label("Target Distance Calculation");
             distanceHeader.SetName("subHeader");
             this->panel.Pack_start(distanceHeader.GetWidget(), false, false, 0);
@@ -104,6 +117,21 @@ ConfigRunnerEditor::ConfigRunnerEditor(std::string fileName) {
         //panel where the output images will show up
         Panel imagePanel = Panel(true, 0);
 
+            Panel processedImagePanel = Panel(false, 3);
+                Label processedImageHeader = Label("Processed Image");
+                    processedImagePanel.Pack_start(processedImageHeader.GetWidget(), false, false, 0);
+
+                //default blank image for this one too
+                Image processedImageImage = Image();
+                
+                this->processedImage = ImageFrame(processedImageImage);
+                    processedImagePanel.Pack_start(this->processedImage.GetWidget(), false, false, 0);
+
+                imagePanel.Pack_start(processedImagePanel.GetWidget(), false, false, 0);
+
+            this->panel.Pack_start(imagePanel.GetWidget(), false, false, 0);
+
+
             //panel with image for original image
             Panel originalImagePanel = Panel(false, 3);
                 Label originalImageHeader = Label("Original Image");
@@ -112,27 +140,13 @@ ConfigRunnerEditor::ConfigRunnerEditor(std::string fileName) {
                 //make default blank image for the original image frame
                 Image originalImageImage = Image();
 
-                // this->originalImage = ImageFrame(originalImageImage);
-                //     // this->originalImage.SetConstantResolution(160, 80);
-                //     originalImagePanel.Pack_start(this->originalImage.GetWidget(), false, false, 0);
+                this->originalImage = ImageFrame(originalImageImage);
+                    originalImagePanel.Pack_start(this->originalImage.GetWidget(), false, false, 0);
 
                 imagePanel.Pack_start(originalImagePanel.GetWidget(), false, false, 0);
 
             //panel with image for processed image
-            Panel processedImagePanel = Panel(false, 3);
-                Label processedImageHeader = Label("Processed Image");
-                    processedImagePanel.Pack_start(processedImageHeader.GetWidget(), false, false, 0);
-
-                //default blank image for this one too
-                Image processedImageImage = Image();
-                
-                // this->processedImage = ImageFrame(processedImageImage);
-                //     // this->processedImage.SetConstantResolution(160, 80);
-                //     processedImagePanel.Pack_start(this->processedImage.GetWidget(), false, false, 0);
-
-                imagePanel.Pack_start(processedImagePanel.GetWidget(), false, false, 0);
-
-            this->panel.Pack_start(imagePanel.GetWidget(), false, false, 0);
+            
 
     this->configrunnereditor = panel.GetWidget();
 }
@@ -140,8 +154,60 @@ ConfigRunnerEditor::ConfigRunnerEditor(std::string fileName) {
 /**
  * Updates the sliders and output images. Runner is needed for output images
  */
-void ConfigRunnerEditor::Update() {
-   
+void ConfigRunnerEditor::Update(cv::Mat originalImage, cv::Mat processedImage) {
+
+    //update processed (also in RGB)
+    try {
+        Mat processedRGB;
+        processedImage.convertTo(processedRGB, CV_16U);
+        cvtColor(processedRGB, processedRGB, COLOR_BGR2RGB);
+        processedRGB.convertTo(processedRGB, CV_8U);
+        Image processedImageImage = Image(processedRGB);
+        this->processedImage.Update(processedImageImage);
+    } catch(cv::Exception ex) {}
+
+    //update original (in RGB colorspace of course)
+    try {
+        Mat originalRGB;
+        originalImage.convertTo(originalRGB, CV_16U);
+        cvtColor(originalImage, originalRGB, COLOR_BGR2RGB);
+        originalRGB.convertTo(originalRGB, CV_8U);
+        Image originalImageImage = Image(originalRGB);
+        this->originalImage.Update(originalImageImage);
+    } catch(cv::Exception ex) {}
+
+    
+}
+
+/**
+ * Returns the value of the property described by prop.
+ * Returns -1.0 if no such property exists
+ */
+double ConfigRunnerEditor::GetProperty(RunnerProperty prop) {
+    double finalValue = -1.0;
+
+    switch(prop) {
+        case RunnerProperty::IMAGE_WIDTH:
+            finalValue = this->imageResizeX.GetValue();
+            break;
+        case RunnerProperty::IMAGE_HEIGHT:
+            finalValue = this->imageResizeY.GetValue();
+            break;
+        case RunnerProperty::TRUE_WIDTH:
+            finalValue = this->TargetWidth.GetValue();
+            break;
+        case RunnerProperty::PERCEIVED_WIDTH:
+            finalValue = this->TargetFocalWidth.GetValue();
+            break;
+        case RunnerProperty::CALIBRATED_DISTANCE:
+            finalValue = this->TargetCalibratedDistance.GetValue();
+            break;
+        case RunnerProperty::ERROR_CORRECTION:
+            finalValue = this->TargetDistErrCorrect.GetValue();
+            break;
+    }
+
+    return finalValue;
 }
 
 

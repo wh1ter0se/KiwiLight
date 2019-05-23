@@ -201,7 +201,7 @@ namespace KiwiLight {
         ConfigLearner() {};
         ConfigLearner(XMLTag preprocessor, VideoCapture stream);
         XMLTag LearnTarget();
-        void Update();
+        void Update(int minArea);
         void Stop();
         cv::Mat GetOutputImage() { return this->out; };
 
@@ -220,6 +220,7 @@ namespace KiwiLight {
         Runner() {};
         Runner(std::string filename, bool debugging);
         int GetCameraIndex() { return this->cameraIndex; };
+        void SetImageResize(Size sz);
         void Loop();
         void Stop();
         void Start();
@@ -238,6 +239,7 @@ namespace KiwiLight {
         VideoCapture cap;
         PreProcessor preprocessor;
         PostProcessor postprocessor;
+        Size constantResize;
 
         std::string src;
         int cameraIndex;
