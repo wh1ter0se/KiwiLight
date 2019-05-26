@@ -30,7 +30,7 @@ ConfigLearner::ConfigLearner(XMLTag preprocessor, cv::VideoCapture stream) {
         this->configsettings.AddSetting("colorV_error", color.GetTagsByName("v")[0].GetAttributesByName("error")[0].Value());
 
     bool isFullPreprocessor = (preprocessor.GetAttributesByName("type")[0].Value() == "full" ? true : false);
-    this->preprocessor = PreProcessor(this->configsettings, isFullPreprocessor);
+    this->preprocessor = PreProcessor(this->configsettings, isFullPreprocessor, true);
 }
 
 /**

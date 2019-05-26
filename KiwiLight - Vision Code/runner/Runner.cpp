@@ -28,7 +28,7 @@ Runner::Runner(std::string fileName, bool debugging) {
 
     bool isFull = (this->settings.GetSetting("PreprocessorType") == "full");
     this->cameraIndex = std::stoi(this->settings.GetSetting("cameraIndex"));
-    this->preprocessor = PreProcessor(this->settings, isFull);
+    this->preprocessor = PreProcessor(this->settings, isFull, this->debug);
     this->postprocessor = PostProcessor(this->postProcessorTargets);
     this->cap = VideoCapture(this->cameraIndex);
     this->stop = false;
@@ -204,14 +204,24 @@ void Runner::Start() {
     this->cap = VideoCapture(cameraIndex);
 }
 
-/**
- * Sets the runner settings settingName to value. This method will only work if 
- * the runner is initalized as debugging, to protect from setting changes in mid-match.
- */
-void Runner::SetSetting(std::string settingName, std::string value) {
-    if(this->debug) {
-        this->settings.SetSetting(settingName, value);
-    }
+
+void Runner::SetPreprocessorProperty(PreProcessorProperty prop, double value) {
+    this->preprocessor.SetProperty(prop, value);
+}
+
+
+double Runner::GetPreprocessorProperty(PreProcessorProperty prop) {
+    return this->preprocessor.GetProperty(prop);
+}
+
+
+void Runner::SetPostProcessorContourProperty(int contour, TargetProperty prop, SettingPair values) {
+    this->postprocessor.SetTargetContourProperty(contour, prop, values);
+}
+
+
+SettingPair Runner::GetPostProcessorContourProperty(int contour, TargetProperty prop) {
+    return this->postprocessor.GetTargetContourProperty(contour, prop);
 }
 
 /**

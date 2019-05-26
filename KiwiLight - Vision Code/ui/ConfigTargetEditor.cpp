@@ -254,28 +254,66 @@ XMLTag ConfigTargetEditor::GetTarget() {
 
 }
 
+/**
+ * Returns the number of contours that this editor currently represents.
+ */
+int ConfigTargetEditor::NumContours() {
+    return this->runner.GetExampleTargetByID(0).Contours().size();
+}
 
-double ConfigTargetEditor::GetPropertyValue(int contour, TargetProperty property) {
+
+double ConfigTargetEditor::GetPreProcessorProperty(PreProcessorProperty prop) {
+    double finalValue = -1.0;
+
+    switch(prop) {
+        case PreProcessorProperty::THRESHOLD:
+            finalValue = this->thresholdValue.GetValue();
+            break;
+        case PreProcessorProperty::THRESH_VALUE:
+            finalValue = 255.0;
+            break;
+        case PreProcessorProperty::DILATION:
+            finalValue = this->dilationFactor.GetValue();
+            break;
+        case PreProcessorProperty::COLOR_HUE:
+            finalValue = this->colorH.GetValue();
+            break;
+        case PreProcessorProperty::COLOR_SATURATION:
+            finalValue = this->colorS.GetValue();
+            break;
+        case PreProcessorProperty::COLOR_VALUE:
+            finalValue = this->colorV.GetValue();
+            break;
+    }
+
+    return finalValue;
+}
+
+
+SettingPair ConfigTargetEditor::GetTargetPropertyValue(int contour, TargetProperty property) {
     int currentContour = this->lastRequestedContour;
     SetValues(contour);
 
-    double finalValue = -1.0;
+    SettingPair finalValue = SettingPair(-1,-1);
     //find out which property is requested and then return its value
     switch(property) {
         case TargetProperty::DIST_X:
-            finalValue = this->ContourDistX.GetValue();
+            finalValue = SettingPair(this->ContourDistX.GetValue(), this->ContourDistXErr.GetValue());
             break;
         case TargetProperty::DIST_Y:
-            finalValue = this->ContourDistY.GetValue();
+            finalValue = SettingPair(this->ContourDistY.GetValue(), this->ContourDistYErr.GetValue());
             break;
         case TargetProperty::ANGLE:
-            finalValue = this->ContourAngle.GetValue();
+            finalValue = SettingPair(this->ContourAngle.GetValue(), this->ContourAngleErr.GetValue());
+            break;
+        case TargetProperty::ASPECT_RATIO:
+            finalValue = SettingPair(this->ContourAR.GetValue(), this->ContourARErr.GetValue());
             break;
         case TargetProperty::SOLIDITY:
-            finalValue = this->ContourSolidity.GetValue();
+            finalValue = SettingPair(this->ContourSolidity.GetValue(), this->ContourSolidityErr.GetValue());
             break;
         case TargetProperty::MINIMUM_AREA:
-            finalValue = this->ContourMinArea.GetValue();
+            finalValue = SettingPair(this->ContourMinArea.GetValue(), 0);
             break;
     }
 

@@ -182,6 +182,55 @@ ExampleContour ExampleTarget::GetExampleContourByID(int id) {
 }
 
 
+void ExampleTarget::SetContourProperty(int contour, TargetProperty prop, SettingPair values) {    
+    switch(prop) {
+        case TargetProperty::DIST_X:
+            GetExampleContourByID(contour).SetDistX(values);
+            break;
+        case TargetProperty::DIST_Y:
+            GetExampleContourByID(contour).SetDistY(values);
+            break;
+        case TargetProperty::ANGLE:
+            GetExampleContourByID(contour).SetAngle(values);
+            break;
+        case TargetProperty::SOLIDITY:
+            GetExampleContourByID(contour).SetSolidity(values);
+            break;
+        case TargetProperty::MINIMUM_AREA:
+            GetExampleContourByID(contour).SetMinimumArea((int) values.Value());
+            break;
+    }
+}
+
+
+SettingPair ExampleTarget::GetContourProperty(int contour, TargetProperty prop) {
+
+    SettingPair finalValue = SettingPair(-1,-1);
+    switch(prop) {
+        case TargetProperty::DIST_X:
+            finalValue = this->contours[contour].DistX();
+            break;
+        case TargetProperty::DIST_Y:
+            finalValue = this->contours[contour].DistY();
+            break;
+        case TargetProperty::ANGLE:
+            finalValue = this->contours[contour].Angle();
+            break;
+        case TargetProperty::ASPECT_RATIO:
+            finalValue = this->contours[contour].AspectRatio();
+            break;
+        case TargetProperty::SOLIDITY:
+            finalValue = this->contours[contour].Solidity();
+            break;
+        case TargetProperty::MINIMUM_AREA:
+            finalValue = SettingPair((double) this->contours[contour].MinimumArea(), 0);
+            break;
+    }
+
+    return finalValue;
+}
+
+
 bool ExampleTarget::ArrayMaxed(int arr[], int size, int max) {
     if(arr[size - 1] < max) {
         return false;

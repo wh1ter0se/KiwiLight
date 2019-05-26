@@ -20,6 +20,38 @@ namespace KiwiLight {
         PARTIAL
     };
 
+    enum RunnerProperty {
+        IMAGE_WIDTH,
+        IMAGE_HEIGHT,
+        TRUE_WIDTH,
+        PERCEIVED_WIDTH,
+        CALIBRATED_DISTANCE,
+        ERROR_CORRECTION
+    };
+
+    
+    enum PreProcessorProperty {
+        THRESHOLD,
+        THRESH_VALUE,
+        DILATION,
+        COLOR_HUE,
+        COLOR_SATURATION,
+        COLOR_VALUE
+    };
+
+    /**
+     * Describes the names of certain properties of a target.
+     */
+    enum TargetProperty {
+        DIST_X,
+        DIST_Y,
+        ANGLE,
+        ASPECT_RATIO,
+        SOLIDITY,
+        MINIMUM_AREA
+    };
+
+
     /**
      * Represents a single setting that is used by either the PostProcessor or Preprocessor.
      */
@@ -93,6 +125,13 @@ namespace KiwiLight {
         SettingPair Solidity()    { return this->solidity; };
         int MinimumArea()         { return this->minimumArea; };
 
+        void SetDistX(SettingPair distX);
+        void SetDistY(SettingPair distY);
+        void SetAngle(SettingPair angle);
+        void SetAspectRatio(SettingPair aspectRatio);
+        void SetSolidity(SettingPair solidity);
+        void SetMinimumArea(int minimumArea);
+
         private:
         int id;
         SettingPair distX,
@@ -142,6 +181,8 @@ namespace KiwiLight {
         int ID() { return this->id; };
         std::vector<ExampleContour> Contours() { return this->contours; };
         ExampleContour GetExampleContourByID(int id);
+        void SetContourProperty(int contour, TargetProperty prop, SettingPair values);
+        SettingPair GetContourProperty(int contour, TargetProperty prop);
 
         private:
         bool ArrayMaxed(int arr[], int size, int max);
@@ -161,11 +202,16 @@ namespace KiwiLight {
     class PreProcessor {
         public:
         PreProcessor() {};
-        PreProcessor(ConfigurationSettingsList settings, bool FullPreprocessor);
+        PreProcessor(ConfigurationSettingsList settings, bool FullPreprocessor, bool debug);
+        void SetProperty(PreProcessorProperty prop, double value);
+        double GetProperty(PreProcessorProperty prop);
+        void SetIsFull(bool isFull);
+        bool GetIsFull() { return this->isFullPreprocessor; };
         cv::Mat ProcessImage(cv::Mat img);
 
         private:
-        bool isFullPreprocessor;
+        bool isFullPreprocessor,
+             debugging;
 
         //threshold values for contrasting image
         double threshold,
@@ -187,6 +233,9 @@ namespace KiwiLight {
         public:
         PostProcessor() {};
         PostProcessor(std::vector<ExampleTarget> targets);
+        //x, y, angle, solidity, aspectratio, minarea
+        void SetTargetContourProperty(int contour, TargetProperty prop, SettingPair values);
+        SettingPair GetTargetContourProperty(int contour, TargetProperty prop);
         std::vector<Target> ProcessImage(cv::Mat img);
 
         private:
@@ -230,8 +279,13 @@ namespace KiwiLight {
         cv::Mat GetOutputImage() { return this->outputImage; };
         cv::VideoCapture GetVideoStream() { return this->cap; };
         ExampleTarget GetExampleTargetByID(int id);
-        void SetSetting(std::string settingName, std::string value);
+        void SetPreprocessorProperty(PreProcessorProperty prop, double value);
+        double GetPreprocessorProperty(PreProcessorProperty prop);
+        void SetPostProcessorContourProperty(int contour, TargetProperty prop, SettingPair values);
+        SettingPair GetPostProcessorContourProperty(int contour, TargetProperty prop);
         std::string GetSetting(std::string settingName);
+
+        // void SetPreprocessorSetting();
 
         private:
         void parseDocument(XMLDocument doc);

@@ -9,7 +9,7 @@
 namespace KiwiLight {
     class RunnerSettings {
         public:
-        static const bool USE_CAMERA = true;
+        static const bool USE_CAMERA = false;
 
     };
 }

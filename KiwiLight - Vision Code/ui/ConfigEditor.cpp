@@ -56,11 +56,34 @@ void ConfigEditor::Update() {
     //update the trinity for its functionality
     
     if(this->editorMode == EditorMode::USE_RUNNER) {
+        //set all runner preprocessor settings to the values in the target editor
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::THRESHOLD, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::THRESHOLD));
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::THRESH_VALUE, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::THRESH_VALUE));
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::DILATION, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::DILATION));
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_HUE, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::DILATION));
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_SATURATION, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_SATURATION));
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_VALUE, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_VALUE));
+
+        //set all runner targeting settings to the ones in the target editor
+        for(int i=0; i<this->targetEditor.NumContours(); i++) {
+            this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_X, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::DIST_X));
+            this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_Y, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::DIST_Y));
+            this->runner.SetPostProcessorContourProperty(i, TargetProperty::ANGLE, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::ANGLE));
+            this->runner.SetPostProcessorContourProperty(i, TargetProperty::ASPECT_RATIO, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::ASPECT_RATIO));
+            this->runner.SetPostProcessorContourProperty(i, TargetProperty::SOLIDITY, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::SOLIDITY));
+            this->runner.SetPostProcessorContourProperty(i, TargetProperty::MINIMUM_AREA, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::MINIMUM_AREA));
+        }
+
         this->runner.Iterate();
         this->out = this->runner.GetOutputImage();
     } else if(this->editorMode == EditorMode::USE_LEARNER) {
-        double minimumArea = this->targetEditor.GetPropertyValue(0, TargetProperty::MINIMUM_AREA);
-        this->learner.Update((int) minimumArea);
+        /**
+         * TODO:
+         * Fix below 3 lines so minimumArea is returned as a settingPair, or add accessor for just minimumArea value.
+         */
+
+        // double minimumArea = this->targetEditor.GetTargetPropertyValue(0, TargetProperty::MINIMUM_AREA);
+        this->learner.Update(500); //use minimumArea in above line instead of constant 500
         this->out = this->learner.GetOutputImage();
     }
 

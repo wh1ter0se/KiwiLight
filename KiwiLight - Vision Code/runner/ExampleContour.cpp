@@ -50,3 +50,40 @@ bool ExampleContour::IsContour(Contour contour) {
 
     return (distanceTest && angleTest && arTest && solidTest && areaTest);
 }
+
+// void SetDistX(SettingPair distX);
+// void SetDistY(SettingPair distY);
+// void SetAngle(SettingPair angle);
+// void SetAspectRatio(SettingPair aspectRatio);
+// void SetSolidity(SettingPair solidity);
+// void SetMinimumArea(int minimumArea);
+
+
+void ExampleContour::SetDistX(SettingPair distX) {
+    this->distX = distX;
+}
+
+
+void ExampleContour::SetDistY(SettingPair distY) {
+    this->distY = distY;
+}
+
+
+void ExampleContour::SetAngle(SettingPair angle) {
+    this->angle = angle;
+}
+
+
+void ExampleContour::SetAspectRatio(SettingPair aspectRatio) {
+    this->aspectRatio = aspectRatio;
+}
+
+
+void ExampleContour::SetSolidity(SettingPair solidity) {
+    this->solidity = solidity;
+}
+
+
+void ExampleContour::SetMinimumArea(int minimumArea) {
+    this->minimumArea = minimumArea;
+}

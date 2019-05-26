@@ -139,7 +139,7 @@ ConfigRunnerEditor::ConfigRunnerEditor(std::string fileName) {
 
                 //make default blank image for the original image frame
                 Image originalImageImage = Image();
-
+ 
                 this->originalImage = ImageFrame(originalImageImage);
                     originalImagePanel.Pack_start(this->originalImage.GetWidget(), false, false, 0);
 
@@ -155,6 +155,7 @@ ConfigRunnerEditor::ConfigRunnerEditor(std::string fileName) {
  * Updates the sliders and output images. Runner is needed for output images
  */
 void ConfigRunnerEditor::Update(cv::Mat originalImage, cv::Mat processedImage) {
+
 
     //update processed (also in RGB)
     try {

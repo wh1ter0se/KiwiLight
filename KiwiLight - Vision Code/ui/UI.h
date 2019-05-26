@@ -366,16 +366,6 @@ namespace KiwiLight {
     };
 
 
-    enum RunnerProperty {
-        IMAGE_WIDTH,
-        IMAGE_HEIGHT,
-        TRUE_WIDTH,
-        PERCEIVED_WIDTH,
-        CALIBRATED_DISTANCE,
-        ERROR_CORRECTION
-    };
-
-
     class ConfigRunnerEditor : public Widget {
         public:
         ConfigRunnerEditor() {};
@@ -412,25 +402,15 @@ namespace KiwiLight {
         GtkWidget *configrunnereditor;
     };
 
-    /**
-     * Describes the names of certain properties of a target.
-     */
-    enum TargetProperty {
-        DIST_X,
-        DIST_Y,
-        ANGLE,
-        SOLIDITY,
-        MINIMUM_AREA
-    };
-
-
     class ConfigTargetEditor : public Widget {
         public:
         ConfigTargetEditor() {};
         ConfigTargetEditor(std::string fileName, Runner runner);
         void Update();
         XMLTag GetTarget();
-        double GetPropertyValue(int contour, TargetProperty property);
+        int NumContours();
+        double GetPreProcessorProperty(PreProcessorProperty prop);
+        SettingPair GetTargetPropertyValue(int contour, TargetProperty property);
         GtkWidget *GetWidget() { return this->configtargeteditor; };
         void SetName(std::string name);
 

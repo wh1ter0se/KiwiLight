@@ -46,3 +46,15 @@ std::vector<Target> PostProcessor::ProcessImage(cv::Mat img) {
 
     return foundTargets;
 }
+
+
+void PostProcessor::SetTargetContourProperty(int contour, TargetProperty prop, SettingPair values) {
+    if(this->debugging) {
+        this->targets[0].SetContourProperty(contour, prop, values);
+    }
+}
+
+
+SettingPair PostProcessor::GetTargetContourProperty(int contour, TargetProperty prop) {
+    return this->targets[0].GetContourProperty(contour, prop);
+}
