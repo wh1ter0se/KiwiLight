@@ -53,7 +53,6 @@ std::vector<Target> ExampleTarget::GetTargets(std::vector<Contour> objects) {
             }
         } 
         else {
-    
             int places[(const int) numTargetContours] = {};
             for(int i=0; i<numTargetContours; i++) {
                 places[i] = 0;
@@ -110,19 +109,22 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
     std::vector<Contour> imageContours = objects;
     std::vector<ExampleContour> targetContours = this->contours;
 
+    int totalGood = 0;
+
+    //find center of target by averaging the x and y coordinates
     int centerX = 0;
     int centerY = 0;
     for(int i=0; i<objects.size(); i++) {
         centerX += objects[i].X();
         centerY += objects[i].Y();
     }
+
     centerX /= objects.size();
     centerY /= objects.size();
 
     for(int i=0; i<imageContours.size(); i++) {
         Contour object = imageContours[i];
         //determine how many widths to the center for the object and compare to our targets
-        
         int width = object.Width();
         for(int k=0; k<targetContours.size(); k++) {
             //measure distance in pixels, convert to widths, and compare to exampleContours.
@@ -139,33 +141,34 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
                                widthsToCenterY < targetContours[k].DistY().UpperBound() );
 
             if(distXValid && distYValid && targetContours[k].IsContour(imageContours[i])) {
-                //remove contour at i and exampleContour at k
-                std::vector<Contour> newImageContours = std::vector<Contour>();
-                std::vector<ExampleContour> newTargetContours = std::vector<ExampleContour>();
+                // //remove contour at i and exampleContour at k
+                // std::vector<Contour> newImageContours = std::vector<Contour>();
+                // std::vector<ExampleContour> newTargetContours = std::vector<ExampleContour>();
                 
-                //rebuild imageContours and targetContours without the good contour
-                for(int a=0; a<imageContours.size(); a++) {
-                    if(a != i) {
-                        newImageContours.push_back(imageContours[a]);
-                    }
-                }
+                // //rebuild imageContours and targetContours without the good contour
+                // for(int a=0; a<imageContours.size(); a++) {
+                //     if(a != i) {
+                //         newImageContours.push_back(imageContours[a]);
+                //     }
+                // }
 
-                for(int b=0; b<targetContours.size(); b++) {
-                    if(b != k) {
-                        newTargetContours.push_back(targetContours[b]);
-                    }
-                }
+                // for(int b=0; b<targetContours.size(); b++) {
+                //     if(b != k) {
+                //         newTargetContours.push_back(targetContours[b]);
+                //     }
+                // }
 
-                imageContours = newImageContours;
-                targetContours = newTargetContours;
+                // imageContours = newImageContours;
+                // targetContours = newTargetContours;
 
-                i--;
-                k--;
+                // i--;
+                // k--;
+                totalGood++;
             }
         }
     }
 
-    return (targetContours.size() == 0);
+    return (this->contours.size() == totalGood);
 }
 
 /**
@@ -182,29 +185,41 @@ ExampleContour ExampleTarget::GetExampleContourByID(int id) {
 }
 
 
-void ExampleTarget::SetContourProperty(int contour, TargetProperty prop, SettingPair values) {    
+void ExampleTarget::SetContourProperty(int contour, TargetProperty prop, SettingPair values) {  
+
+    // if(prop == TargetProperty::MINIMUM_AREA) {
+    //     std::cout << "set exTarget prop: contour " << contour << ", value " << values.Value() << std::endl;  
+    // }
+
+    int contourIndex = 0;
+    for(int i=0; i<this->contours.size(); i++) {
+        if(this->contours[i].ID() == contour) {
+            contourIndex = i;
+            break;
+        }
+    }
+
     switch(prop) {
         case TargetProperty::DIST_X:
-            GetExampleContourByID(contour).SetDistX(values);
+            this->contours[contourIndex].SetDistX(values);
             break;
         case TargetProperty::DIST_Y:
-            GetExampleContourByID(contour).SetDistY(values);
+            this->contours[contourIndex].SetDistY(values);
             break;
         case TargetProperty::ANGLE:
-            GetExampleContourByID(contour).SetAngle(values);
+            this->contours[contourIndex].SetAngle(values);
             break;
         case TargetProperty::SOLIDITY:
-            GetExampleContourByID(contour).SetSolidity(values);
+            this->contours[contourIndex].SetSolidity(values);
             break;
         case TargetProperty::MINIMUM_AREA:
-            GetExampleContourByID(contour).SetMinimumArea((int) values.Value());
+            this->contours[contourIndex].SetMinimumArea((int) values.Value());
             break;
     }
 }
 
 
 SettingPair ExampleTarget::GetContourProperty(int contour, TargetProperty prop) {
-
     SettingPair finalValue = SettingPair(-1,-1);
     switch(prop) {
         case TargetProperty::DIST_X:

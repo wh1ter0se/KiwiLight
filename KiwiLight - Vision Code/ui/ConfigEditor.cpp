@@ -65,6 +65,7 @@ void ConfigEditor::Update() {
         this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_VALUE, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_VALUE));
 
         //set all runner targeting settings to the ones in the target editor
+        // std::cout << "upate real runner" << std::endl;
         for(int i=0; i<this->targetEditor.NumContours(); i++) {
             this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_X, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::DIST_X));
             this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_Y, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::DIST_Y));
@@ -72,6 +73,7 @@ void ConfigEditor::Update() {
             this->runner.SetPostProcessorContourProperty(i, TargetProperty::ASPECT_RATIO, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::ASPECT_RATIO));
             this->runner.SetPostProcessorContourProperty(i, TargetProperty::SOLIDITY, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::SOLIDITY));
             this->runner.SetPostProcessorContourProperty(i, TargetProperty::MINIMUM_AREA, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::MINIMUM_AREA));
+            // std::cout << "min area editor: " << this->targetEditor.GetTargetPropertyValue(i, TargetProperty::MINIMUM_AREA).Value() << std::endl;
         }
 
         this->runner.Iterate();

@@ -23,16 +23,12 @@ ExampleContour::ExampleContour(int id, SettingPair distX, SettingPair distY, Set
 
 
 bool ExampleContour::IsContour(Contour contour) {
-    bool distanceTest = true;
     bool angleTest = false;
     bool arTest = false;
     bool solidTest = false;
     bool areaTest = false;
 
     //conduct all five tests and return result of all five
-    // bool x = (contour.X() > this->distX.LowerBound()) && (contour.X() < this->distX.UpperBound());
-    // bool y = (contour.Y() > this->distY.LowerBound()) && (contour.Y() < this->distY.UpperBound());
-    // distanceTest = x && y;
 
     bool angleLower = (contour.Angle() > this->angle.LowerBound());
     bool angleUpper = (contour.Angle() < this->angle.UpperBound());
@@ -48,7 +44,7 @@ bool ExampleContour::IsContour(Contour contour) {
 
     areaTest = (contour.Area() > this->minimumArea);
 
-    return (distanceTest && angleTest && arTest && solidTest && areaTest);
+    return (angleTest && arTest && solidTest && areaTest);
 }
 
 // void SetDistX(SettingPair distX);

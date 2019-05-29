@@ -108,6 +108,7 @@ namespace KiwiLight {
     
     class ExampleContour {
         public:
+        ExampleContour() {};
         ExampleContour(int id,
                        SettingPair distX,
                        SettingPair distY,
@@ -232,13 +233,14 @@ namespace KiwiLight {
     class PostProcessor {
         public:
         PostProcessor() {};
-        PostProcessor(std::vector<ExampleTarget> targets);
+        PostProcessor(std::vector<ExampleTarget> targets, bool debugging);
         //x, y, angle, solidity, aspectratio, minarea
         void SetTargetContourProperty(int contour, TargetProperty prop, SettingPair values);
         SettingPair GetTargetContourProperty(int contour, TargetProperty prop);
         std::vector<Target> ProcessImage(cv::Mat img);
 
         private:
+        bool debugging;
         std::vector<ExampleTarget> targets;
     };
 
@@ -268,6 +270,7 @@ namespace KiwiLight {
         public:
         Runner() {};
         Runner(std::string filename, bool debugging);
+        Runner(std::string filename, bool debugging, bool openNewVideoStream);
         int GetCameraIndex() { return this->cameraIndex; };
         void SetImageResize(Size sz);
         void Loop();

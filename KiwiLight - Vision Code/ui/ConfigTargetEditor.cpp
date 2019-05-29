@@ -29,9 +29,9 @@ static void learnTargetPressed() {
 ConfigTargetEditor::ConfigTargetEditor(std::string fileName, Runner runner) {
     XMLDocument document = XMLDocument(fileName);
     this->currentPreProcessor = PreProcessorType::FULL; //because the checkbox defaults to full
-    this->runner = runner;
     this->panel = Panel(false, 0);
 
+    this->runner = Runner(fileName, true, false);
         
         XMLTag configurationTag = document.GetTagsByName("configuration")[0];
 
@@ -131,6 +131,7 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName, Runner runner) {
                 XMLTag firstContour;
                 std::vector<XMLTag> potentialTargets = postprocessorTag.GetTagsByName("target");
 
+                //find the target with the id "0", the default target
                 for(int i=0; i<potentialTargets.size(); i++) {
                     if(potentialTargets[i].GetAttributesByName("id")[0].Value() == "0") {
                         //the target at i is the default target
@@ -139,6 +140,7 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName, Runner runner) {
                     }
                 }
 
+                //find the contour of the target with the id "0" (default contour)
                 std::vector<XMLTag> potentialContours = firstTarget.GetTagsByName("contour");
                 for(int i=0; i<potentialContours.size(); i++) {
                     if(potentialContours[i].GetAttributesByName("id")[0].Value() == "0") {
@@ -147,11 +149,12 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName, Runner runner) {
                     }
                 }
                 
+                //assemble contour editor
                 Panel distXPanel = Panel(true, 3);
                     Label xLabel = Label("X Distance: ");
                         distXPanel.Pack_start(xLabel.GetWidget(), false, false, 0);
 
-                    this->ContourDistX = NumberBox(0.0, 100.0, 0.0);
+                    this->ContourDistX = NumberBox(-10.0, 10.0, 0.0);
                         distXPanel.Pack_start(this->ContourDistX.GetWidget(), false, false, 0);
 
                     this->ContourDistXErr = LabeledSlider("Error", 0.0, 100.0, 0.05, 5);
@@ -163,7 +166,7 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName, Runner runner) {
                     Label yLabel = Label("Y Distance: ");
                         distYPanel.Pack_start(yLabel.GetWidget(), false, false, 0);
 
-                    this->ContourDistY = NumberBox(0.0, 100.0, 0.0);
+                    this->ContourDistY = NumberBox(-10.0, 10.0, 0.0);
                         distYPanel.Pack_start(this->ContourDistY.GetWidget(), false, false, 0);
 
                     this->ContourDistYErr = LabeledSlider("Error", 0.0, 100.0, 0.05, 5);
@@ -245,6 +248,32 @@ void ConfigTargetEditor::Update() {
         SetValues(currentRequestedContour);
         this->lastRequestedContour = currentRequestedContour;
     }
+
+    // std::cout << "update target runner" << std::endl;
+    // std::cout << "min area editor a: " << this->ContourMinArea.GetValue() << std::endl;
+    // std::cout << "min area editor b: " << this->runner.GetPostProcessorContourProperty(0, TargetProperty::MINIMUM_AREA).Value() << std::endl;
+
+    //set the runner values to the slider
+
+    if(this->lastRequestedContour >= 0 && this->lastRequestedContour < this->NumContours()) {
+        SettingPair distXPair = SettingPair(this->ContourDistX.GetValue(), this->ContourDistXErr.GetValue());
+            this->runner.SetPostProcessorContourProperty((int) this->ContourID.GetValue(), TargetProperty::DIST_X, distXPair);
+        
+        SettingPair distYPair = SettingPair(this->ContourDistY.GetValue(), this->ContourDistYErr.GetValue());
+            this->runner.SetPostProcessorContourProperty((int) this->ContourID.GetValue(), TargetProperty::DIST_Y, distYPair);
+        
+        SettingPair anglePair = SettingPair(this->ContourAngle.GetValue(), this->ContourAngleErr.GetValue());
+            this->runner.SetPostProcessorContourProperty((int) this->ContourID.GetValue(), TargetProperty::ANGLE, anglePair);
+        
+        SettingPair ARPair = SettingPair(this->ContourAR.GetValue(), this->ContourARErr.GetValue());
+            this->runner.SetPostProcessorContourProperty((int) this->ContourID.GetValue(), TargetProperty::ASPECT_RATIO, ARPair);
+        
+        SettingPair solidityPair = SettingPair(this->ContourSolidity.GetValue(), this->ContourSolidityErr.GetValue());
+            this->runner.SetPostProcessorContourProperty((int) this->ContourID.GetValue(), TargetProperty::SOLIDITY, solidityPair);
+        
+        SettingPair minimumAreaPair = SettingPair(this->ContourMinArea.GetValue(), 0);
+            this->runner.SetPostProcessorContourProperty((int) this->ContourID.GetValue(), TargetProperty::MINIMUM_AREA, minimumAreaPair);
+    }
 }
 
 /**
@@ -291,34 +320,7 @@ double ConfigTargetEditor::GetPreProcessorProperty(PreProcessorProperty prop) {
 
 
 SettingPair ConfigTargetEditor::GetTargetPropertyValue(int contour, TargetProperty property) {
-    int currentContour = this->lastRequestedContour;
-    SetValues(contour);
-
-    SettingPair finalValue = SettingPair(-1,-1);
-    //find out which property is requested and then return its value
-    switch(property) {
-        case TargetProperty::DIST_X:
-            finalValue = SettingPair(this->ContourDistX.GetValue(), this->ContourDistXErr.GetValue());
-            break;
-        case TargetProperty::DIST_Y:
-            finalValue = SettingPair(this->ContourDistY.GetValue(), this->ContourDistYErr.GetValue());
-            break;
-        case TargetProperty::ANGLE:
-            finalValue = SettingPair(this->ContourAngle.GetValue(), this->ContourAngleErr.GetValue());
-            break;
-        case TargetProperty::ASPECT_RATIO:
-            finalValue = SettingPair(this->ContourAR.GetValue(), this->ContourARErr.GetValue());
-            break;
-        case TargetProperty::SOLIDITY:
-            finalValue = SettingPair(this->ContourSolidity.GetValue(), this->ContourSolidityErr.GetValue());
-            break;
-        case TargetProperty::MINIMUM_AREA:
-            finalValue = SettingPair(this->ContourMinArea.GetValue(), 0);
-            break;
-    }
-
-    SetValues(currentContour);
-    return finalValue;
+    return this->runner.GetPostProcessorContourProperty(contour, property);
 }
 
 
@@ -331,28 +333,30 @@ void ConfigTargetEditor::SetName(std::string name) {
  * Sets the slider values for contour with the passed id.
  */
 void ConfigTargetEditor::SetValues(int contourID) {
-    ExampleContour contourToDisplay = this->runner.GetExampleTargetByID(0).GetExampleContourByID(contourID);
+    if(contourID >= 0 && contourID < this->NumContours()) {
+        //set contour dist X values
+        this->ContourDistX.SetValue(this->runner.GetPostProcessorContourProperty(contourID, TargetProperty::DIST_X).Value());
+        this->ContourDistXErr.SetValue(this->runner.GetPostProcessorContourProperty(contourID, TargetProperty::DIST_X).Error());
+        
+        //set contour dist Y values
+        this->ContourDistY.SetValue(this->runner.GetPostProcessorContourProperty(contourID, TargetProperty::DIST_Y).Value());
+        this->ContourDistYErr.SetValue(this->runner.GetPostProcessorContourProperty(contourID, TargetProperty::DIST_Y).Error());
 
-    //set contour dist X values
-    this->ContourDistX.SetValue(contourToDisplay.DistX().Value());
-    this->ContourDistXErr.SetValue(contourToDisplay.DistX().Error());
-    
-    //set contour dist Y values
-    this->ContourDistY.SetValue(contourToDisplay.DistY().Value());
-    this->ContourDistYErr.SetValue(contourToDisplay.DistY().Error());
+        //set contour angle values
+        this->ContourAngle.SetValue(this->runner.GetPostProcessorContourProperty(contourID, TargetProperty::ANGLE).Value());
+        this->ContourAngleErr.SetValue(this->runner.GetPostProcessorContourProperty(contourID, TargetProperty::ANGLE).Error());
 
-    //set contour angle values
-    this->ContourAngle.SetValue(contourToDisplay.Angle().Value());
-    this->ContourAngleErr.SetValue(contourToDisplay.Angle().Error());
+        //set contour solidity values
+        this->ContourSolidity.SetValue(this->runner.GetPostProcessorContourProperty(contourID, TargetProperty::SOLIDITY).Value());
+        this->ContourSolidityErr.SetValue(this->runner.GetPostProcessorContourProperty(contourID, TargetProperty::SOLIDITY).Error());
 
-    //set contour solidity values
-    this->ContourSolidity.SetValue(contourToDisplay.Solidity().Value());
-    this->ContourSolidityErr.SetValue(contourToDisplay.Solidity().Error());
+        //set contour aspect ratio values
+        this->ContourAR.SetValue(this->runner.GetPostProcessorContourProperty(contourID, TargetProperty::ASPECT_RATIO).Value());
+        this->ContourARErr.SetValue(this->runner.GetPostProcessorContourProperty(contourID, TargetProperty::ASPECT_RATIO).Error());
 
-    //set contour aspect ratio values
-    this->ContourAR.SetValue(contourToDisplay.AspectRatio().Value());
-    this->ContourARErr.SetValue(contourToDisplay.AspectRatio().Error());
-
-    //set contour minimum area values
-    this->ContourMinArea.SetValue(contourToDisplay.MinimumArea());
+        //set contour minimum area values
+        this->ContourMinArea.SetValue(this->runner.GetPostProcessorContourProperty(contourID, TargetProperty::MINIMUM_AREA).Value());
+    } else {
+        std::cout << "sorry bud, theres no contour with id " << contourID << "." << std::endl;
+    }
 }

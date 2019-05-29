@@ -29,8 +29,34 @@ Runner::Runner(std::string fileName, bool debugging) {
     bool isFull = (this->settings.GetSetting("PreprocessorType") == "full");
     this->cameraIndex = std::stoi(this->settings.GetSetting("cameraIndex"));
     this->preprocessor = PreProcessor(this->settings, isFull, this->debug);
-    this->postprocessor = PostProcessor(this->postProcessorTargets);
+    this->postprocessor = PostProcessor(this->postProcessorTargets, this->debug);
     this->cap = VideoCapture(this->cameraIndex);
+    this->stop = false;
+}
+
+
+Runner::Runner(std::string fileName, bool debugging, bool openNewVideoStream) {
+    this->src = fileName;
+    this->debug = debugging;
+    this->postProcessorTargets = std::vector<ExampleTarget>();
+    XMLDocument file = XMLDocument(fileName);
+    if(file.HasContents()) {
+        this->parseDocument(file);
+    } else {
+        std::cout << "sorry! the file could not be found. " << std::endl;
+    }
+    //figure out constant resize
+    int resizeX = std::stoi(this->settings.GetSetting("resizeX"));
+    int resizeY = std::stoi(this->settings.GetSetting("resizeY"));
+    this->constantResize = Size(resizeX, resizeY);
+
+    bool isFull = (this->settings.GetSetting("PreprocessorType") == "full");
+    this->cameraIndex = std::stoi(this->settings.GetSetting("cameraIndex"));
+    this->preprocessor = PreProcessor(this->settings, isFull, this->debug);
+    this->postprocessor = PostProcessor(this->postProcessorTargets, this->debug);
+    if(openNewVideoStream) {
+        this->cap = VideoCapture(this->cameraIndex);
+    }
     this->stop = false;
 }
 
@@ -87,6 +113,7 @@ std::string Runner::Iterate() {
     } else {
         img = cv::imread("runner/dual.png");
     }
+
     resize(img, img, this->constantResize);
     img.copyTo(this->originalImage);
     img = this->preprocessor.ProcessImage(img);
@@ -118,7 +145,6 @@ std::string Runner::Iterate() {
         angle = 180;
 
     std::string rioMessage = "";
-
     
     if(targets.size() > 0) {
         //use the best target to fill in the information to send to the rio
@@ -135,6 +161,7 @@ std::string Runner::Iterate() {
                     a = std::to_string(angle);
 
     rioMessage = ":" + x + "," + y + "," + d + "," + a + ";";
+
     if(this->debug) {
         cv::cvtColor(out, out, cv::COLOR_GRAY2RGB);
 

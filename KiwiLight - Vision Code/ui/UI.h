@@ -436,7 +436,7 @@ namespace KiwiLight {
         NumberBox ContourID;
         
         NumberBox ContourDistX,
-                  ContourDistY;
+                      ContourDistY;
 
         //sliders used to adjust contour distance from center of target
         LabeledSlider ContourDistXErr,

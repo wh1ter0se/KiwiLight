@@ -12,7 +12,8 @@ using namespace KiwiLight;
  * Creates a new PostProcessor with the given settings. 
  * Just give it all the runner settings, PostProcessor will pick out the ones it will use.
  */
-PostProcessor::PostProcessor(std::vector<ExampleTarget> targets) {
+PostProcessor::PostProcessor(std::vector<ExampleTarget> targets, bool debugging) {
+    this->debugging = debugging;
     this->targets = targets;
     ExampleTarget targ = this->targets[0];
 }
@@ -38,7 +39,7 @@ std::vector<Target> PostProcessor::ProcessImage(cv::Mat img) {
     for(int k=0; k<this->targets.size(); k++) {
         std::vector<Target> targs = this->targets[k].GetTargets(objects);
 
-        // add results to our found targets
+        // add results to our found targets 
         for(int a=0; a<targs.size(); a++) {
             foundTargets.push_back(targs[a]);
         }
