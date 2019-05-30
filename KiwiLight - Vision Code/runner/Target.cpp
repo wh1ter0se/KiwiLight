@@ -8,6 +8,20 @@
 using namespace cv;
 using namespace KiwiLight;
 
+
+Target::Target() {
+    this->id = -1;
+    this->contours = std::vector<Contour>();
+    this->knownHeight = -1;
+    this->focalHeight = -1;
+    this->distErrorCorrect = -1;
+    this->calibratedDistance = -1;
+    this->width = -1;
+    this->height = -1;
+    this->x = -1;
+    this->y = -1;
+}
+
 /**
  * Creates a new Target object with the vector of contours. 
  * DO NOT use this to create a new target, Targets will be 

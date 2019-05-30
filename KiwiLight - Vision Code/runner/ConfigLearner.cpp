@@ -12,6 +12,8 @@ using namespace KiwiLight;
  * Creates new instance of a ConfigLearner with the given preprocessor.
  */
 ConfigLearner::ConfigLearner(XMLTag preprocessor, cv::VideoCapture stream) {
+    this->constantResize = Size(stream.get(cv::CAP_PROP_FRAME_WIDTH), stream.get(cv::CAP_PROP_FRAME_HEIGHT));
+
     this->stream = stream;
     this->configsettings = ConfigurationSettingsList();
     this->configsettings.AddSetting("PreprocessorType", preprocessor.GetAttributesByName("type")[0].Value());
@@ -48,10 +50,12 @@ void ConfigLearner::Update(int minArea) {
     Mat img;
     bool success = this->stream.read(img);
     if(success) {
+        resize(img, img, this->constantResize);
+        img.copyTo(this->original);
         Mat preprocessed = this->preprocessor.ProcessImage(img);
         preprocessed.copyTo(this->out);
 
-        cv::cvtColor(this->out, this->out, cv::COLOR_GRAY2BGR);
+        cvtColor(this->out, this->out, cv::COLOR_GRAY2BGR);
         
         //find contours and highlight all contours that are bigger than a certain area
         std::vector <std::vector <Point> > contours; //all contours in image
@@ -120,5 +124,10 @@ void ConfigLearner::Update(int minArea) {
  * Stops the config learner and releases the video stream
  */
 void ConfigLearner::Stop() {
+    this->stream.~VideoCapture();
+}
 
+
+void ConfigLearner::SetConstantResize(Size sz) {
+    this->constantResize = sz;
 }

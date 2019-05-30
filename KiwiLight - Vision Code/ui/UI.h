@@ -65,6 +65,7 @@ namespace KiwiLight {
         public:
         Window() {};
         Window(GtkWindowType type);
+        Window(GtkWindowType type, bool terminateOnClose);
         void SetPane(Panel pane);
         void Show();
         void SetSize(int w, int h);
@@ -370,7 +371,7 @@ namespace KiwiLight {
         public:
         ConfigRunnerEditor() {};
         ConfigRunnerEditor(std::string fileName);
-        void Update(cv::Mat originalImage, cv::Mat processedImage);
+        void Update(cv::Mat originalImage, cv::Mat processedImage, double targetDistance);
         double GetProperty(RunnerProperty prop);
         ConfigurationSettingsList GetSettings();
         GtkWidget *GetWidget() { return this->configrunnereditor; };
@@ -379,7 +380,8 @@ namespace KiwiLight {
         private:
         Panel panel;
 
-        Label distToTarget;
+        Label distToTarget,
+              imageTooBig;
 
         TextBox UDPAddr,
                 UDPPort;
@@ -394,10 +396,10 @@ namespace KiwiLight {
                       TargetDistErrCorrect,
                       TargetCalibratedDistance;
 
-        Button tuneDistance;
+        Button tuneDistance,
+               saveAndExit;
 
-        ImageFrame originalImage,
-                   processedImage;
+        ImageFrame outputImages;
 
         GtkWidget *configrunnereditor;
     };
@@ -491,6 +493,8 @@ namespace KiwiLight {
         ConfigEditor(std::string fileName);
         void Update();
         void Save();
+        void Close();
+        std::string GetFileName() { return this->fileName; };
         cv::Mat GetOutputImage() { return this->out; };
         GtkWidget *GetWidget() { return this->configeditor; };
         void SetName(std::string name);
@@ -500,6 +504,7 @@ namespace KiwiLight {
         ConfigLearner learner;
         EditorMode editorMode;
         XMLDocument currentDoc;
+        std::string fileName;
 
         cv::Mat out;
 

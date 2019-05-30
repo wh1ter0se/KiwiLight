@@ -59,3 +59,13 @@ void PostProcessor::SetTargetContourProperty(int contour, TargetProperty prop, S
 SettingPair PostProcessor::GetTargetContourProperty(int contour, TargetProperty prop) {
     return this->targets[0].GetContourProperty(contour, prop);
 }
+
+
+void PostProcessor::SetRunnerProperty(RunnerProperty prop, double value) {
+    this->targets[0].SetTargetProperty(prop, value);
+}
+
+
+double PostProcessor::GetRunnerProperty(RunnerProperty prop) {
+    return this->targets[0].GetTargetProperty(prop);
+}

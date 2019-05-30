@@ -28,6 +28,19 @@ Window::Window(GtkWindowType type) {
     gtk_container_set_border_width(GTK_CONTAINER(this->window), 0);
 }
 
+
+Window::Window(GtkWindowType type, bool terminateOnClose) {
+    if(terminateOnClose) {
+        this->window = gtk_window_new(type);
+        g_signal_connect(this->window, "delete-event", G_CALLBACK(delete_event), NULL);
+        g_signal_connect(this->window, "destroy", G_CALLBACK(Destroy), NULL);
+        gtk_container_set_border_width(GTK_CONTAINER(this->window), 0);
+    } else {
+        this->window = gtk_window_new(type);
+        gtk_container_set_border_width(GTK_CONTAINER(this->window), 0);
+    }
+}
+
 /**
  * Sets the main content pane to the given panel. A 
  * content pane must be set for a window or else no

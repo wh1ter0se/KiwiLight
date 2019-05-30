@@ -31,6 +31,7 @@ namespace KiwiLight {
 
     
     enum PreProcessorProperty {
+        IS_FULL,
         THRESHOLD,
         THRESH_VALUE,
         DILATION,
@@ -149,7 +150,7 @@ namespace KiwiLight {
      */
     class Target {
         public:
-        Target() {};
+        Target();
         Target(int id, std::vector<Contour> contours, double knownHeight, double focalHeight, double distErrorCorrect, double calibratedDistance);
         int ID() { return this->id; };
         double Distance();
@@ -184,6 +185,8 @@ namespace KiwiLight {
         ExampleContour GetExampleContourByID(int id);
         void SetContourProperty(int contour, TargetProperty prop, SettingPair values);
         SettingPair GetContourProperty(int contour, TargetProperty prop);
+        void SetTargetProperty(RunnerProperty prop, double value);
+        double GetTargetProperty(RunnerProperty prop);
 
         private:
         bool ArrayMaxed(int arr[], int size, int max);
@@ -206,8 +209,6 @@ namespace KiwiLight {
         PreProcessor(ConfigurationSettingsList settings, bool FullPreprocessor, bool debug);
         void SetProperty(PreProcessorProperty prop, double value);
         double GetProperty(PreProcessorProperty prop);
-        void SetIsFull(bool isFull);
-        bool GetIsFull() { return this->isFullPreprocessor; };
         cv::Mat ProcessImage(cv::Mat img);
 
         private:
@@ -237,6 +238,8 @@ namespace KiwiLight {
         //x, y, angle, solidity, aspectratio, minarea
         void SetTargetContourProperty(int contour, TargetProperty prop, SettingPair values);
         SettingPair GetTargetContourProperty(int contour, TargetProperty prop);
+        void SetRunnerProperty(RunnerProperty prop, double value);
+        double GetRunnerProperty(RunnerProperty prop);
         std::vector<Target> ProcessImage(cv::Mat img);
 
         private:
@@ -254,11 +257,15 @@ namespace KiwiLight {
         XMLTag LearnTarget();
         void Update(int minArea);
         void Stop();
+        void SetConstantResize(Size sz);
+        cv::Mat GetOriginalImage() { return this->original; };
         cv::Mat GetOutputImage() { return this->out; };
 
         private:
         VideoCapture stream;
-        cv::Mat out;
+        Size constantResize;
+        cv::Mat original,
+                out;
         PreProcessor preprocessor;
         ConfigurationSettingsList configsettings;
     };
@@ -277,6 +284,8 @@ namespace KiwiLight {
         void Stop();
         void Start();
         std::string Iterate();
+        std::vector<Target> GetLastFrameTargets() { return this->lastFrameTargets; };
+        Target GetClosestTargetToCenter() { return this->closestTarget; };
         std::string GetFileName() { return this->src; };
         cv::Mat GetOriginalImage() { return this->originalImage; };
         cv::Mat GetOutputImage() { return this->outputImage; };
@@ -286,6 +295,8 @@ namespace KiwiLight {
         double GetPreprocessorProperty(PreProcessorProperty prop);
         void SetPostProcessorContourProperty(int contour, TargetProperty prop, SettingPair values);
         SettingPair GetPostProcessorContourProperty(int contour, TargetProperty prop);
+        void SetRunnerProperty(RunnerProperty prop, double value);
+        double GetRunnerProperty(RunnerProperty prop);
         std::string GetSetting(std::string settingName);
 
         // void SetPreprocessorSetting();
@@ -297,6 +308,7 @@ namespace KiwiLight {
         PreProcessor preprocessor;
         PostProcessor postprocessor;
         Size constantResize;
+        Target closestTarget;
 
         std::string src;
         int cameraIndex;
@@ -305,6 +317,7 @@ namespace KiwiLight {
                 originalImage;
         ConfigurationSettingsList settings;
         std::vector<ExampleTarget> postProcessorTargets;
+        std::vector<Target> lastFrameTargets;
         bool stop,
              debug;
 

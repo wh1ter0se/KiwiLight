@@ -11,7 +11,11 @@ using namespace KiwiLight;
 
 static void tuneDistancePressed() {
     std::cout << "tune distance" << std::endl;
-    std::cout.flush();
+}
+
+
+static void SaveAndExit() {
+    Flags::RaiseFlag("SaveAndCloseEditor");
 }
 
 
@@ -114,75 +118,63 @@ ConfigRunnerEditor::ConfigRunnerEditor(std::string fileName) {
         this->tuneDistance = Button("Tune Distance", tuneDistancePressed);
             this->panel.Pack_start(this->tuneDistance.GetWidget(), false ,false, 0);
 
+        Label imageHeader = Label("Image Output");
+                this->panel.Pack_start(imageHeader.GetWidget(), false, false, 0);
+
         //panel where the output images will show up
         Panel imagePanel = Panel(true, 0);
 
-            Panel processedImagePanel = Panel(false, 3);
-                Label processedImageHeader = Label("Processed Image");
-                    processedImagePanel.Pack_start(processedImageHeader.GetWidget(), false, false, 0);
+            this->imageTooBig = Label("");
+                this->imageTooBig.SetLineWrap(true);
+                imagePanel.Pack_start(this->imageTooBig.GetWidget(), false, false, 0);
 
-                //default blank image for this one too
-                Image processedImageImage = Image();
-                
-                this->processedImage = ImageFrame(processedImageImage);
-                    processedImagePanel.Pack_start(this->processedImage.GetWidget(), false, false, 0);
+            Image blank = Image(); // blank image for outputImages
+            this->outputImages = ImageFrame(blank);
+                imagePanel.Pack_start(this->outputImages.GetWidget(), false, false, 0);
 
-                imagePanel.Pack_start(processedImagePanel.GetWidget(), false, false, 0);
+            this->panel.Pack_start(imagePanel.GetWidget(), false, false, 0);  
 
-            this->panel.Pack_start(imagePanel.GetWidget(), false, false, 0);
-
-
-            //panel with image for original image
-            Panel originalImagePanel = Panel(false, 3);
-                Label originalImageHeader = Label("Original Image");
-                    originalImagePanel.Pack_start(originalImageHeader.GetWidget(), false, false, 0);
-
-                //make default blank image for the original image frame
-                Image originalImageImage = Image();
- 
-                this->originalImage = ImageFrame(originalImageImage);
-                    originalImagePanel.Pack_start(this->originalImage.GetWidget(), false, false, 0);
-
-                imagePanel.Pack_start(originalImagePanel.GetWidget(), false, false, 0);
-
-            //panel with image for processed image
-            
+        this->saveAndExit = Button("Save and Exit", SaveAndExit);
+            this->panel.Pack_start(this->saveAndExit.GetWidget(), false, false, 0);          
 
     this->configrunnereditor = panel.GetWidget();
 }
 
 /**
  * Updates the sliders and output images. Runner is needed for output images
+ * @param originalImage an image that will be displayed to represent the original image
+ * @param processedImage an output image from the runner to be displayed
+ * @param targetWidth the width of the seen target in pixels, or anything less than 0 if none found.
  */
-void ConfigRunnerEditor::Update(cv::Mat originalImage, cv::Mat processedImage) {
+void ConfigRunnerEditor::Update(cv::Mat originalImage, cv::Mat processedImage, double targetDistance) {
+    //concat the original image and processed image together and display them
 
+    if(this->imageResizeX.GetValue() < 250 && this->imageResizeY.GetValue() < 225) {
+        //when displaying as separate images, sometimes processed will render as original, so we do it this way
+        try {
+            cv::Mat concatImages;
+            cv::hconcat(processedImage, originalImage, concatImages);
+            
+            concatImages.convertTo(concatImages, CV_16U);
+            cvtColor(concatImages, concatImages, cv::COLOR_BGR2RGB);
+            concatImages.convertTo(concatImages, CV_8U);
 
-    //update processed (also in RGB)
-    try {
-        Mat processedRGB;
-        processedImage.convertTo(processedRGB, CV_16U);
-        cvtColor(processedRGB, processedRGB, COLOR_BGR2RGB);
-        processedRGB.convertTo(processedRGB, CV_8U);
-        Image processedImageImage = Image(processedRGB);
-        this->processedImage.Update(processedImageImage);
-    } catch(cv::Exception ex) {}
+            Image newImage = Image(concatImages);
+            this->outputImages.Update(newImage);
+            this->imageTooBig.SetText("");
+        } catch(cv::Exception ex) {}
+    } else {
+        Image blank = Image();
+        this->outputImages.Update(blank);
+        this->imageTooBig.SetText("Image too big to display comfortably");
+    }
 
-    //update original (in RGB colorspace of course)
-    try {
-        Mat originalRGB;
-        originalImage.convertTo(originalRGB, CV_16U);
-        cvtColor(originalImage, originalRGB, COLOR_BGR2RGB);
-        originalRGB.convertTo(originalRGB, CV_8U);
-        Image originalImageImage = Image(originalRGB);
-        this->originalImage.Update(originalImageImage);
-    } catch(cv::Exception ex) {}
-
-    
+    //update distance information
+    this->distToTarget.SetText("Distance to Target(inches): " + std::to_string(targetDistance));
 }
 
 /**
  * Returns the value of the property described by prop.
- * Returns -1.0 if no such property exists
  */
 double ConfigRunnerEditor::GetProperty(RunnerProperty prop) {
     double finalValue = -1.0;

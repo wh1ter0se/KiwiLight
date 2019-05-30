@@ -107,7 +107,7 @@ std::string Runner::Iterate() {
         bool success = this->cap.read(img);
         if(!success) {
             //print out a message and exit the method call
-            std::cout << "CAMERA GRAB FAILED!! "; //ya, no endline boiiii
+            std::cout << "CAMERA GRAB FAILED!! ";
             return "";
         }
     } else {
@@ -120,13 +120,13 @@ std::string Runner::Iterate() {
     img.copyTo(out);
     std::vector<Target> targets = this->postprocessor.ProcessImage(img);
     //find the percieved robot center using this->centerOffset
-    int trueCenter = (std::stoi(this->settings.GetSetting("cameraWidth")) / 2);
+    int trueCenter = (this->constantResize.width / 2);
     int robotCenter = trueCenter;
     //offset the true center here
 
     //find the target that is closest to the robot center
     Target bestTarget;
-    int closestDist = 5000; // closest x distance to the center
+    int closestDist = 5000; // closest horizontal distance to the center
     for(int i=0; i<targets.size(); i++) {
         Target targ = targets[i];
         int distFromCenter = robotCenter - targ.Center().x;
@@ -137,6 +137,8 @@ std::string Runner::Iterate() {
             bestTarget = targ;
         }
     }
+
+    this->closestTarget = bestTarget;
 
     //figure out which target to send and then send the target
     int coordX = -1,
@@ -155,6 +157,9 @@ std::string Runner::Iterate() {
 
         angle = bestTarget.Angle(distance, robotCenter);
     }
+
+    this->lastFrameTargets = targets;
+
     std::string x = std::to_string(coordX),
                     y = std::to_string(coordY),
                     d = std::to_string(distance),
@@ -216,7 +221,6 @@ ExampleTarget Runner::GetExampleTargetByID(int id) {
  * unless this method is called.
  */
 void Runner::Stop() {
-    std::cout << "runner stop" << std::endl;
     this->cap.~VideoCapture();
     this->stop = true;
 }
@@ -233,7 +237,9 @@ void Runner::Start() {
 
 
 void Runner::SetPreprocessorProperty(PreProcessorProperty prop, double value) {
-    this->preprocessor.SetProperty(prop, value);
+    if(this->debug) {
+        this->preprocessor.SetProperty(prop, value);
+    }
 }
 
 
@@ -243,12 +249,24 @@ double Runner::GetPreprocessorProperty(PreProcessorProperty prop) {
 
 
 void Runner::SetPostProcessorContourProperty(int contour, TargetProperty prop, SettingPair values) {
-    this->postprocessor.SetTargetContourProperty(contour, prop, values);
+    if(this->debug) {
+        this->postprocessor.SetTargetContourProperty(contour, prop, values);
+    }
 }
 
 
 SettingPair Runner::GetPostProcessorContourProperty(int contour, TargetProperty prop) {
     return this->postprocessor.GetTargetContourProperty(contour, prop);
+}
+
+
+void Runner::SetRunnerProperty(RunnerProperty prop, double value) {
+    this->postprocessor.SetRunnerProperty(prop, value);
+}
+
+
+double Runner::GetRunnerProperty(RunnerProperty prop) {
+    return this->postprocessor.GetRunnerProperty(prop);
 }
 
 /**

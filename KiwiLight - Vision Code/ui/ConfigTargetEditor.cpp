@@ -249,12 +249,17 @@ void ConfigTargetEditor::Update() {
         this->lastRequestedContour = currentRequestedContour;
     }
 
-    // std::cout << "update target runner" << std::endl;
-    // std::cout << "min area editor a: " << this->ContourMinArea.GetValue() << std::endl;
-    // std::cout << "min area editor b: " << this->runner.GetPostProcessorContourProperty(0, TargetProperty::MINIMUM_AREA).Value() << std::endl;
+    //set the preprocessor values in the runner
+    double preprocessorIsFull = (this->currentPreProcessor == PreProcessorType::FULL ? 0 : 1);
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::IS_FULL, preprocessorIsFull);
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::THRESHOLD, this->thresholdValue.GetValue());
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::THRESH_VALUE, 255);
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::DILATION, this->dilationFactor.GetValue());
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_HUE, this->colorH.GetValue());
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_SATURATION, this->colorS.GetValue());
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_VALUE, this->colorV.GetValue());
 
     //set the runner values to the slider
-
     if(this->lastRequestedContour >= 0 && this->lastRequestedContour < this->NumContours()) {
         SettingPair distXPair = SettingPair(this->ContourDistX.GetValue(), this->ContourDistXErr.GetValue());
             this->runner.SetPostProcessorContourProperty((int) this->ContourID.GetValue(), TargetProperty::DIST_X, distXPair);
@@ -292,30 +297,7 @@ int ConfigTargetEditor::NumContours() {
 
 
 double ConfigTargetEditor::GetPreProcessorProperty(PreProcessorProperty prop) {
-    double finalValue = -1.0;
-
-    switch(prop) {
-        case PreProcessorProperty::THRESHOLD:
-            finalValue = this->thresholdValue.GetValue();
-            break;
-        case PreProcessorProperty::THRESH_VALUE:
-            finalValue = 255.0;
-            break;
-        case PreProcessorProperty::DILATION:
-            finalValue = this->dilationFactor.GetValue();
-            break;
-        case PreProcessorProperty::COLOR_HUE:
-            finalValue = this->colorH.GetValue();
-            break;
-        case PreProcessorProperty::COLOR_SATURATION:
-            finalValue = this->colorS.GetValue();
-            break;
-        case PreProcessorProperty::COLOR_VALUE:
-            finalValue = this->colorV.GetValue();
-            break;
-    }
-
-    return finalValue;
+    return this->runner.GetPreprocessorProperty(prop);
 }
 
 

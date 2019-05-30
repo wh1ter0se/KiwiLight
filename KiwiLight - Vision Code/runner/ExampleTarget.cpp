@@ -141,28 +141,6 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
                                widthsToCenterY < targetContours[k].DistY().UpperBound() );
 
             if(distXValid && distYValid && targetContours[k].IsContour(imageContours[i])) {
-                // //remove contour at i and exampleContour at k
-                // std::vector<Contour> newImageContours = std::vector<Contour>();
-                // std::vector<ExampleContour> newTargetContours = std::vector<ExampleContour>();
-                
-                // //rebuild imageContours and targetContours without the good contour
-                // for(int a=0; a<imageContours.size(); a++) {
-                //     if(a != i) {
-                //         newImageContours.push_back(imageContours[a]);
-                //     }
-                // }
-
-                // for(int b=0; b<targetContours.size(); b++) {
-                //     if(b != k) {
-                //         newTargetContours.push_back(targetContours[b]);
-                //     }
-                // }
-
-                // imageContours = newImageContours;
-                // targetContours = newTargetContours;
-
-                // i--;
-                // k--;
                 totalGood++;
             }
         }
@@ -186,11 +164,7 @@ ExampleContour ExampleTarget::GetExampleContourByID(int id) {
 
 
 void ExampleTarget::SetContourProperty(int contour, TargetProperty prop, SettingPair values) {  
-
-    // if(prop == TargetProperty::MINIMUM_AREA) {
-    //     std::cout << "set exTarget prop: contour " << contour << ", value " << values.Value() << std::endl;  
-    // }
-
+    //get the index of the contour we want to change, that way we directly set the values instead of taking a reference
     int contourIndex = 0;
     for(int i=0; i<this->contours.size(); i++) {
         if(this->contours[i].ID() == contour) {
@@ -209,6 +183,9 @@ void ExampleTarget::SetContourProperty(int contour, TargetProperty prop, Setting
         case TargetProperty::ANGLE:
             this->contours[contourIndex].SetAngle(values);
             break;
+        case TargetProperty::ASPECT_RATIO:
+            this->contours[contourIndex].SetAspectRatio(values);
+            break;
         case TargetProperty::SOLIDITY:
             this->contours[contourIndex].SetSolidity(values);
             break;
@@ -221,28 +198,77 @@ void ExampleTarget::SetContourProperty(int contour, TargetProperty prop, Setting
 
 SettingPair ExampleTarget::GetContourProperty(int contour, TargetProperty prop) {
     SettingPair finalValue = SettingPair(-1,-1);
+
+    int contourIndex = 0;
+    for(int i=0; i<this->contours.size(); i++) {
+        if(this->contours[i].ID() == contour) {
+            contourIndex = i;
+            break;
+        }
+    }
+
     switch(prop) {
         case TargetProperty::DIST_X:
-            finalValue = this->contours[contour].DistX();
+            finalValue = this->contours[contourIndex].DistX();
             break;
         case TargetProperty::DIST_Y:
-            finalValue = this->contours[contour].DistY();
+            finalValue = this->contours[contourIndex].DistY();
             break;
         case TargetProperty::ANGLE:
-            finalValue = this->contours[contour].Angle();
+            finalValue = this->contours[contourIndex].Angle();
             break;
         case TargetProperty::ASPECT_RATIO:
-            finalValue = this->contours[contour].AspectRatio();
+            finalValue = this->contours[contourIndex].AspectRatio();
             break;
         case TargetProperty::SOLIDITY:
-            finalValue = this->contours[contour].Solidity();
+            finalValue = this->contours[contourIndex].Solidity();
             break;
         case TargetProperty::MINIMUM_AREA:
-            finalValue = SettingPair((double) this->contours[contour].MinimumArea(), 0);
+            finalValue = SettingPair((double) this->contours[contourIndex].MinimumArea(), 0);
             break;
     }
 
     return finalValue;
+}
+
+
+void ExampleTarget::SetTargetProperty(RunnerProperty prop, double value) {
+    switch(prop) {
+        case RunnerProperty::TRUE_WIDTH:
+            this->knownHeight = value;
+            break;
+        case RunnerProperty::PERCEIVED_WIDTH:
+            this->focalHeight = value;
+            break;
+        case RunnerProperty::CALIBRATED_DISTANCE:
+            this->calibratedDistance = value;
+            break;
+        case RunnerProperty::ERROR_CORRECTION:
+            this->distErrorCorrect = value;
+            break;
+    }
+}
+
+
+double ExampleTarget::GetTargetProperty(RunnerProperty prop) {
+    double value = -1;
+
+    switch(prop) {
+        case RunnerProperty::TRUE_WIDTH:
+            value = this->knownHeight;
+            break;
+        case RunnerProperty::PERCEIVED_WIDTH:
+            value = this->focalHeight;
+            break;
+        case RunnerProperty::CALIBRATED_DISTANCE:
+            value = this->calibratedDistance;
+            break;
+        case RunnerProperty::ERROR_CORRECTION:
+            value = this->distErrorCorrect;
+            break;
+    }
+
+    return value;
 }
 
 

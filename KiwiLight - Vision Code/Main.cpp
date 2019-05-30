@@ -115,6 +115,15 @@ void Update() {
             cam = VideoCapture(cameraIndex.GetValue());
         }
     }
+
+    if(Flags::GetFlag("SaveAndCloseEditor")) {
+        Flags::LowerFlag("SaveAndCloseEditor");
+        configEditor.Save();
+        configEditor.Close();
+
+        runner = Runner(configEditor.GetFileName(), true);
+        uiMode = UIMode::UI_RUNNER;
+    }
 }
 
 void OpenNewCamera() {

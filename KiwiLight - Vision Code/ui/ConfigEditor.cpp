@@ -15,8 +15,9 @@ ConfigEditor::ConfigEditor(std::string fileName) {
     this->runner = Runner(fileName, true);
     this->editorMode = EditorMode::USE_RUNNER;
     this->currentDoc = XMLDocument(fileName);
+    this->fileName = fileName;
 
-    this->window = Window(GTK_WINDOW_TOPLEVEL);
+    this->window = Window(GTK_WINDOW_TOPLEVEL, false);
         this->content = Panel(true, 5);
                 Panel settingsContent = Panel(false, 0);
                     Label settingsHeader = Label("Camera Settings");
@@ -57,10 +58,11 @@ void ConfigEditor::Update() {
     
     if(this->editorMode == EditorMode::USE_RUNNER) {
         //set all runner preprocessor settings to the values in the target editor
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::IS_FULL, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::IS_FULL));
         this->runner.SetPreprocessorProperty(PreProcessorProperty::THRESHOLD, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::THRESHOLD));
         this->runner.SetPreprocessorProperty(PreProcessorProperty::THRESH_VALUE, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::THRESH_VALUE));
         this->runner.SetPreprocessorProperty(PreProcessorProperty::DILATION, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::DILATION));
-        this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_HUE, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::DILATION));
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_HUE, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_HUE));
         this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_SATURATION, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_SATURATION));
         this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_VALUE, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_VALUE));
 
@@ -76,27 +78,25 @@ void ConfigEditor::Update() {
             // std::cout << "min area editor: " << this->targetEditor.GetTargetPropertyValue(i, TargetProperty::MINIMUM_AREA).Value() << std::endl;
         }
 
+        this->runner.SetRunnerProperty(RunnerProperty::TRUE_WIDTH, this->runnerEditor.GetProperty(RunnerProperty::TRUE_WIDTH));
+        this->runner.SetRunnerProperty(RunnerProperty::PERCEIVED_WIDTH, this->runnerEditor.GetProperty(RunnerProperty::PERCEIVED_WIDTH));
+        this->runner.SetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE, this->runnerEditor.GetProperty(RunnerProperty::CALIBRATED_DISTANCE));
+        this->runner.SetRunnerProperty(RunnerProperty::ERROR_CORRECTION, this->runnerEditor.GetProperty(RunnerProperty::ERROR_CORRECTION));
+
         this->runner.Iterate();
         this->out = this->runner.GetOutputImage();
-    } else if(this->editorMode == EditorMode::USE_LEARNER) {
-        /**
-         * TODO:
-         * Fix below 3 lines so minimumArea is returned as a settingPair, or add accessor for just minimumArea value.
-         */
 
-        // double minimumArea = this->targetEditor.GetTargetPropertyValue(0, TargetProperty::MINIMUM_AREA);
-        this->learner.Update(500); //use minimumArea in above line instead of constant 500
+        this->runnerEditor.Update(this->runner.GetOriginalImage(), this->out, this->runner.GetClosestTargetToCenter().Distance());
+    } else if(this->editorMode == EditorMode::USE_LEARNER) {
+        // this->runnerEditor.Update(this->learner.GetOriginalImage(), this->learner.GetOutputImage(), -1);
+        double minimumArea = this->targetEditor.GetTargetPropertyValue(0, TargetProperty::MINIMUM_AREA).Value();
+        this->learner.Update(minimumArea); //use minimumArea in above line instead of constant 500
         this->out = this->learner.GetOutputImage();
+        this->runnerEditor.Update(this->learner.GetOriginalImage(), this->learner.GetOutputImage(), -1);
     }
 
     this->cameraSettings.Update();
     this->targetEditor.Update();
-    this->runnerEditor.Update(this->runner.GetOriginalImage(), this->out);
-
-
-    //update preprocessor settings in runner
-
-    //update target settings in runner
 
     //update image resize settings in runner
     int newSizeX = (int) this->runnerEditor.GetProperty(RunnerProperty::IMAGE_WIDTH);
@@ -113,6 +113,7 @@ void ConfigEditor::Update() {
         //create a new learner and then switch to learner mode
         XMLTag preprocessorTag = this->currentDoc.GetTagsByName("configuration")[0].GetTagsByName("preprocessor")[0];
         this->learner = ConfigLearner(preprocessorTag, this->runner.GetVideoStream());
+        this->learner.SetConstantResize(newSize);
         this->editorMode = EditorMode::USE_LEARNER;
     }
 
@@ -126,10 +127,14 @@ void ConfigEditor::Update() {
  * Causes the editor to save the config to file.
  */
 void ConfigEditor::Save() {
-    XMLDocument newDoc = XMLDocument();
+    
+}
 
-    std::cout << "iiii" << std::endl;
-    std::cout.flush();
+
+void ConfigEditor::Close() {
+    this->runner.Stop();
+    this->learner.Stop();
+    gtk_widget_destroy(this->configeditor);
 }
 
 
