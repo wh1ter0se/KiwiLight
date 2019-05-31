@@ -89,6 +89,11 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName, Runner runner) {
 
                 preprocessorPanel.Pack_start(preprocessorColorChooser.GetWidget(), false, false, 0);
 
+            this->colorError = LabeledSlider("Color Error", 0, 100, 1, 0);
+                int realColorError = std::stoi(targetColor.GetTagsByName("h")[0].GetAttributesByName("error")[0].Value());
+                this->colorError.SetValue(realColorError);
+                preprocessorPanel.Pack_start(this->colorError.GetWidget(), false, false, 0);
+
             //now create threshold and dilation sliders and set the values to the ones from the file
             this->thresholdValue = LabeledSlider("Threshold Value:", 0.0, 255.0, 1.0, 0.0);
                 int realThreshold = std::stoi(preprocessorTag.GetTagsByName("targetThreshold")[0].GetTagsByName("threshold")[0].Content());
@@ -258,6 +263,7 @@ void ConfigTargetEditor::Update() {
     this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_HUE, this->colorH.GetValue());
     this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_SATURATION, this->colorS.GetValue());
     this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_VALUE, this->colorV.GetValue());
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_ERROR, this->colorError.GetValue());
 
     //set the runner values to the slider
     if(this->lastRequestedContour >= 0 && this->lastRequestedContour < this->NumContours()) {
@@ -279,13 +285,6 @@ void ConfigTargetEditor::Update() {
         SettingPair minimumAreaPair = SettingPair(this->ContourMinArea.GetValue(), 0);
             this->runner.SetPostProcessorContourProperty((int) this->ContourID.GetValue(), TargetProperty::MINIMUM_AREA, minimumAreaPair);
     }
-}
-
-/**
- * Returns an XMLTag describing the target being edited by this editor.
- */
-XMLTag ConfigTargetEditor::GetTarget() {
-
 }
 
 /**

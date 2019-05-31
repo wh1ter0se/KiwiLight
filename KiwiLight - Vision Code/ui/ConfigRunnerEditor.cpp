@@ -173,6 +173,23 @@ void ConfigRunnerEditor::Update(cv::Mat originalImage, cv::Mat processedImage, d
     this->distToTarget.SetText("Distance to Target(inches): " + std::to_string(targetDistance));
 }
 
+
+std::string ConfigRunnerEditor::GetUDPAddress() {
+    return this->UDPAddr.GetText();
+}
+
+/**
+ * Return the address of the UDP port as entered by the user, or -1 if the input is invalid.
+ */
+int ConfigRunnerEditor::GetUDPPort() {
+    try {
+        int port = std::stoi(this->UDPPort.GetText());
+        return port;
+    } catch(std::invalid_argument ex) {
+        return -1;
+    }
+}
+
 /**
  * Returns the value of the property described by prop.
  */

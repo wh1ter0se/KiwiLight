@@ -53,6 +53,9 @@ bin/NumberBox.o: ui/NumberBox.cpp
 bin/FileChooser.o: ui/FileChooser.cpp
 	$(CXX) -c -o bin/FileChooser.o ui/FileChooser.cpp $(GTK)
 
+bin/PopupTextBox.o: ui/PopupTextBox.cpp
+	$(CXX) -c -o bin/PopupTextBox.o ui/PopupTextBox.cpp $(GTK)
+
 bin/ImageFrame.o: ui/ImageFrame.cpp
 	$(CXX) -c -o bin/ImageFrame.o ui/ImageFrame.cpp $(GTK) $(CV)
 
@@ -74,8 +77,8 @@ bin/ConfigEditor.o: ui/ConfigEditor.cpp
 bin/CameraSetting.o: ui/CameraSetting.cpp
 	$(CXX) -c -o bin/CameraSetting.o ui/CameraSetting.cpp $(GTK)
 
-lib/UI.a: bin/ConfirmationDialog.o bin/SubMenuItem.o bin/MenuItem.o bin/MenuBar.o bin/Button.o bin/Label.o bin/LabeledSlider.o bin/Panel.o bin/Frame.o bin/Separator.o bin/Slider.o bin/CheckBox.o bin/TextBox.o bin/NumberBox.o bin/FileChooser.o bin/ImageFrame.o bin/Window.o bin/Settings.o bin/ConfigRunnerEditor.o bin/ConfigTargetEditor.o bin/ConfigEditor.o bin/CameraSetting.o
-	ar rs lib/UI.a bin/ConfirmationDialog.o bin/SubMenuItem.o bin/MenuItem.o bin/MenuBar.o bin/Button.o bin/Label.o bin/LabeledSlider.o bin/Panel.o bin/Frame.o bin/Separator.o bin/Slider.o bin/CheckBox.o bin/TextBox.o bin/NumberBox.o bin/FileChooser.o bin/ImageFrame.o bin/Window.o bin/Settings.o bin/ConfigRunnerEditor.o bin/ConfigTargetEditor.o bin/ConfigEditor.o bin/CameraSetting.o
+lib/UI.a: bin/ConfirmationDialog.o bin/SubMenuItem.o bin/MenuItem.o bin/MenuBar.o bin/Button.o bin/Label.o bin/LabeledSlider.o bin/Panel.o bin/Frame.o bin/Separator.o bin/Slider.o bin/CheckBox.o bin/TextBox.o bin/NumberBox.o bin/FileChooser.o bin/PopupTextBox.o bin/ImageFrame.o bin/Window.o bin/Settings.o bin/ConfigRunnerEditor.o bin/ConfigTargetEditor.o bin/ConfigEditor.o bin/CameraSetting.o
+	ar rs lib/UI.a bin/ConfirmationDialog.o bin/SubMenuItem.o bin/MenuItem.o bin/MenuBar.o bin/Button.o bin/Label.o bin/LabeledSlider.o bin/Panel.o bin/Frame.o bin/Separator.o bin/Slider.o bin/CheckBox.o bin/TextBox.o bin/NumberBox.o bin/FileChooser.o bin/PopupTextBox.o bin/ImageFrame.o bin/Window.o bin/Settings.o bin/ConfigRunnerEditor.o bin/ConfigTargetEditor.o bin/ConfigEditor.o bin/CameraSetting.o
 
 #UTIL
 bin/Flags.o: util/Flags.cpp

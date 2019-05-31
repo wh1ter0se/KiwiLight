@@ -112,6 +112,25 @@ void Settings::Update() {
     }
 }
 
+
+XMLTag Settings::GetFinishedTag() {
+    XMLTag finishedTag = XMLTag("settings");
+    
+    for(int i=0; i<this->settings.size(); i++) {
+        std::string settingName = this->settings[i].GetName();
+        std::string settingValue = std::to_string(this->settings[i].GetValue());
+
+        XMLTagAttribute newTagNameAttr = XMLTagAttribute("name", settingName);
+        std::vector<XMLTagAttribute> attrList = std::vector<XMLTagAttribute>();
+        attrList.push_back(newTagNameAttr);
+
+        XMLTag newTag = XMLTag("setting", settingValue, attrList);
+        finishedTag.AddTag(newTag);
+    }
+
+    return finishedTag;
+}
+
 /**
  * Assuming searchString is a v4l std::string, searches searchString for the value of term
  * and returns that. Returns -1 if no term found in searchString. 

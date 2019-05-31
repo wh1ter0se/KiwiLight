@@ -294,6 +294,20 @@ namespace KiwiLight {
         GtkWidget *filechooser;
     };
 
+
+    class PopupTextBox : public Widget {
+        public:
+        PopupTextBox() {};
+        PopupTextBox(std::string name, std::string prompt, std::string initValue);
+        std::string Show();
+        GtkWidget *GetWidget() { return this->popuptextbox; };
+        void SetName(std::string name);
+
+        private:
+        GtkWidget *popuptextbox;
+        TextBox textbox;
+    };
+
     class LabeledSlider : public Widget {
         public:
         LabeledSlider() {};
@@ -351,6 +365,7 @@ namespace KiwiLight {
         void Show() { gtk_widget_show_all(this->settingsWidget); };
         int GetWidth() { return camWidth; };
         int GetHeight() { return camHeight; };
+        XMLTag GetFinishedTag();
         GtkWidget *GetWidget() { return settingsWidget; };
         void SetName(std::string name);
 
@@ -374,6 +389,8 @@ namespace KiwiLight {
         void Update(cv::Mat originalImage, cv::Mat processedImage, double targetDistance);
         double GetProperty(RunnerProperty prop);
         ConfigurationSettingsList GetSettings();
+        std::string GetUDPAddress();
+        int GetUDPPort();
         GtkWidget *GetWidget() { return this->configrunnereditor; };
         void SetName(std::string name);
 
@@ -409,7 +426,6 @@ namespace KiwiLight {
         ConfigTargetEditor() {};
         ConfigTargetEditor(std::string fileName, Runner runner);
         void Update();
-        XMLTag GetTarget();
         int NumContours();
         double GetPreProcessorProperty(PreProcessorProperty prop);
         SettingPair GetTargetPropertyValue(int contour, TargetProperty property);
@@ -431,6 +447,8 @@ namespace KiwiLight {
         NumberBox colorH,
                   colorS,
                   colorV;
+
+        LabeledSlider colorError;
 
         LabeledSlider thresholdValue,
                       dilationFactor;
@@ -505,6 +523,7 @@ namespace KiwiLight {
         EditorMode editorMode;
         XMLDocument currentDoc;
         std::string fileName;
+        std::string confName;
 
         cv::Mat out;
 

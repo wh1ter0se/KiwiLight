@@ -37,7 +37,8 @@ namespace KiwiLight {
         DILATION,
         COLOR_HUE,
         COLOR_SATURATION,
-        COLOR_VALUE
+        COLOR_VALUE,
+        COLOR_ERROR
     };
 
     /**
@@ -51,7 +52,6 @@ namespace KiwiLight {
         SOLIDITY,
         MINIMUM_AREA
     };
-
 
     /**
      * Represents a single setting that is used by either the PostProcessor or Preprocessor.
@@ -236,6 +236,7 @@ namespace KiwiLight {
         PostProcessor() {};
         PostProcessor(std::vector<ExampleTarget> targets, bool debugging);
         //x, y, angle, solidity, aspectratio, minarea
+        int NumTargets() { return this->targets.size(); };
         void SetTargetContourProperty(int contour, TargetProperty prop, SettingPair values);
         SettingPair GetTargetContourProperty(int contour, TargetProperty prop);
         void SetRunnerProperty(RunnerProperty prop, double value);
@@ -284,6 +285,7 @@ namespace KiwiLight {
         void Stop();
         void Start();
         std::string Iterate();
+        int GetNumberOfTargets() { return this->postprocessor.NumTargets(); };
         std::vector<Target> GetLastFrameTargets() { return this->lastFrameTargets; };
         Target GetClosestTargetToCenter() { return this->closestTarget; };
         std::string GetFileName() { return this->src; };

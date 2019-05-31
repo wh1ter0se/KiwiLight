@@ -91,6 +91,13 @@ void PreProcessor::SetProperty(PreProcessorProperty prop, double value) {
             this->targetColor = newColor;
             break;
             }
+
+        case PreProcessorProperty::COLOR_ERROR:
+            {
+            Color newColor = Color(this->targetColor.GetH(), this->targetColor.GetS(), this->targetColor.GetV(), value, value, value);
+            this->targetColor = newColor;
+            break;
+            }
     }
 }
 
@@ -119,6 +126,9 @@ double PreProcessor::GetProperty(PreProcessorProperty prop) {
             break;
         case PreProcessorProperty::COLOR_VALUE:
             finalValue = this->targetColor.GetV();
+            break;
+        case PreProcessorProperty::COLOR_ERROR:
+            finalValue = this->targetColor.GetHError();
             break;
     }
 

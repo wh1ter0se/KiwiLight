@@ -7,7 +7,7 @@
         <setting name="exposure_absolute">155</setting>
     </settings>
 </camera>
-<configuration name="Test Configuration">
+<configuration name="Generic Configuration">
     <constantResize>
         <width>200</width>
         <height>145</height>

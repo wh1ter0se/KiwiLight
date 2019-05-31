@@ -16,6 +16,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
     this->editorMode = EditorMode::USE_RUNNER;
     this->currentDoc = XMLDocument(fileName);
     this->fileName = fileName;
+    this->confName = this->currentDoc.GetTagsByName("configuration")[0].GetAttributesByName("name")[0].Value();
 
     this->window = Window(GTK_WINDOW_TOPLEVEL, false);
         this->content = Panel(true, 5);
@@ -127,7 +128,151 @@ void ConfigEditor::Update() {
  * Causes the editor to save the config to file.
  */
 void ConfigEditor::Save() {
-    
+    PopupTextBox namePopup = PopupTextBox("Enter Name", "Enter the name of the configuration.", this->confName);
+        std::string nameResult = namePopup.Show();
+
+    XMLDocument newDocument = XMLDocument();
+        XMLTag cameraTag = XMLTag("camera");
+            XMLTagAttribute cameraIndex = XMLTagAttribute("index", std::to_string(this->runner.GetCameraIndex()));
+                cameraTag.AddAttribute(cameraIndex);
+
+            XMLTag camResolution = XMLTag("resolution");
+                XMLTag camResWidth = XMLTag("width", std::to_string(this->cameraSettings.GetWidth()));
+                    camResolution.AddTag(camResWidth);
+
+                XMLTag camResHeight = XMLTag("height", std::to_string(this->cameraSettings.GetHeight()));
+                    camResolution.AddTag(camResHeight);
+
+                cameraTag.AddTag(camResolution);
+
+            cameraTag.AddTag(this->cameraSettings.GetFinishedTag());
+            newDocument.AddTag(cameraTag);
+        
+        XMLTag configurationTag = XMLTag("configuration");
+            XMLTagAttribute confNameAttr = XMLTagAttribute("name", nameResult);
+            configurationTag.AddAttribute(confNameAttr);
+
+            XMLTag constantResizeTag = XMLTag("constantResize");
+                XMLTag resizeWidth = XMLTag("width", std::to_string((int) this->runnerEditor.GetProperty(RunnerProperty::IMAGE_WIDTH)));
+                    constantResizeTag.AddTag(resizeWidth);
+
+                XMLTag resizeHeight = XMLTag("height", std::to_string((int) this->runnerEditor.GetProperty(RunnerProperty::IMAGE_HEIGHT)));
+                    constantResizeTag.AddTag(resizeHeight);
+
+                configurationTag.AddTag(constantResizeTag);
+            
+            XMLTag preprocessorTag = XMLTag("preprocessor");
+                double preprocessorTypeDouble = this->runner.GetPreprocessorProperty(PreProcessorProperty::IS_FULL);
+                std::string preprocessorTypeString = (preprocessorTypeDouble == 0.0 ? "full" : "partial");
+                XMLTagAttribute preprocessorTypeAttr = XMLTagAttribute("type", preprocessorTypeString);
+                preprocessorTag.AddAttribute(preprocessorTypeAttr);
+
+                XMLTag targetThreshold = XMLTag("targetThreshold");
+                    XMLTag thresh = XMLTag("threshold", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::THRESHOLD)));
+                        targetThreshold.AddTag(thresh);
+
+                    XMLTag maxValue = XMLTag("maxValue", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::THRESH_VALUE)));
+                        targetThreshold.AddTag(maxValue);
+
+                    XMLTag threshType = XMLTag("type", "0");
+                        targetThreshold.AddTag(threshType);
+
+                    preprocessorTag.AddTag(targetThreshold);
+
+                XMLTag dilationTag = XMLTag("dilation", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::DILATION)));
+                    preprocessorTag.AddTag(dilationTag);
+
+                XMLTag colorTag = XMLTag("targetColor");
+                    XMLTag hueTag = XMLTag("h", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::COLOR_HUE)));
+                        XMLTagAttribute hueError = XMLTagAttribute("error", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::COLOR_ERROR)));
+                        hueTag.AddAttribute(hueError);
+                        colorTag.AddTag(hueTag);
+
+                    XMLTag saturationTag = XMLTag("s", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::COLOR_SATURATION)));
+                        XMLTagAttribute saturationError = XMLTagAttribute("error", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::COLOR_ERROR)));
+                        saturationTag.AddAttribute(saturationError);
+                        colorTag.AddTag(saturationTag);
+
+                    XMLTag valueTag = XMLTag("v", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::COLOR_VALUE)));
+                        XMLTagAttribute valueError = XMLTagAttribute("error", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::COLOR_ERROR)));
+                        valueTag.AddAttribute(valueError);
+                        colorTag.AddTag(valueTag);
+
+                    preprocessorTag.AddTag(colorTag);
+
+                configurationTag.AddTag(preprocessorTag);
+
+            XMLTag postprocessorTag = XMLTag("postprocessor");
+                XMLTag centerOffset = XMLTag("centerOffset", "0");
+                    postprocessorTag.AddTag(centerOffset);
+
+                XMLTag targetTag = XMLTag("target");
+                    XMLTagAttribute targetIDAttr = XMLTagAttribute("id", "0");
+                    targetTag.AddAttribute(targetIDAttr);
+
+                    for(int i=0; i<this->runner.GetNumberOfTargets(); i++) {
+                        XMLTag newContour = XMLTag("contour");
+                            XMLTagAttribute ContourIDAttr = XMLTagAttribute("id", std::to_string(i));
+                            newContour.AddAttribute(ContourIDAttr);
+
+                            XMLTag contourX = XMLTag("x", std::to_string(this->runner.GetPostProcessorContourProperty(i, TargetProperty::DIST_X).Value()));
+                                XMLTagAttribute contourXErr = XMLTagAttribute("error", std::to_string(this->runner.GetPostProcessorContourProperty(i, TargetProperty::DIST_X).Error()));
+                                contourX.AddAttribute(contourXErr);
+                                newContour.AddTag(contourX);
+
+                            XMLTag contourY = XMLTag("y", std::to_string(this->runner.GetPostProcessorContourProperty(i, TargetProperty::DIST_Y).Value()));
+                                XMLTagAttribute contourYErr = XMLTagAttribute("error", std::to_string(this->runner.GetPostProcessorContourProperty(i, TargetProperty::DIST_Y).Error()));
+                                contourY.AddAttribute(contourYErr);
+                                newContour.AddTag(contourY);
+
+                            XMLTag contourAngle = XMLTag("angle", std::to_string(this->runner.GetPostProcessorContourProperty(i, TargetProperty::ANGLE).Value()));
+                                XMLTagAttribute contourAngleErr = XMLTagAttribute("error", std::to_string(this->runner.GetPostProcessorContourProperty(i, TargetProperty::ANGLE).Error()));
+                                contourAngle.AddAttribute(contourAngleErr);
+                                newContour.AddTag(contourAngle);
+
+                            XMLTag contourSolidity = XMLTag("solidity", std::to_string(this->runner.GetPostProcessorContourProperty(i, TargetProperty::SOLIDITY).Value()));
+                                XMLTagAttribute contourSolidityErr = XMLTagAttribute("error", std::to_string(this->runner.GetPostProcessorContourProperty(i, TargetProperty::SOLIDITY).Error()));
+                                contourSolidity.AddAttribute(contourSolidityErr);
+                                newContour.AddTag(contourSolidity);
+
+                            XMLTag contourAR = XMLTag("aspectRatio", std::to_string(this->runner.GetPostProcessorContourProperty(i, TargetProperty::ASPECT_RATIO).Value()));
+                                XMLTagAttribute contourARErr = XMLTagAttribute("error", std::to_string(this->runner.GetPostProcessorContourProperty(i, TargetProperty::ASPECT_RATIO).Error()));
+                                contourAR.AddAttribute(contourARErr);
+                                newContour.AddTag(contourAR);
+
+                            XMLTag contourMinArea = XMLTag("minimumArea", std::to_string(this->runner.GetPostProcessorContourProperty(i, TargetProperty::MINIMUM_AREA).Value()));
+                                newContour.AddTag(contourMinArea);
+
+                            targetTag.AddTag(newContour);
+                    }
+
+                    XMLTag targetKnownWidth = XMLTag("knownWidth", std::to_string((int) this->runner.GetRunnerProperty(RunnerProperty::TRUE_WIDTH)));
+                        targetTag.AddTag(targetKnownWidth);
+
+                    XMLTag targetFocalWidth = XMLTag("focalWidth", std::to_string((int) this->runner.GetRunnerProperty(RunnerProperty::PERCEIVED_WIDTH)));
+                        targetTag.AddTag(targetFocalWidth);
+
+                    XMLTag targetCalibratedDistance = XMLTag("calibratedDistance", std::to_string((int) this->runner.GetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE)));
+                        targetTag.AddTag(targetCalibratedDistance);
+
+                    XMLTag targetErrCorrect = XMLTag("distErrorCorrect", std::to_string((int) this->runner.GetRunnerProperty(RunnerProperty::ERROR_CORRECTION)));
+                        targetTag.AddTag(targetErrCorrect);
+
+                    postprocessorTag.AddTag(targetTag);
+
+                    XMLTag UDPTag = XMLTag("UDP");
+                        XMLTag udpAddrTag = XMLTag("address", this->runnerEditor.GetUDPAddress());
+                            UDPTag.AddTag(udpAddrTag);
+
+                        XMLTag udpPortTag = XMLTag("port", std::to_string(this->runnerEditor.GetUDPPort()));
+                            UDPTag.AddTag(udpPortTag);
+
+                        postprocessorTag.AddTag(UDPTag);
+
+                configurationTag.AddTag(postprocessorTag);
+            newDocument.AddTag(configurationTag);
+
+    newDocument.WriteFile("confs/temp.xml");
 }
 
 
