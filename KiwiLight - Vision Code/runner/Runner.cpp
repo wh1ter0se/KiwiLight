@@ -226,6 +226,21 @@ void Runner::Stop() {
 }
 
 /**
+ * Stops the loop if one is happening, but does not close the camera stream.
+ */
+void Runner::StopLoopOnly() {
+    this->stop = true;
+}
+
+/**
+ * If Stop() or StopLoopOnly() has been called to stop the main loop, UnlockLoop() must be called
+ * to allow a new loop to start.
+ */
+void Runner::UnlockLoop() {
+    this->stop = false;
+}
+
+/**
  * Restarts the camera stream associated with this runner.
  * This should only be called if Stop() has been called.
  * NOTE: THIS METHOD DOES NOT CALL LOOP(). Loop() must be called separately.
@@ -233,6 +248,7 @@ void Runner::Stop() {
 void Runner::Start() {
     int cameraIndex = std::stoi(this->settings.GetSetting("cameraIndex"));
     this->cap = VideoCapture(cameraIndex);
+    this->stop = false;
 }
 
 

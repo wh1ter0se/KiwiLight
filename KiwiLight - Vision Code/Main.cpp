@@ -41,6 +41,8 @@ bool displayingImage = false,
 
 UIMode uiMode;
 
+GThread *runnerThread;
+
 
 /**
  * Runs through a checklist and updates UI objects, utilities, etc.
@@ -62,6 +64,9 @@ void Update() {
         } else if(uiMode == UIMode::UI_EDITOR) {
             success = true;
             img = configEditor.GetOutputImage();
+        } else if(uiMode == UIMode::UI_CONFIG_RUNNING) {
+            success = true;
+            img = runner.GetOutputImage();
         }
 
         if(success) {
@@ -76,7 +81,7 @@ void Update() {
                 imgFrame.Update(forFrame);
                 cameraStatusLabel.SetText("");
             // } catch(cv::Exception ex) {
-                // std::cout << "WARNING: IMAGE DISPLAY ERROR DETECTED!" << std::endl;
+            //     std::cout << "WARNING: IMAGE DISPLAY ERROR DETECTED!" << std::endl;
             // }
         } else {
             cameraOpen = false;
@@ -143,19 +148,44 @@ void OpenNewCamera() {
  * Saves the config currently in the editor.
  */
 void SaveConfig() {
-    if(uiMode = UIMode::UI_EDITOR) {
+    if(uiMode == UIMode::UI_EDITOR) {
         configEditor.Save();
     } else {
         std::cout << "oops! there be no big config bro" << std::endl;
     }
 }
 
+
+void StartRunnerLoop() {
+    runner.Loop();
+    g_thread_exit(0);
+}
+
 /**
  * Runs the selected config, or does nothing if nothing is selected.
  */
 void RunSelected() {
-    std::cout << "run selected from MAIN" << std::endl;
-    std::cout.flush();
+    std::string fileName = "";
+    if(uiMode == UIMode::UI_RUNNER) {
+        fileName = runner.GetFileName();
+    } else if(uiMode == UIMode::UI_EDITOR) {
+        fileName = configEditor.GetFileName();
+        configEditor.Close();
+    } else if(uiMode != UIMode::UI_CONFIG_RUNNING) {
+        ConfirmationDialog warning = ConfirmationDialog("Please open a configuration to run it.");
+        warning.ShowAndGetResponse();
+        return;
+    }
+
+    if(uiMode == UIMode::UI_CONFIG_RUNNING) {
+        runner.StopLoopOnly();
+        g_thread_unref(runnerThread);
+        uiMode = UIMode::UI_RUNNER;
+    } else {
+        uiMode = UIMode::UI_CONFIG_RUNNING;
+        runner.UnlockLoop(); //unlock the runner in case it is locked
+        runnerThread = g_thread_new("runnerThread", GThreadFunc(StartRunnerLoop), NULL);
+    }
 }
 
 /**
@@ -163,7 +193,6 @@ void RunSelected() {
  */
 void ConfStartConfigOnBoot() {
     std::cout << "conf start on boot" << std::endl;
-    std::cout.flush();
 }
 
 /**
@@ -182,12 +211,18 @@ void OpenConfig() {
         runner.Stop();
     }
     cam.~VideoCapture();
-    FileChooser chooser = FileChooser(true);
+    FileChooser chooser = FileChooser(false, "");
     std::string file = chooser.Show();
     if(file != "") {
         configPanel.LoadConfig(file);
         runner = Runner(file, true);
         uiMode = UIMode::UI_RUNNER;
+    } else {
+        if(uiMode == UIMode::UI_RUNNER) {
+            runner.Start();
+        } else if(uiMode == UIMode::UI_STREAM) {
+            cam = VideoCapture((int) cameraIndex.GetValue());
+        }
     }
 }
 
@@ -231,16 +266,16 @@ void AddConfig() {
  * Shows the about menu and flexes about how Foximus Prime is a cool FRC team
  */
 void ShowAbout() {
-    std::cout << "show about menu" << std::endl;
-    std::cout.flush();
+    AboutWindow abtWindow = AboutWindow(GTK_WINDOW_TOPLEVEL);
+    abtWindow.Show();
 }
 
 /**
  * directs you to the github repo where tutorials for the app are shown
  */
 void HELPME() {
-    std::cout << "HELP" << std::endl;
-    std::cout.flush();
+    HelpWindow hlpWindow = HelpWindow(GTK_WINDOW_TOPLEVEL);
+    hlpWindow.Show();
 }
 
 /**

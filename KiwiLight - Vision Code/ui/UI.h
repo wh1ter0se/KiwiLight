@@ -285,7 +285,7 @@ namespace KiwiLight {
     class FileChooser : public Widget {
         public:
         FileChooser() {};
-        FileChooser(bool writing);
+        FileChooser(bool writing, std::string defaultFileName);
         std::string Show();
         GtkWidget *GetWidget() { return this->filechooser; };
         void SetName(std::string name);
@@ -323,6 +323,34 @@ namespace KiwiLight {
         Label label;
         Slider slider;
         GtkWidget *labeledslider;
+    };
+
+
+    class AboutWindow : public Widget {
+        public:
+        AboutWindow() {};
+        AboutWindow(GtkWindowType type);
+        void Show();
+        GtkWidget *GetWidget() { return this->aboutwindow; };
+        void SetName(std::string name);
+
+        private:
+        Window window;
+        GtkWidget *aboutwindow;
+    };
+
+
+    class HelpWindow : public Widget {
+        public:
+        HelpWindow() {};
+        HelpWindow(GtkWindowType type);
+        void Show();
+        GtkWidget *GetWidget() { return this->helpwindow; };
+        void SetName(std::string name);
+
+        private:
+        Window window;
+        GtkWidget *helpwindow;
     };
 
     /**

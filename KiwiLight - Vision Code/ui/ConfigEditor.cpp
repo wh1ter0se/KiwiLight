@@ -272,7 +272,25 @@ void ConfigEditor::Save() {
                 configurationTag.AddTag(postprocessorTag);
             newDocument.AddTag(configurationTag);
 
-    newDocument.WriteFile("confs/temp.xml");
+    //use accessor so we don't accidently modify the member value
+    std::string fileToWrite = this->GetFileName();
+    if(fileToWrite == "confs/generic.xml") {
+        fileToWrite = nameResult + ".xml";
+        //prompt the user for a file to write to with FileChooser
+        std::string defaultFile = "";
+        for(int i=0; i<fileToWrite.length(); i++) {
+            char nextChar = fileToWrite.at(i);
+            if(nextChar == ' ') {
+                defaultFile += "_";
+            } else {
+                defaultFile += nextChar;
+            }
+        }
+
+        FileChooser fileChooser = FileChooser(true, defaultFile);
+        fileToWrite = fileChooser.Show();
+    }
+    newDocument.WriteFile(fileToWrite);
 }
 
 

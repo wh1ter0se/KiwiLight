@@ -7,19 +7,38 @@
 
 using namespace KiwiLight;
 
-
-FileChooser::FileChooser(bool writing) {
+/**
+ * Creates a new FileChooser.
+ * @param writing Should be true if you intend this filechooser to choose a file to save to, false if choosing to read from.
+ * @param defaultFileName Only used if writing is true, the default name of the file to save to.
+ */
+FileChooser::FileChooser(bool writing, std::string defaultFileName) {
     GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    this->filechooser = gtk_file_chooser_dialog_new ("Open File",
-                                      GTK_WINDOW(window),
-                                      GTK_FILE_CHOOSER_ACTION_OPEN,
-                                      "Cancel",
-                                      GTK_RESPONSE_CANCEL,
-                                      "Open",
-                                      GTK_RESPONSE_ACCEPT,
-                                      NULL
-                                      );
 
+    if(writing) {
+        this->filechooser = gtk_file_chooser_dialog_new("Save File",
+                                        GTK_WINDOW(window),
+                                        GTK_FILE_CHOOSER_ACTION_SAVE,
+                                        "Cancel",
+                                        GTK_RESPONSE_CANCEL,
+                                        "Save",
+                                        GTK_RESPONSE_ACCEPT,
+                                        NULL
+                                        );
+
+        // gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(this->filechooser), defaultFileName.c_str());
+        gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(this->filechooser), defaultFileName.c_str());
+    } else {
+        this->filechooser = gtk_file_chooser_dialog_new ("Open File",
+                                        GTK_WINDOW(window),
+                                        GTK_FILE_CHOOSER_ACTION_OPEN,
+                                        "Cancel",
+                                        GTK_RESPONSE_CANCEL,
+                                        "Open",
+                                        GTK_RESPONSE_ACCEPT,
+                                        NULL
+                                        );
+    }
 }
 
 

@@ -1,16 +1,27 @@
 <camera index="0">
     <resolution>
-        <width>600</width>
-        <height>400</height>
+        <width>8192</width>
+        <height>6912</height>
     </resolution>
     <settings>
-        <setting name="exposure_absolute">155</setting>
+        <setting name="brightness">0</setting>
+        <setting name="contrast">32</setting>
+        <setting name="saturation">64</setting>
+        <setting name="hue">0</setting>
+        <setting name="white_balance_temperature_auto">-1</setting>
+        <setting name="gamma">220</setting>
+        <setting name="power_line_frequency">1</setting>
+        <setting name="white_balance_temperature">4650</setting>
+        <setting name="sharpness">4</setting>
+        <setting name="backlight_compensation">0</setting>
+        <setting name="exposure_auto">3</setting>
+        <setting name="exposure_absolute">310</setting>
     </settings>
 </camera>
 <configuration name="Deep Space Configuration">
     <constantResize>
         <width>200</width>
-        <height>175</height>
+        <height>145</height>
     </constantResize>
     <preprocessor type="partial">
         <targetThreshold>
@@ -29,28 +40,20 @@
         <centerOffset>0</centerOffset>
         <target id="0">
             <contour id="0">
-                <x error="0.25">1.5</x>
-                <y error="0.05">0</y>
-                <angle error="20">-76</angle>
-                <solidity error="0.25">0.5</solidity>
-                <aspectRatio error="0.25">0.55</aspectRatio>
-                <minimumArea>250</minimumArea>
-            </contour>
-            <contour id="1">
-                <x error="0.25">-1.5</x>
-                <y error="0.35">0</y>
-                <angle error="20">-16</angle>
-                <solidity error="0.35">0.5</solidity>
-                <aspectRatio error="0.35">0.55</aspectRatio>
-                <minimumArea>250</minimumArea>
+                <x error="0.250000">1.500000</x>
+                <y error="0.050000">0.000000</y>
+                <angle error="20.000000">-76.000000</angle>
+                <solidity error="0.250000">0.500000</solidity>
+                <aspectRatio error="0.250000">0.550000</aspectRatio>
+                <minimumArea>250.000000</minimumArea>
             </contour>
             <knownWidth>12</knownWidth>
             <focalWidth>300</focalWidth>
             <calibratedDistance>36</calibratedDistance>
-            <distErrorCorrect>0.1</distErrorCorrect>
+            <distErrorCorrect>0</distErrorCorrect>
         </target>
         <UDP>
-            <address>127.0.0.1</address>
+            <address>10.36.95.10</address>
             <port>3695</port>
         </UDP>
     </postprocessor>

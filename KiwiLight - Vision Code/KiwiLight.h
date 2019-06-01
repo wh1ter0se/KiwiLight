@@ -53,7 +53,8 @@ namespace KiwiLight {
     enum UIMode {
         UI_STREAM,
         UI_RUNNER,
-        UI_EDITOR
+        UI_EDITOR,
+        UI_CONFIG_RUNNING
     };
 
 }

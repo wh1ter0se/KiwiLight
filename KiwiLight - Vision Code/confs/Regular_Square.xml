@@ -25,11 +25,11 @@
     </constantResize>
     <preprocessor type="full">
         <targetThreshold>
-            <threshold>75</threshold>
+            <threshold>70</threshold>
             <maxValue>255</maxValue>
             <type>0</type>
         </targetThreshold>
-        <dilation>5</dilation>
+        <dilation>50</dilation>
         <targetColor>
             <h error="20">0</h>
             <s error="20">0</s>
@@ -42,10 +42,10 @@
             <contour id="0">
                 <x error="5.000000">0.000000</x>
                 <y error="5.000000">0.000000</y>
-                <angle error="10.000000">0.000000</angle>
-                <solidity error="0.250000">0.900000</solidity>
-                <aspectRatio error="0.250000">1.000000</aspectRatio>
-                <minimumArea>1000.000000</minimumArea>
+                <angle error="18.460000">0.000000</angle>
+                <solidity error="1.000000">0.900000</solidity>
+                <aspectRatio error="4.550000">1.000000</aspectRatio>
+                <minimumArea>5.000000</minimumArea>
             </contour>
             <knownWidth>12</knownWidth>
             <focalWidth>300</focalWidth>
@@ -53,7 +53,7 @@
             <distErrorCorrect>0</distErrorCorrect>
         </target>
         <UDP>
-            <address>10.36.95.10</address>
+            <address>127.0.0.1</address>
             <port>3695</port>
         </UDP>
     </postprocessor>

@@ -283,6 +283,8 @@ namespace KiwiLight {
         void SetImageResize(Size sz);
         void Loop();
         void Stop();
+        void StopLoopOnly();
+        void UnlockLoop();
         void Start();
         std::string Iterate();
         int GetNumberOfTargets() { return this->postprocessor.NumTargets(); };
