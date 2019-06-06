@@ -1,4 +1,4 @@
-<camera index="0">
+<camera index="1">
     <resolution>
         <width>8192</width>
         <height>6912</height>
@@ -23,7 +23,7 @@
         <width>200</width>
         <height>145</height>
     </constantResize>
-    <preprocessor type="full">
+    <preprocessor type="partial">
         <targetThreshold>
             <threshold>75</threshold>
             <maxValue>255</maxValue>

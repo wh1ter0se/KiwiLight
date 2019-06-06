@@ -25,8 +25,13 @@ Image::Image(std::string fileName) {
 }
 
 
-Image::Image(cv::Mat img) {
-    this->img = img;
+Image::Image(cv::Mat image) {
+    // image.convertTo(image, CV_16U);
+    // cv::cvtColor(image, image, COLOR_BGR2RGB);
+    // image.convertTo(this->img, CV_8U);
+
+    image.copyTo(this->img);
+    // this->img = image;
 }
 
 
@@ -42,7 +47,7 @@ void Image::Resize(int width, int height) {
 
 
 GdkPixbuf *Image::ReturnImage() {
-    uchar *imgData = this->img.data;
+    const guchar *imgData = (const guchar*) this->img.data;
     gboolean hasAlpha = FALSE;
     int imgWidth = this->img.cols;
     int imgHeight = this->img.rows;
@@ -50,13 +55,15 @@ GdkPixbuf *Image::ReturnImage() {
         hasAlpha = TRUE;
     }
 
-    return gdk_pixbuf_new_from_data(imgData, 
-                                    GDK_COLORSPACE_RGB, 
-                                    FALSE,
-                                    8,
-                                    imgWidth,
-                                    imgHeight,
-                                    this->img.step,
-                                    NULL,
-                                    NULL);
+    this->pixbuf = gdk_pixbuf_new_from_data(imgData, 
+                                            GDK_COLORSPACE_RGB, 
+                                            FALSE,
+                                            8,
+                                            imgWidth,
+                                            imgHeight,
+                                            this->img.step,
+                                            NULL,
+                                            NULL);
+
+    return this->pixbuf;
 }

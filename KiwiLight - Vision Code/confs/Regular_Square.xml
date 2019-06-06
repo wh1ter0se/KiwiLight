@@ -42,7 +42,7 @@
             <contour id="0">
                 <x error="5.000000">0.000000</x>
                 <y error="5.000000">0.000000</y>
-                <angle error="18.460000">0.000000</angle>
+                <angle error="18.000000">0.000000</angle>
                 <solidity error="1.000000">0.900000</solidity>
                 <aspectRatio error="4.550000">1.000000</aspectRatio>
                 <minimumArea>5.000000</minimumArea>

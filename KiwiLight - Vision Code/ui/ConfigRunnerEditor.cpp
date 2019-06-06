@@ -154,10 +154,6 @@ void ConfigRunnerEditor::Update(cv::Mat originalImage, cv::Mat processedImage, d
         try {
             cv::Mat concatImages;
             cv::hconcat(processedImage, originalImage, concatImages);
-            
-            concatImages.convertTo(concatImages, CV_16U);
-            cvtColor(concatImages, concatImages, cv::COLOR_BGR2RGB);
-            concatImages.convertTo(concatImages, CV_8U);
 
             Image newImage = Image(concatImages);
             this->outputImages.Update(newImage);

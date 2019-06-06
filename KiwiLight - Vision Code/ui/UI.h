@@ -275,6 +275,7 @@ namespace KiwiLight {
         void SetName(std::string name);
 
         private:
+        bool imageUpdated;
         bool hasConstantResolution;
         int constantWidth,
             constantHeight;

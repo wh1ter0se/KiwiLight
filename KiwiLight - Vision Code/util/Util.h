@@ -186,6 +186,7 @@ namespace KiwiLight {
 
         private:
         cv::Mat img;
+        GdkPixbuf *pixbuf;
     };
 }
 

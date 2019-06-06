@@ -70,19 +70,15 @@ void Update() {
         }
 
         if(success) {
-            // try {
-                //convert image to 16 bit for bgr-rgb conversion. Not doing this step may result in segfault
-                img.convertTo(img, CV_16U);
-                cvtColor(img, img, COLOR_BGR2RGB);
-                img.convertTo(img, CV_8U);
+            //display image
 
-                //display image
-                Image forFrame = Image(img);
-                imgFrame.Update(forFrame);
-                cameraStatusLabel.SetText("");
-            // } catch(cv::Exception ex) {
-            //     std::cout << "WARNING: IMAGE DISPLAY ERROR DETECTED!" << std::endl;
-            // }
+            // img.convertTo(img, CV_32F);
+            cv::cvtColor(img, img, COLOR_BGR2RGB);
+            // img.convertTo(img, CV_8U);
+
+            Image forFrame = Image(img);
+            imgFrame.Update(forFrame);
+            cameraStatusLabel.SetText("");
         } else {
             cameraOpen = false;
             cameraStatusLabel.SetText("Error Streaming Camera!!!");
@@ -199,8 +195,34 @@ void ConfStartConfigOnBoot() {
  * Compiles the config and leaves it there.
  */
 void CompileConfig() {
-    std::cout << "compile config" << std::endl;
-    std::cout.flush();
+    std::string configFileName = "";
+    if(uiMode == UIMode::UI_RUNNER) {
+        configFileName = runner.GetFileName();
+    } else if(uiMode == UIMode::UI_EDITOR) {
+        configFileName = configEditor.GetFileName();
+        configEditor.Close();
+    } else if(uiMode != UIMode::UI_CONFIG_RUNNING) {
+        ConfirmationDialog warning = ConfirmationDialog("Please open a configuration to compile it.");
+        warning.ShowAndGetResponse();
+        return;
+    }
+
+    std::string fileContents = "#include \"KiwiLight.h\"\n" + 
+                   std::string("\n") + 
+                   std::string("using namespace KiwiLight;\n") + 
+                   std::string("\n") + 
+                   std::string("int main() {\n") + 
+                   std::string("Runner runner = Runner(\"" + configFileName + "\");\n") + 
+                   std::string("runner.Loop();\n") + 
+                   std::string("return 0;\n") + 
+                   std::string("}\n");
+
+    std::string fileName = "temp.cpp";
+
+    std::ofstream file = std::ofstream(fileName.c_str(), std::ofstream::out);
+    file.write(fileContents.c_str(), fileContents.length());
+
+    file.close();
 }
 
 /**
@@ -258,7 +280,7 @@ void EditSelected() {
  * Opens a form for the user to create a new vision config.
  */
 void AddConfig() {
-    //will edit generic xml as new file
+    // will edit generic xml as new file
     EditSelected();
 }
 
@@ -334,74 +356,99 @@ void CreateMenuBar() {
  * KiwiLight will enter, create a UI, and start the main loop in this method.
  */
 int main(int argc, char *argv[]) {
-    //lets make ourselves a ui
-    gtk_init(&argc, &argv);
 
-    cam = VideoCapture(0);
-    uiMode = UIMode::UI_STREAM;
+    //check argc. If 1 arg is present, make ui, otherwise, the user wants something else.
+    if(argc == 1) {
+        //lets make ourselves a ui
+        gtk_init(&argc, &argv);
 
-    Window win = Window(GTK_WINDOW_TOPLEVEL);
-        win.SetCSS("ui/Style.css");
-        win.SetSize(300,200);
-        content = Panel(false, 0);
-            CreateMenuBar();
-            
-            Panel header = Panel(true, 0);
-                header.SetName("mainHeader");
+        cam = VideoCapture(0);
+        uiMode = UIMode::UI_STREAM;
 
-                Image banner = Image("banner_small.png");
-                ImageFrame logo = ImageFrame(banner);
-                    header.Pack_start(logo.GetWidget(), false, false, 0);
+        Window win = Window(GTK_WINDOW_TOPLEVEL);
+            win.SetCSS("ui/Style.css");
+            win.SetSize(300,200);
+            content = Panel(false, 0);
+                CreateMenuBar();
                 
-                Separator logoSep = Separator(false);
-                    header.Pack_start(logoSep.GetWidget(), false, false, 5);
+                Panel header = Panel(true, 0);
+                    header.SetName("mainHeader");
 
-                Panel cameraIndexPanel = Panel(false, 0);
+                    Image banner = Image("banner_small.png");
+                    ImageFrame logo = ImageFrame(banner);
+                        header.Pack_start(logo.GetWidget(), false, false, 0);
+                    
+                    Separator logoSep = Separator(false);
+                        header.Pack_start(logoSep.GetWidget(), false, false, 5);
 
-                    Panel indexSelectorPanel = Panel(true, 5);
+                    Panel cameraIndexPanel = Panel(false, 0);
 
-                        Label cameraLabel = Label("Camera: ");
-                            indexSelectorPanel.Pack_start(cameraLabel.GetWidget(), false, false, 0);
-                        
-                        cameraIndex = NumberBox(0, 100, 0);
-                            indexSelectorPanel.Pack_start(cameraIndex.GetWidget(), false, false, 0);
+                        Panel indexSelectorPanel = Panel(true, 5);
 
-                        cameraIndexPanel.Pack_start(indexSelectorPanel.GetWidget(), false, false, 0);
+                            Label cameraLabel = Label("Camera: ");
+                                indexSelectorPanel.Pack_start(cameraLabel.GetWidget(), false, false, 0);
+                            
+                            cameraIndex = NumberBox(0, 100, 0);
+                                indexSelectorPanel.Pack_start(cameraIndex.GetWidget(), false, false, 0);
 
-                    Button openCamButton = Button("Open", OpenNewCamera);
-                        cameraIndexPanel.Pack_start(openCamButton.GetWidget(), false, false, 0);
+                            cameraIndexPanel.Pack_start(indexSelectorPanel.GetWidget(), false, false, 0);
 
-                    header.Pack_start(cameraIndexPanel.GetWidget(), false, false, 0);
+                        Button openCamButton = Button("Open", OpenNewCamera);
+                            cameraIndexPanel.Pack_start(openCamButton.GetWidget(), false, false, 0);
 
-                    cameraStatusLabel = Label("");
-                        header.Pack_start(cameraStatusLabel.GetWidget(), false, false, 10);
+                        header.Pack_start(cameraIndexPanel.GetWidget(), false, false, 0);
 
-                content.Pack_start(header.GetWidget(), false, false, 0);
+                        cameraStatusLabel = Label("");
+                            header.Pack_start(cameraStatusLabel.GetWidget(), false, false, 10);
 
-            Panel body = Panel(true, 0);
-                configPanel = ConfigPanel("");
-                    body.Pack_start(configPanel.GetWidget(), false, false, 0);
+                    content.Pack_start(header.GetWidget(), false, false, 0);
 
-                Panel imagePanel = Panel(false, 0);
-                    //inital image for the stream
-                    cv::Mat img;
-                    cam.read(img);
-                    img.convertTo(img, CV_32F);
-                    cvtColor(img, img, COLOR_BGR2RGB);
-                    img.convertTo(img, CV_8U);
-                    Image initalImage = Image(img);
-                    imgFrame = ImageFrame(initalImage);
-                        imagePanel.Pack_start(imgFrame.GetWidget(), true, false, 0);
+                Panel body = Panel(true, 0);
+                    configPanel = ConfigPanel("");
+                        body.Pack_start(configPanel.GetWidget(), false, false, 0);
 
-                    body.Pack_start(imagePanel.GetWidget(), true, false, 0);
+                    Panel imagePanel = Panel(false, 0);
+                        // inital image for the stream
+                        cv::Mat img;
+                        cam.read(img);
+                        img.convertTo(img, CV_32F);
+                        cv::cvtColor(img, img, COLOR_BGR2RGB);
+                        img.convertTo(img, CV_8U);
+                        Image initalImage = Image();
+                        imgFrame = ImageFrame(initalImage);
+                            imagePanel.Pack_start(imgFrame.GetWidget(), true, false, 0);
 
-                content.Pack_start(body.GetWidget(), true, false, 0);
-        win.SetPane(content);
+                        body.Pack_start(imagePanel.GetWidget(), true, false, 0);
 
-    //set events and show Window
-    win.SetInterval(75, Update);
-    win.Show();
-    win.Main(); //MAIN LOOP
+                    content.Pack_start(body.GetWidget(), true, false, 0);
+            win.SetPane(content);
 
-    return 0;
+        //set events and show Window
+        win.SetInterval(750, Update);
+        win.Show();
+        win.Main(); //MAIN LOOP
+
+        return 0;
+    } else {
+        // -r means run config
+        if(std::string(argv[1]) == "-r") {
+            std::string fileToRun = std::string(argv[2]);
+            runner = Runner(fileToRun, false);
+            runner.Loop();
+            return 0;
+        }
+
+        // -h means "help"
+        if(std::string(argv[1]) == "-h") {
+            std::cout << "KIWILIGHT COMMANDS: " << std::endl;
+            std::cout << "Usage: ./KiwiLight [options] [filename]" << std::endl;
+            std::cout <<  std::endl;
+            std::cout << "Options:" << std::endl;
+            std::cout << "-r: Run a configuration. \"filename\" must be specified." << std::endl;
+            std::cout << "-h: Display this help menu." << std::endl;
+            return 0;
+        }
+
+        std::cout << "No valid command specified. Aborting." << std::endl;
+    }
 }
