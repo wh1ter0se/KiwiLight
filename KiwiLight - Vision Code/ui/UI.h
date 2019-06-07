@@ -18,6 +18,10 @@ using namespace cv;
 
 namespace KiwiLight {
 
+    enum ImageColorspace {
+        RGB
+    };
+
     /**
      * Represents a generic UI widget.
      */
@@ -261,26 +265,22 @@ namespace KiwiLight {
         GtkWidget *menubar;
     };
 
-    /**
-     * An image frame which can display images.
-     */
-    class ImageFrame: public Widget {
+    class Image : public Widget {
         public:
-        ImageFrame();
-        ImageFrame(Image img);
-        void SetConstantResolution(int width, int height);
-        void SetHasConstantResolution(bool hasConstantResolution);
-        void Update(Image img);
-        GtkWidget *GetWidget() { return this->imgFrame; };
+        Image() {};
+        Image(std::string fileName);
+        Image(ImageColorspace colorspace);
+        void Update(cv::Mat newImage);
+        GtkWidget *GetWidget() { return this->image; };
         void SetName(std::string name);
 
         private:
-        bool imageUpdated;
-        bool hasConstantResolution;
-        int constantWidth,
-            constantHeight;
+        bool declaredAsStaticImage;
+        GtkWidget *image;
+        ImageColorspace colorspace;
 
-        GtkWidget *imgFrame;
+        //for one time init without updates
+        Mat originalImage;
     };
 
     class FileChooser : public Widget {
@@ -445,7 +445,7 @@ namespace KiwiLight {
         Button tuneDistance,
                saveAndExit;
 
-        ImageFrame outputImages;
+        Image outputImages;
 
         GtkWidget *configrunnereditor;
     };

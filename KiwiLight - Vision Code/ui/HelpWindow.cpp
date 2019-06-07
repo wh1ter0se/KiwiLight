@@ -16,12 +16,10 @@ HelpWindow::HelpWindow(GtkWindowType type) {
             Panel banners = Panel(false, 0);
 
                 Image kiwiLogo = Image("banner_small.png");
-                ImageFrame kiwiImage = ImageFrame(kiwiLogo);
-                    banners.Pack_start(kiwiImage.GetWidget(), false, false, 0);
+                    banners.Pack_start(kiwiLogo.GetWidget(), false, false, 0);
 
                 Image foximusLogo = Image("foximus_small.png");
-                ImageFrame foximusImage = ImageFrame(foximusLogo);
-                    banners.Pack_start(foximusImage.GetWidget(), false, false, 0);
+                    banners.Pack_start(foximusLogo.GetWidget(), false, false, 0);
 
                 main.Pack_start(banners.GetWidget(), false, false, 0);
 

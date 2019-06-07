@@ -128,8 +128,7 @@ ConfigRunnerEditor::ConfigRunnerEditor(std::string fileName) {
                 this->imageTooBig.SetLineWrap(true);
                 imagePanel.Pack_start(this->imageTooBig.GetWidget(), false, false, 0);
 
-            Image blank = Image(); // blank image for outputImages
-            this->outputImages = ImageFrame(blank);
+            this->outputImages = Image(ImageColorspace::RGB);
                 imagePanel.Pack_start(this->outputImages.GetWidget(), false, false, 0);
 
             this->panel.Pack_start(imagePanel.GetWidget(), false, false, 0);  
@@ -155,14 +154,9 @@ void ConfigRunnerEditor::Update(cv::Mat originalImage, cv::Mat processedImage, d
             cv::Mat concatImages;
             cv::hconcat(processedImage, originalImage, concatImages);
 
-            Image newImage = Image(concatImages);
-            this->outputImages.Update(newImage);
+            this->outputImages.Update(concatImages);
             this->imageTooBig.SetText("");
         } catch(cv::Exception ex) {}
-    } else {
-        Image blank = Image();
-        this->outputImages.Update(blank);
-        this->imageTooBig.SetText("Image too big to display comfortably");
     }
 
     //update distance information

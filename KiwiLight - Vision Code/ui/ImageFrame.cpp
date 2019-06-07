@@ -7,7 +7,6 @@
 
 using namespace KiwiLight;
 
-
 ImageFrame::ImageFrame() {
     // this->imgFrame = gtk_image_new();
     this->constantWidth = 0;
@@ -23,8 +22,7 @@ ImageFrame::ImageFrame(Image img) {
     this->constantWidth = 0;
     this->constantHeight = 0;
     this->hasConstantResolution = false;
-    this->imgFrame = gtk_image_new();
-    gtk_image_set_from_pixbuf(GTK_IMAGE(this->imgFrame), img.ReturnImage());
+    this->imgFrame = gtk_drawing_area_new();
     this->imageUpdated = true;
 }
 
@@ -46,19 +44,32 @@ void ImageFrame::SetHasConstantResolution(bool hasConstantResolution) {
 /**
  * Draws the Image in the ImageFrame.
  */
-void ImageFrame::Update(Image img) {
-    if(this->imageUpdated) {
-        gtk_image_clear(GTK_IMAGE(this->imgFrame));
-    } else {
-        this->imageUpdated = true;
-    }
+void ImageFrame::Update(Image imag) {
+    // if(this->imageUpdated) {
+    //     gtk_image_clear(GTK_IMAGE(this->imgFrame));
+    // } else {
+    //     this->imageUpdated = true;
+    // }
 
-    if(this->hasConstantResolution) {
-        img.Resize(this->constantWidth, this->constantHeight);
-    }
+    // if(this->hasConstantResolution) {
+    //     img.Resize(this->constantWidth, this->constantHeight);
+    // }
 
-    gtk_image_set_from_pixbuf(GTK_IMAGE(this->imgFrame), img.ReturnImage());
-    gtk_widget_queue_draw(this->imgFrame);
+    // gtk_image_set_from_pixbuf(GTK_IMAGE(this->imgFrame), img.ReturnImage());
+
+    GdkWindow *win = gtk_widget_get_window(this->imgFrame);
+
+    cairo_t *cairo = gdk_cairo_create(win);
+
+    cairo_save(cairo);
+    cairo_translate(cairo, 0, 0);
+
+    cairo_surface_t *surface = gdk_cairo_surface_create_from_pixbuf(imag.ReturnImage(), 1, win);
+    cairo_set_source_surface(cairo, surface, 0, 0);
+    cairo_rectangle(cairo, 0, 0, imag.ReturnImageCVMat().cols, imag.ReturnImageCVMat().rows);
+    cairo_paint(cairo);
+    cairo_fill(cairo);
+    cairo_restore(cairo);
 }
 
 

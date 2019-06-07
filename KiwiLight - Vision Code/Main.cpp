@@ -32,7 +32,7 @@ Label cameraStatusLabel;
 
 VideoCapture cam;
 
-ImageFrame imgFrame;
+Image imgFrame;
 
 Runner runner;
 
@@ -70,14 +70,7 @@ void Update() {
         }
 
         if(success) {
-            //display image
-
-            // img.convertTo(img, CV_32F);
-            cv::cvtColor(img, img, COLOR_BGR2RGB);
-            // img.convertTo(img, CV_8U);
-
-            Image forFrame = Image(img);
-            imgFrame.Update(forFrame);
+            imgFrame.Update(img);
             cameraStatusLabel.SetText("");
         } else {
             cameraOpen = false;
@@ -374,8 +367,7 @@ int main(int argc, char *argv[]) {
                 Panel header = Panel(true, 0);
                     header.SetName("mainHeader");
 
-                    Image banner = Image("banner_small.png");
-                    ImageFrame logo = ImageFrame(banner);
+                    Image logo = Image("banner_small.png");
                         header.Pack_start(logo.GetWidget(), false, false, 0);
                     
                     Separator logoSep = Separator(false);
@@ -409,22 +401,16 @@ int main(int argc, char *argv[]) {
 
                     Panel imagePanel = Panel(false, 0);
                         // inital image for the stream
-                        cv::Mat img;
-                        cam.read(img);
-                        img.convertTo(img, CV_32F);
-                        cv::cvtColor(img, img, COLOR_BGR2RGB);
-                        img.convertTo(img, CV_8U);
-                        Image initalImage = Image();
-                        imgFrame = ImageFrame(initalImage);
-                            imagePanel.Pack_start(imgFrame.GetWidget(), true, false, 0);
+                        imgFrame = Image(ImageColorspace::RGB);
+                            imagePanel.Pack_start(imgFrame.GetWidget(), true, true, 0);
 
-                        body.Pack_start(imagePanel.GetWidget(), true, false, 0);
+                        body.Pack_start(imagePanel.GetWidget(), true, true, 0);
 
-                    content.Pack_start(body.GetWidget(), true, false, 0);
+                    content.Pack_start(body.GetWidget(), true, true, 0);
             win.SetPane(content);
 
         //set events and show Window
-        win.SetInterval(750, Update);
+        win.SetInterval(75, Update);
         win.Show();
         win.Main(); //MAIN LOOP
 

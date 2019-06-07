@@ -62,8 +62,8 @@ bin/FileChooser.o: ui/FileChooser.cpp
 bin/PopupTextBox.o: ui/PopupTextBox.cpp
 	$(CXX) -c -o bin/PopupTextBox.o ui/PopupTextBox.cpp $(GTK)
 
-bin/ImageFrame.o: ui/ImageFrame.cpp
-	$(CXX) -c -o bin/ImageFrame.o ui/ImageFrame.cpp $(GTK) $(CV)
+bin/Image.o: ui/Image.cpp
+	$(CXX) -c -o bin/Image.o ui/Image.cpp $(GTK) $(CV)
 
 bin/Window.o: ui/Window.cpp
 	$(CXX) -c -o bin/Window.o ui/Window.cpp $(GTK)
@@ -83,8 +83,8 @@ bin/ConfigEditor.o: ui/ConfigEditor.cpp
 bin/CameraSetting.o: ui/CameraSetting.cpp
 	$(CXX) -c -o bin/CameraSetting.o ui/CameraSetting.cpp $(GTK)
 
-lib/UI.a: bin/ConfirmationDialog.o bin/SubMenuItem.o bin/MenuItem.o bin/MenuBar.o bin/Button.o bin/Label.o bin/LabeledSlider.o bin/AboutWindow.o bin/HelpWindow.o bin/Panel.o bin/Frame.o bin/Separator.o bin/Slider.o bin/CheckBox.o bin/TextBox.o bin/NumberBox.o bin/FileChooser.o bin/PopupTextBox.o bin/ImageFrame.o bin/Window.o bin/Settings.o bin/ConfigRunnerEditor.o bin/ConfigTargetEditor.o bin/ConfigEditor.o bin/CameraSetting.o
-	ar rs lib/UI.a bin/ConfirmationDialog.o bin/SubMenuItem.o bin/MenuItem.o bin/MenuBar.o bin/Button.o bin/Label.o bin/LabeledSlider.o bin/AboutWindow.o bin/HelpWindow.o bin/Panel.o bin/Frame.o bin/Separator.o bin/Slider.o bin/CheckBox.o bin/TextBox.o bin/NumberBox.o bin/FileChooser.o bin/PopupTextBox.o bin/ImageFrame.o bin/Window.o bin/Settings.o bin/ConfigRunnerEditor.o bin/ConfigTargetEditor.o bin/ConfigEditor.o bin/CameraSetting.o
+lib/UI.a: bin/ConfirmationDialog.o bin/SubMenuItem.o bin/MenuItem.o bin/MenuBar.o bin/Button.o bin/Label.o bin/LabeledSlider.o bin/AboutWindow.o bin/HelpWindow.o bin/Panel.o bin/Frame.o bin/Separator.o bin/Slider.o bin/CheckBox.o bin/TextBox.o bin/NumberBox.o bin/FileChooser.o bin/PopupTextBox.o bin/Image.o bin/Window.o bin/Settings.o bin/ConfigRunnerEditor.o bin/ConfigTargetEditor.o bin/ConfigEditor.o bin/CameraSetting.o
+	ar rs lib/UI.a bin/ConfirmationDialog.o bin/SubMenuItem.o bin/MenuItem.o bin/MenuBar.o bin/Button.o bin/Label.o bin/LabeledSlider.o bin/AboutWindow.o bin/HelpWindow.o bin/Panel.o bin/Frame.o bin/Separator.o bin/Slider.o bin/CheckBox.o bin/TextBox.o bin/NumberBox.o bin/FileChooser.o bin/PopupTextBox.o bin/Image.o bin/Window.o bin/Settings.o bin/ConfigRunnerEditor.o bin/ConfigTargetEditor.o bin/ConfigEditor.o bin/CameraSetting.o
 
 #UTIL
 bin/Flags.o: util/Flags.cpp
@@ -114,11 +114,8 @@ bin/SettingPair.o: util/SettingPair.cpp
 bin/Color.o: util/Color.cpp
 	$(CXX) -c -o bin/Color.o util/Color.cpp $(GTK) $(CV)
 
-bin/Image.o: util/Image.cpp
-	$(CXX) -c -o bin/Image.o util/Image.cpp $(GTK) $(CV)
-
-lib/Util.a: bin/Flags.o bin/Shell.o bin/StringUtils.o bin/UDP.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/SettingPair.o bin/Color.o bin/Image.o 
-	ar rs lib/Util.a bin/Flags.o bin/Shell.o bin/StringUtils.o bin/UDP.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/SettingPair.o bin/Color.o bin/Image.o
+lib/Util.a: bin/Flags.o bin/Shell.o bin/StringUtils.o bin/UDP.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/SettingPair.o bin/Color.o
+	ar rs lib/Util.a bin/Flags.o bin/Shell.o bin/StringUtils.o bin/UDP.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/SettingPair.o bin/Color.o
 
 #RUNNER
 bin/ConfigurationSetting.o: runner/ConfigurationSetting.cpp

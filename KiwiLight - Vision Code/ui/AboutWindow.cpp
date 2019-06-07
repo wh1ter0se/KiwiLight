@@ -19,12 +19,10 @@ AboutWindow::AboutWindow(GtkWindowType type) {
     Panel main = Panel(true, 0);
         Panel banners = Panel(false, 0);
             Image kiwiLightBanner = Image("banner_small.png");
-            ImageFrame kiwiLightImage = ImageFrame(kiwiLightBanner);
-                banners.Pack_start(kiwiLightImage.GetWidget(), false, false, 0);
+                banners.Pack_start(kiwiLightBanner.GetWidget(), false, false, 0);
 
             Image foximusBanner = Image("foximus_small.png");
-            ImageFrame foximusImage = ImageFrame(foximusBanner);
-                banners.Pack_start(foximusImage.GetWidget(), false, false, 0);
+                banners.Pack_start(foximusBanner.GetWidget(), false, false, 0);
 
             main.Pack_start(banners.GetWidget(), false, false, 0);
 
