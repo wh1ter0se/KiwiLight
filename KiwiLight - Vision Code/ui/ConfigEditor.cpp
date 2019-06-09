@@ -11,8 +11,8 @@ using namespace KiwiLight;
 /**
  * Creates a window to edit the bassed file.
  */
-ConfigEditor::ConfigEditor(std::string fileName) {
-    this->runner = Runner(fileName, true);
+ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
+    this->runner = Runner(fileName, true, cap);
     this->editorMode = EditorMode::USE_RUNNER;
     this->currentDoc = XMLDocument(fileName);
     this->fileName = fileName;
@@ -66,6 +66,7 @@ void ConfigEditor::Update() {
         this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_HUE, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_HUE));
         this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_SATURATION, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_SATURATION));
         this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_VALUE, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_VALUE));
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_ERROR, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_ERROR));
 
         //set all runner targeting settings to the ones in the target editor
         // std::cout << "upate real runner" << std::endl;
@@ -83,9 +84,6 @@ void ConfigEditor::Update() {
         this->runner.SetRunnerProperty(RunnerProperty::PERCEIVED_WIDTH, this->runnerEditor.GetProperty(RunnerProperty::PERCEIVED_WIDTH));
         this->runner.SetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE, this->runnerEditor.GetProperty(RunnerProperty::CALIBRATED_DISTANCE));
         this->runner.SetRunnerProperty(RunnerProperty::ERROR_CORRECTION, this->runnerEditor.GetProperty(RunnerProperty::ERROR_CORRECTION));
-
-        this->runner.Iterate();
-        this->out = this->runner.GetOutputImage();
 
         this->runnerEditor.Update(this->runner.GetOriginalImage(), this->out, this->runner.GetClosestTargetToCenter().Distance());
     } else if(this->editorMode == EditorMode::USE_LEARNER) {
@@ -121,6 +119,14 @@ void ConfigEditor::Update() {
     if(Flags::GetFlag("StopLearner")) {
         Flags::LowerFlag("StopLearner");
         this->editorMode = EditorMode::USE_RUNNER;
+    }
+}
+
+
+void ConfigEditor::UpdateImageOnly() {
+    if(this->editorMode == EditorMode::USE_RUNNER) {
+        this->runner.Iterate();
+        this->out = this->runner.GetOutputImage();
     }
 }
 
@@ -295,8 +301,6 @@ void ConfigEditor::Save() {
 
 
 void ConfigEditor::Close() {
-    this->runner.Stop();
-    this->learner.Stop();
     gtk_widget_destroy(this->configeditor);
 }
 

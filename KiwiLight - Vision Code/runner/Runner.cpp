@@ -61,6 +61,30 @@ Runner::Runner(std::string fileName, bool debugging, bool openNewVideoStream) {
 }
 
 
+Runner::Runner(std::string fileName, bool debugging, VideoCapture cap) {
+    this->src = fileName;
+    this->debug = debugging;
+    this->postProcessorTargets = std::vector<ExampleTarget>();
+    XMLDocument file = XMLDocument(fileName);
+    if(file.HasContents()) {
+        this->parseDocument(file);
+    } else {
+        std::cout << "sorry! the file could not be found. " << std::endl;
+    }
+    //figure out constant resize
+    int resizeX = std::stoi(this->settings.GetSetting("resizeX"));
+    int resizeY = std::stoi(this->settings.GetSetting("resizeY"));
+    this->constantResize = Size(resizeX, resizeY);
+
+    bool isFull = (this->settings.GetSetting("PreprocessorType") == "full");
+    this->cameraIndex = std::stoi(this->settings.GetSetting("cameraIndex"));
+    this->preprocessor = PreProcessor(this->settings, isFull, this->debug);
+    this->postprocessor = PostProcessor(this->postProcessorTargets, this->debug);
+    this->cap = cap;
+    this->stop = false;
+}
+
+
 void Runner::SetImageResize(Size sz) {
     this->constantResize = sz;
 }
@@ -168,7 +192,7 @@ std::string Runner::Iterate() {
     rioMessage = ":" + x + "," + y + "," + d + "," + a + ";";
 
     if(this->debug) {
-        cv::cvtColor(out, out, cv::COLOR_GRAY2RGB);
+        cv::cvtColor(out, out, cv::COLOR_GRAY2BGR);
 
         //write the out string onto the image
         cv::putText(out, rioMessage, cv::Point(5, 15), cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar(0,0,255), 2);

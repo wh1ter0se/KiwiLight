@@ -87,6 +87,9 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName, Runner runner) {
                     this->colorV.SetValue((double) realColorV);
                     preprocessorColorChooser.Pack_start(this->colorV.GetWidget(), false, false, 0);
 
+                this->colorResult = Image(ImageColorspace::RGB);
+                    preprocessorColorChooser.Pack_start(colorResult.GetWidget(), false, false, 0);
+
                 preprocessorPanel.Pack_start(preprocessorColorChooser.GetWidget(), false, false, 0);
 
             this->colorError = LabeledSlider("Color Error", 0, 100, 1, 0);
@@ -227,6 +230,16 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName, Runner runner) {
  * Updates the ConfigTargetEditor's values and the output image
  */
 void ConfigTargetEditor::Update() {
+    //update the color result image
+    int currentColorH = (int) this->colorH.GetValue();
+    int currentColorS = (int) this->colorS.GetValue();
+    int currentColorv = (int) this->colorV.GetValue();
+
+    Mat newColorImage = Mat(Size(30, 30), CV_8UC3, Scalar(currentColorH, currentColorS, currentColorv));
+    cvtColor(newColorImage, newColorImage, COLOR_HSV2BGR_FULL);
+
+    this->colorResult.Update(newColorImage);
+
     // //check for invalid selections in preprocessor area (i.e both are checked, none are checked)
     if(this->fullPreProcessor.GetState() && this->partialPreProcessor.GetState()) {
         //if both are checked, switch to the unselected option

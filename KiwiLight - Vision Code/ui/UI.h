@@ -477,6 +477,8 @@ namespace KiwiLight {
                   colorS,
                   colorV;
 
+        Image colorResult;
+
         LabeledSlider colorError;
 
         LabeledSlider thresholdValue,
@@ -537,8 +539,9 @@ namespace KiwiLight {
     class ConfigEditor : public Widget {
         public:
         ConfigEditor() {};
-        ConfigEditor(std::string fileName);
+        ConfigEditor(std::string fileName, VideoCapture cap);
         void Update();
+        void UpdateImageOnly();
         void Save();
         void Close();
         std::string GetFileName() { return this->fileName; };

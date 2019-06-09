@@ -42,9 +42,7 @@ namespace KiwiLight {
               TargetLabel,
               UDPAddressLabel,
               UDPPortLabel;
-        Button runConfig;
         Button editConfig;
-        Button loadConfig;
         std::string configFile;
         GtkWidget *configPanel;
     };
@@ -54,7 +52,8 @@ namespace KiwiLight {
         UI_STREAM,
         UI_RUNNER,
         UI_EDITOR,
-        UI_CONFIG_RUNNING
+        UI_CONFIG_RUNNING,
+        UI_QUTTING
     };
 
 }

@@ -279,6 +279,7 @@ namespace KiwiLight {
         Runner() {};
         Runner(std::string filename, bool debugging);
         Runner(std::string filename, bool debugging, bool openNewVideoStream);
+        Runner(std::string filename, bool debugging, VideoCapture cap);
         int GetCameraIndex() { return this->cameraIndex; };
         void SetImageResize(Size sz);
         void Loop();
@@ -292,7 +293,7 @@ namespace KiwiLight {
         Target GetClosestTargetToCenter() { return this->closestTarget; };
         std::string GetFileName() { return this->src; };
         cv::Mat GetOriginalImage() { return this->originalImage; };
-        cv::Mat GetOutputImage() { return this->outputImage; };
+        cv::Mat GetOutputImage() { return this->outputImage; imshow("out", this->outputImage); };
         cv::VideoCapture GetVideoStream() { return this->cap; };
         ExampleTarget GetExampleTargetByID(int id);
         void SetPreprocessorProperty(PreProcessorProperty prop, double value);

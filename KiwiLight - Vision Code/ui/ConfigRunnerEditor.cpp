@@ -108,7 +108,7 @@ ConfigRunnerEditor::ConfigRunnerEditor(std::string fileName) {
                 this->TargetCalibratedDistance.SetValue(realCalibratedDistance);
                 errorCorrectPanel.Pack_start(this->TargetCalibratedDistance.GetWidget(), true, true, 0);
 
-            this->TargetDistErrCorrect = LabeledSlider("Distance Error Correction", -1.0, 1.0, 0.01, 0.0);
+            this->TargetDistErrCorrect = LabeledSlider("Distance Error Correction", -3.0,3.0, 0.01, 0.0);
                 double realErrCorrect = std::stod(firstTarget.GetTagsByName("distErrorCorrect")[0].Content());
                 this->TargetDistErrCorrect.SetValue(realErrCorrect);
                 errorCorrectPanel.Pack_start(this->TargetDistErrCorrect.GetWidget(), true, true, 0);
@@ -143,7 +143,7 @@ ConfigRunnerEditor::ConfigRunnerEditor(std::string fileName) {
  * Updates the sliders and output images. Runner is needed for output images
  * @param originalImage an image that will be displayed to represent the original image
  * @param processedImage an output image from the runner to be displayed
- * @param targetWidth the width of the seen target in pixels, or anything less than 0 if none found.
+ * @param targetDistance the distance of the camera to the target to be displayed on screen.
  */
 void ConfigRunnerEditor::Update(cv::Mat originalImage, cv::Mat processedImage, double targetDistance) {
     //concat the original image and processed image together and display them

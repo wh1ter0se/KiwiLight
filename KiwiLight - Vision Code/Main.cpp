@@ -63,12 +63,12 @@ void Update() {
         }
 
         if(imageCaptureSuccess) {
-            // try {
+            try {
                 imgFrame.Update(outputImage);
                 cameraStatusLabel.SetText("");
-            // } catch(cv::Exception ex) {
-            //     std::cout << "cv exception in update()" << std::endl;
-            // }
+            } catch(cv::Exception ex) {
+                std::cout << "cv exception in update()" << std::endl;
+            }
         } else {
             cameraOpen = false;
             cameraStatusLabel.SetText("Error Streaming Camera!!!");
@@ -76,8 +76,6 @@ void Update() {
         displayingImage = false;
     }
 
-
-    //update editor outside of displaying image because it has the ability to stop the camera
     if(uiMode == UIMode::UI_EDITOR) {
         configEditor.Update();
     }
@@ -117,7 +115,7 @@ void Update() {
         configEditor.Save();
         configEditor.Close();
 
-        runner = Runner(configEditor.GetFileName(), true);
+        runner = Runner(configEditor.GetFileName(), true, cam);
         uiMode = UIMode::UI_RUNNER;
         pauseStreamer = false;
     }
@@ -161,13 +159,16 @@ void RunStream() {
                     break;
                 case UIMode::UI_EDITOR:
                     imageCaptureSuccess = true;
+                    configEditor.UpdateImageOnly();
                     outputImage = configEditor.GetOutputImage();
                     break;
                 case UIMode::UI_RUNNER:
                     imageCaptureSuccess = true;
+                    runner.Iterate();
                     outputImage = runner.GetOutputImage();
                     break;
                 case UIMode::UI_CONFIG_RUNNING:
+                case UIMode::UI_QUTTING:
                     g_thread_exit(0);
                     break;
             }
@@ -178,44 +179,6 @@ void RunStream() {
 }
 
 /**
- * Runs a runner loop in a separate thread
- */
-void StartRunnerLoop() {
-    runner.Loop();
-    g_thread_exit(0);
-}
-
-/**
- * Runs the selected config, or does nothing if nothing is selected.
- */
-void RunSelected() {
-    std::string fileName = "";
-    if(uiMode == UIMode::UI_RUNNER) {
-        fileName = runner.GetFileName();
-    } else if(uiMode == UIMode::UI_EDITOR) {
-        fileName = configEditor.GetFileName();
-        configEditor.Close();
-    } else if(uiMode != UIMode::UI_CONFIG_RUNNING) {
-        ConfirmationDialog warning = ConfirmationDialog("Please open a configuration to run it.");
-        warning.ShowAndGetResponse();
-        return;
-    }
-
-    if(uiMode == UIMode::UI_CONFIG_RUNNING) {
-        runner.StopLoopOnly();
-        g_thread_unref(runnerThread);
-        uiMode = UIMode::UI_RUNNER;
-        pauseStreamer = false;
-    } else {
-        //pause streamer and keep it paused until running ends
-        pauseStreamer = true;
-        uiMode = UIMode::UI_CONFIG_RUNNING;
-        runner.UnlockLoop(); //unlock the runner in case it is locked
-        runnerThread = g_thread_new("runnerThread", GThreadFunc(StartRunnerLoop), NULL);
-    }
-}
-
-/**
  * Sets up the config to start when the computer boots up
  */
 void ConfStartConfigOnBoot() {
@@ -223,58 +186,18 @@ void ConfStartConfigOnBoot() {
 }
 
 /**
- * Compiles the config and leaves it there.
- */
-void CompileConfig() {
-    std::string configFileName = "";
-    if(uiMode == UIMode::UI_RUNNER) {
-        configFileName = runner.GetFileName();
-    } else if(uiMode == UIMode::UI_EDITOR) {
-        configFileName = configEditor.GetFileName();
-        configEditor.Close();
-    } else if(uiMode != UIMode::UI_CONFIG_RUNNING) {
-        ConfirmationDialog warning = ConfirmationDialog("Please open a configuration to compile it.");
-        warning.ShowAndGetResponse();
-        return;
-    }
-
-    std::string fileContents = "#include \"KiwiLight.h\"\n" + 
-                   std::string("\n") + 
-                   std::string("using namespace KiwiLight;\n") + 
-                   std::string("\n") + 
-                   std::string("int main() {\n") + 
-                   std::string("Runner runner = Runner(\"" + configFileName + "\");\n") + 
-                   std::string("runner.Loop();\n") + 
-                   std::string("return 0;\n") + 
-                   std::string("}\n");
-
-    std::string fileName = "temp.cpp";
-
-    std::ofstream file = std::ofstream(fileName.c_str(), std::ofstream::out);
-    file.write(fileContents.c_str(), fileContents.length());
-
-    file.close();
-}
-
-/**
  * Opens a file menu to open a config.
  */
 void OpenConfig() {
-    std::cout << "oc1" << std::endl;
     pauseStreamer = true;
-    if(uiMode == UIMode::UI_RUNNER) {
-        runner.Stop();
-    }
-    std::cout << "oc2" << std::endl;
-    cam.~VideoCapture();
-    std::cout << "oc3" << std::endl;
+   
     FileChooser chooser = FileChooser(false, "");
     std::string file = chooser.Show();
 
     //if file was selected and "cancel" was not pressed
     if(file != "") {
         configPanel.LoadConfig(file);
-        runner = Runner(file, true);
+        runner = Runner(file, true, cam);
         uiMode = UIMode::UI_RUNNER;
     } else { //otherwise...
         if(uiMode == UIMode::UI_RUNNER) {
@@ -292,9 +215,7 @@ void OpenConfig() {
 void StopUsingRunner() {
     if(uiMode == UIMode::UI_RUNNER) {
         pauseStreamer = true;
-        runner.Stop();
         configPanel.Clear();
-        cam = VideoCapture((int) cameraIndex.GetValue());
         displayingImage = false;
         uiMode = UIMode::UI_STREAM;
         pauseStreamer = false;
@@ -308,11 +229,9 @@ void EditSelected() {
     pauseStreamer = true; //pause streamer so that the editor can complete its initalization
 
     if(uiMode == UIMode::UI_RUNNER) {
-        runner.Stop();
-        configEditor = ConfigEditor(runner.GetFileName());
+        configEditor = ConfigEditor(runner.GetFileName(), cam);
     } else if(uiMode == UIMode::UI_STREAM) {
-        cam.~VideoCapture();
-        configEditor = ConfigEditor("confs/generic.xml");
+        configEditor = ConfigEditor("confs/generic.xml", cam);
     }
     
     uiMode = UIMode::UI_EDITOR;
@@ -324,6 +243,8 @@ void EditSelected() {
  */
 void AddConfig() {
     // will edit generic xml as new file
+    pauseStreamer = true;
+    uiMode = UIMode::UI_STREAM; //set to stream so that editSelected() will init a new config
     EditSelected();
 }
 
@@ -341,6 +262,13 @@ void ShowAbout() {
 void HELPME() {
     HelpWindow hlpWindow = HelpWindow(GTK_WINDOW_TOPLEVEL);
     hlpWindow.Show();
+}
+
+
+void Quit() {
+    uiMode == UIMode::UI_QUTTING;
+    cam.~VideoCapture();
+    gtk_main_quit();
 }
 
 /**
@@ -364,18 +292,12 @@ void CreateMenuBar() {
                 file.AddSubmenuItem(stopConfig);
 
 
-            SubMenuItem quit = SubMenuItem("Quit", gtk_main_quit);
+            SubMenuItem quit = SubMenuItem("Quit", Quit);
                 file.AddSubmenuItem(quit);
 
             menubar.AddItem(file);
 
         MenuItem config = MenuItem("Config");
-            SubMenuItem runConfig = SubMenuItem("Run Config", RunSelected);
-                config.AddSubmenuItem(runConfig);
-
-            SubMenuItem compConfig = SubMenuItem("Compile Config", CompileConfig);
-                config.AddSubmenuItem(compConfig);
-
             SubMenuItem confBoot = SubMenuItem("Configure Start on Boot", ConfStartConfigOnBoot);
                 config.AddSubmenuItem(confBoot);
 

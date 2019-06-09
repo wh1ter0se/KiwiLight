@@ -79,12 +79,12 @@ Target::Target(int id, std::vector<Contour> contours, double knownHeight, double
  * Returns the distance from the camera to the target in inches.
  */
 double Target::Distance() { 
-    //calculate distance (formula: known(in) / focal(in) * real(px))
-    double dist = (this->knownHeight / this->focalHeight) * (double) this->Bounds().width;
+    //calculate distance (formula: known(in) * focal(in) / real(px))
+    double dist = this->knownHeight * this->focalHeight / (double) this->Bounds().width;
 
     double err = this->calibratedDistance - dist;
     err *= this->distErrorCorrect;
-
+    
     return (dist + err);
 }
 

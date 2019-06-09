@@ -7,7 +7,7 @@
 
 using namespace KiwiLight;
 
-extern void RunSelected(); //from Main.cpp
+// extern void RunSelected(); //from Main.cpp
 extern void EditSelected(); //from Main.cpp
 
 /**
@@ -49,9 +49,6 @@ ConfigPanel::ConfigPanel(std::string configFilePath) {
         this->buttonPanel = Panel(true, 0);
             this->editConfig = Button("Edit", EditSelected);
                 this->buttonPanel.Pack_start(editConfig.GetWidget(), true, true, 0);
-
-            this->runConfig = Button("Run", RunSelected);
-                this->buttonPanel.Pack_start(runConfig.GetWidget(), true, true, 0);
 
             this->panel.Pack_start(this->buttonPanel.GetWidget(), true, true, 0);
 
