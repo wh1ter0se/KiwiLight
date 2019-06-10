@@ -207,6 +207,7 @@ namespace KiwiLight {
         public:
         PreProcessor() {};
         PreProcessor(ConfigurationSettingsList settings, bool FullPreprocessor, bool debug);
+        PreProcessor(bool FullPreprocessor, Color targetColor, int threshold, int dilation, bool debugging);
         void SetProperty(PreProcessorProperty prop, double value);
         double GetProperty(PreProcessorProperty prop);
         cv::Mat ProcessImage(cv::Mat img);
@@ -248,27 +249,16 @@ namespace KiwiLight {
         std::vector<ExampleTarget> targets;
     };
 
-    /**
-     * utility that learns a seen target
-     */
-    class ConfigLearner {
+
+    class CameraFrame {
         public:
-        ConfigLearner() {};
-        ConfigLearner(XMLTag preprocessor, VideoCapture stream);
-        XMLTag LearnTarget();
-        void Update(int minArea);
-        void Stop();
-        void SetConstantResize(Size sz);
-        cv::Mat GetOriginalImage() { return this->original; };
-        cv::Mat GetOutputImage() { return this->out; };
+        CameraFrame() {};
+        CameraFrame(Mat img, int minimumArea);
+        int NumberOfContours() { return this->contours.size(); };
+        std::vector<Contour> GetContours() { return this->contours; };
 
         private:
-        VideoCapture stream;
-        Size constantResize;
-        cv::Mat original,
-                out;
-        PreProcessor preprocessor;
-        ConfigurationSettingsList configsettings;
+        std::vector<Contour> contours;
     };
 
     /**
@@ -308,6 +298,7 @@ namespace KiwiLight {
 
         private:
         void parseDocument(XMLDocument doc);
+        void applySettings();
 
         VideoCapture cap;
         PreProcessor preprocessor;
@@ -327,6 +318,28 @@ namespace KiwiLight {
              debug;
 
         int centerOffset;
+    };
+
+    /**
+     * utility that learns a seen target
+     */
+    class ConfigLearner {
+        public:
+        ConfigLearner() {};
+        ConfigLearner(PreProcessor preprocessor, VideoCapture stream);
+        ExampleTarget LearnTarget(int minArea);
+        void Update(int minArea);
+        void Stop();
+        void SetConstantResize(Size sz);
+        cv::Mat GetOriginalImage() { return this->original; };
+        cv::Mat GetOutputImage() { return this->out; };
+
+        private:
+        VideoCapture stream;
+        Size constantResize;
+        cv::Mat original,
+                out;
+        PreProcessor preprocessor;
     };
 }
 

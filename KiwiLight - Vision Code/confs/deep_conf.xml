@@ -13,7 +13,7 @@
         <setting name="sharpness">25</setting>
         <setting name="backlight_compensation">0</setting>
         <setting name="exposure_auto">3</setting>
-        <setting name="exposure_absolute">162</setting>
+        <setting name="exposure_absolute">5</setting>
         <setting name="pan_absolute">0</setting>
         <setting name="tilt_absolute">0</setting>
         <setting name="zoom_absolute">0</setting>

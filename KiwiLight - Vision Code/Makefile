@@ -96,6 +96,9 @@ bin/Shell.o: util/Shell.cpp
 bin/StringUtils.o: util/StringUtils.cpp
 	$(CXX) -c -o bin/StringUtils.o util/StringUtils.cpp $(GTK)
 
+bin/DataUtils.o: util/DataUtils.cpp
+	$(CXX) -c -o bin/DataUtils.o util/DataUtils.cpp $(GTK)
+
 bin/UDP.o: util/UDP.cpp
 	$(CXX) -c -o bin/UDP.o util/UDP.cpp $(GTK)
 
@@ -114,8 +117,8 @@ bin/SettingPair.o: util/SettingPair.cpp
 bin/Color.o: util/Color.cpp
 	$(CXX) -c -o bin/Color.o util/Color.cpp $(GTK) $(CV)
 
-lib/Util.a: bin/Flags.o bin/Shell.o bin/StringUtils.o bin/UDP.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/SettingPair.o bin/Color.o
-	ar rs lib/Util.a bin/Flags.o bin/Shell.o bin/StringUtils.o bin/UDP.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/SettingPair.o bin/Color.o
+lib/Util.a: bin/Flags.o bin/Shell.o bin/StringUtils.o bin/DataUtils.o bin/UDP.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/SettingPair.o bin/Color.o
+	ar rs lib/Util.a bin/Flags.o bin/Shell.o bin/StringUtils.o bin/DataUtils.o bin/UDP.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/SettingPair.o bin/Color.o
 
 #RUNNER
 bin/ConfigurationSetting.o: runner/ConfigurationSetting.cpp
@@ -139,6 +142,9 @@ bin/PostProcessor.o: runner/PostProcessor.cpp
 bin/PreProcessor.o: runner/PreProcessor.cpp
 	$(CXX) -c -o bin/PreProcessor.o runner/PreProcessor.cpp $(GTK) $(CV)
 
+bin/CameraFrame.o: runner/CameraFrame.cpp
+	$(CXX) -c -o bin/CameraFrame.o runner/CameraFrame.cpp $(GTK) $(CV)
+
 bin/ConfigLearner.o: runner/ConfigLearner.cpp
 	$(CXX) -c -o bin/ConfigLearner.o runner/ConfigLearner.cpp $(GTK) $(CV)
 
@@ -148,8 +154,8 @@ bin/Runner.o: runner/Runner.cpp
 bin/Target.o: runner/Target.cpp
 	$(CXX) -c -o bin/Target.o runner/Target.cpp $(GTK) $(CV)
 
-lib/Runner.a: bin/ConfigurationSetting.o bin/ConfigurationSettingsList.o bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/ConfigLearner.o bin/Runner.o bin/Target.o
-	ar rs lib/Runner.a bin/Runner.o bin/ConfigLearner.o bin/ConfigurationSetting.o bin/ConfigurationSettingsList.o bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/Target.o
+lib/Runner.a: bin/ConfigurationSetting.o bin/ConfigurationSettingsList.o bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/CameraFrame.o bin/ConfigLearner.o bin/Runner.o bin/Target.o
+	ar rs lib/Runner.a bin/Runner.o bin/ConfigLearner.o bin/ConfigurationSetting.o bin/ConfigurationSettingsList.o bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/CameraFrame.o bin/Target.o
 
 #ROOT
 
@@ -158,10 +164,13 @@ bin/ConfigPanel.o: ConfigPanel.cpp
 
 #MAIN FILE
 KiwiLight: Main.cpp lib/UI.a lib/Util.a lib/Runner.a bin/ConfigPanel.o
-	$(CXX) -o KiwiLight Main.cpp bin/ConfigPanel.o lib/UI.a lib/Runner.a lib/Util.a $(CV) $(GTK)
+	$(CXX) -o KiwiLight Main.cpp bin/ConfigPanel.o lib/UI.a  lib/Runner.a lib/Util.a $(CV) $(GTK)
 
 RunnerTest: RunnerTest.cpp lib/UI.a lib/Util.a lib/Runner.a bin/Settings.o
 	$(CXX) -o RunnerTest RunnerTest.cpp lib/Runner.a lib/Util.a lib/UI.a $(CV) $(GTK)
+
+Test: Test.cpp lib/UI.a lib/Util.a lib/Runner.a bin/ConfigPanel.o
+	$(CXX) -o Test Test.cpp bin/ConfigPanel.o lib/UI.a  lib/Runner.a lib/Util.a $(CV) $(GTK)
 
 #UNINSTALL
 clean:

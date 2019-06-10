@@ -110,10 +110,27 @@ void ConfigEditor::Update() {
         Flags::LowerFlag("StartLearner");
         
         //create a new learner and then switch to learner mode
-        XMLTag preprocessorTag = this->currentDoc.GetTagsByName("configuration")[0].GetTagsByName("preprocessor")[0];
-        this->learner = ConfigLearner(preprocessorTag, this->runner.GetVideoStream());
+        bool FullPreProcessor = this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::IS_FULL) == 0.0;
+
+        int colorH = (int) this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_HUE);
+        int colorS = (int) this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_SATURATION);
+        int colorV = (int) this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_VALUE);
+        int colorError = (int) this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_ERROR);
+        Color targetColor = Color(colorH, colorS, colorV, colorError, colorError, colorError);
+
+        double threshold = this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::THRESHOLD);
+        double dilation = this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::DILATION);
+
+        PreProcessor learnerPreprocessor = PreProcessor(FullPreProcessor, targetColor, threshold, dilation, true);
+        this->learner = ConfigLearner(learnerPreprocessor, this->runner.GetVideoStream());
         this->learner.SetConstantResize(newSize);
         this->editorMode = EditorMode::USE_LEARNER;
+    }
+
+    if(Flags::GetFlag("StopLearnerAndLearn")) {
+        Flags::LowerFlag("StopLearnerAndLearn");
+        ExampleTarget newTarg = this->learner.LearnTarget((int) this->targetEditor.GetTargetPropertyValue(0, TargetProperty::MINIMUM_AREA).Value());
+        this->editorMode = EditorMode::USE_RUNNER;
     }
 
     if(Flags::GetFlag("StopLearner")) {
@@ -296,7 +313,10 @@ void ConfigEditor::Save() {
         FileChooser fileChooser = FileChooser(true, defaultFile);
         fileToWrite = fileChooser.Show();
     }
-    newDocument.WriteFile(fileToWrite);
+
+    if(fileToWrite != "") {
+        newDocument.WriteFile(fileToWrite);
+    }
 }
 
 

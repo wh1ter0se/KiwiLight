@@ -13,7 +13,6 @@
 #include "netinet/in.h"
 #include "arpa/inet.h"
 
-
 using namespace cv;
 
 namespace KiwiLight {
@@ -47,6 +46,24 @@ namespace KiwiLight {
         static bool StringStartsWith(std::string str, std::string startsWith);
         static int CountCharacters(std::string str, char character);
     };
+
+
+    class DataUtils {
+        public:
+        static std::vector<double> SortLeastGreatestDouble(std::vector<double> data);
+        static double Average(std::vector<double> data);
+        static double Median(std::vector<double> data);
+        static double Greatest(std::vector<double> data);
+        static double Least(std::vector<double> data);
+        static double AverageDifference(std::vector<double> data);
+        static int NumberOfOccurrances(std::vector<double> data, double value);
+        static double MostCommonValue(std::vector<double> data);
+        static bool IsOutlier(std::vector<double> data, int indexOfValue);
+
+        std::vector<int> VectorDoubleToInt(std::vector<double> data);
+        std::vector<double> VectorIntToDouble(std::vector<int> data);
+    };
+
 
     /**
      * A UDP sender utility that sends and recieves information to and from the RIO.

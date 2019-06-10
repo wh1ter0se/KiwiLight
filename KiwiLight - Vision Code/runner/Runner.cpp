@@ -30,6 +30,7 @@ Runner::Runner(std::string fileName, bool debugging) {
     this->cameraIndex = std::stoi(this->settings.GetSetting("cameraIndex"));
     this->preprocessor = PreProcessor(this->settings, isFull, this->debug);
     this->postprocessor = PostProcessor(this->postProcessorTargets, this->debug);
+    this->applySettings();
     this->cap = VideoCapture(this->cameraIndex);
     this->stop = false;
 }
@@ -55,6 +56,7 @@ Runner::Runner(std::string fileName, bool debugging, bool openNewVideoStream) {
     this->preprocessor = PreProcessor(this->settings, isFull, this->debug);
     this->postprocessor = PostProcessor(this->postProcessorTargets, this->debug);
     if(openNewVideoStream) {
+        this->applySettings();
         this->cap = VideoCapture(this->cameraIndex);
     }
     this->stop = false;
@@ -80,6 +82,7 @@ Runner::Runner(std::string fileName, bool debugging, VideoCapture cap) {
     this->cameraIndex = std::stoi(this->settings.GetSetting("cameraIndex"));
     this->preprocessor = PreProcessor(this->settings, isFull, this->debug);
     this->postprocessor = PostProcessor(this->postProcessorTargets, this->debug);
+    this->applySettings();
     this->cap = cap;
     this->stop = false;
 }
@@ -102,7 +105,7 @@ void Runner::Loop() {
     std::cout << "  Configuration Name: " << this->settings.GetSetting("configName") << std::endl;
     std::cout << "  Preprocessor: " << this->settings.GetSetting("PreprocessorType") << std::endl;
     std::cout << "  Postprocessor: full" << std::endl;
-    std::cout << "    Number of Targets: " << this->postProcessorTargets.size() << std::endl;
+    std::cout << "    Number of Contours: " << this->postProcessorTargets[0].Contours().size() << std::endl;
     std::cout << "  UDP Destination Address: " << this->settings.GetSetting("UDPAddress") << std::endl;
     std::cout << "  UDP Port: " << this->settings.GetSetting("UDPPort") << std::endl;
     std::cout << "------------------------------------" << std::endl;
@@ -403,4 +406,22 @@ void Runner::parseDocument(XMLDocument doc) {
                 ExampleTarget newTarget = ExampleTarget(targetId, contours, knownWidth, focalWidth, distErrorCorrect, calibratedDistance);
                 this->postProcessorTargets.push_back(newTarget);
             }
+}
+
+/**
+ * Applies the camera settings via shell.
+ */
+void Runner::applySettings() {
+    XMLDocument document = XMLDocument(this->GetFileName());
+    std::vector<XMLTag> camSettings = document.GetTagsByName("camera")[0].GetTagsByName("settings")[0].GetTagsByName("setting");\
+
+    for(int i=0; i<camSettings.size(); i++) {
+        //find basic information for the setting and format it into a shell command 
+        XMLTag setting = camSettings[i];
+        std::string settingName = setting.GetAttributesByName("name")[0].Value();
+        std::string settingValue = setting.Content();
+
+        std::string command = "v4l2-ctl --set-ctrl=" + settingName + "=" + settingValue;
+        Shell::ExecuteCommand(command);
+    }
 }

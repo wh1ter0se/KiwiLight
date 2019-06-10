@@ -38,6 +38,17 @@ PreProcessor::PreProcessor(ConfigurationSettingsList settings, bool fullPreproce
 }
 
 
+PreProcessor::PreProcessor(bool fullPreprocessor, Color targetColor, int threshold, int dilation, bool debug) {
+    this->isFullPreprocessor = fullPreprocessor;
+    this->debugging = debug;
+    this->targetColor = targetColor;
+    this->threshold = threshold;
+    this->threshValue = 255;
+    this->threshtype = 0;
+    this->dilate = dilation;
+}
+
+
 /**
  * Takes the given generic image and makes it usable for the PostProcessor.
  */
@@ -129,6 +140,9 @@ double PreProcessor::GetProperty(PreProcessorProperty prop) {
             break;
         case PreProcessorProperty::COLOR_ERROR:
             finalValue = this->targetColor.GetHError();
+            break;
+        default:
+            std::cout << "PROPERTY NOT FOUND" << std::endl;
             break;
     }
 

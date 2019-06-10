@@ -15,10 +15,8 @@ static void learnTargetPressed() {
     bool userWantsLearn = confirmLearn.ShowAndGetResponse();
 
     if(userWantsLearn) {
-        std::cout << "learn" << std::endl;
-        Flags::RaiseFlag("StopLearner");
+        Flags::RaiseFlag("StopLearnerAndLearn");
     } else {
-        std::cout << "no learn" << std::endl;
         Flags::RaiseFlag("StopLearner");
     }
 }

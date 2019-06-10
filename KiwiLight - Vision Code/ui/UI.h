@@ -545,6 +545,7 @@ namespace KiwiLight {
         void Save();
         void Close();
         std::string GetFileName() { return this->fileName; };
+        VideoCapture GetVideoCapture() { return this->runner.GetVideoStream(); };
         cv::Mat GetOutputImage() { return this->out; };
         GtkWidget *GetWidget() { return this->configeditor; };
         void SetName(std::string name);

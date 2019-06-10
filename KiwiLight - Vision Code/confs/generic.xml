@@ -1,10 +1,22 @@
 <camera index="0">
     <resolution>
-        <width>600</width>
-        <height>400</height>
+        <width>0</width>
+        <height>0</height>
     </resolution>
     <settings>
-        <setting name="exposure_absolute">155</setting>
+        <setting name="brightness">35</setting>
+        <setting name="contrast">5</setting>
+        <setting name="saturation">150</setting>
+        <setting name="white_balance_temperature_auto">-1</setting>
+        <setting name="power_line_frequency">2</setting>
+        <setting name="white_balance_temperature">2800</setting>
+        <setting name="sharpness">25</setting>
+        <setting name="backlight_compensation">0</setting>
+        <setting name="exposure_auto">3</setting>
+        <setting name="exposure_absolute">5</setting>
+        <setting name="pan_absolute">0</setting>
+        <setting name="tilt_absolute">0</setting>
+        <setting name="zoom_absolute">0</setting>
     </settings>
 </camera>
 <configuration name="Generic Configuration">
@@ -29,17 +41,17 @@
         <centerOffset>0</centerOffset>
         <target id="0">
             <contour id="0">
-                <x error="5">0</x>
-                <y error="5">0</y>
-                <angle error="10">0</angle>
-                <solidity error="0.25">0.9</solidity>
-                <aspectRatio error="0.25">1</aspectRatio>
-                <minimumArea>1000</minimumArea>
+                <x error="5.000000">0.000000</x>
+                <y error="5.000000">0.000000</y>
+                <angle error="10.000000">0.000000</angle>
+                <solidity error="0.250000">0.900000</solidity>
+                <aspectRatio error="0.250000">1.000000</aspectRatio>
+                <minimumArea>1000.000000</minimumArea>
             </contour>
             <knownWidth>12</knownWidth>
             <focalWidth>300</focalWidth>
             <calibratedDistance>36</calibratedDistance>
-            <distErrorCorrect>0.1</distErrorCorrect>
+            <distErrorCorrect>0</distErrorCorrect>
         </target>
         <UDP>
             <address>127.0.0.1</address>

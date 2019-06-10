@@ -8,39 +8,64 @@
 using namespace cv;
 using namespace KiwiLight;
 
+
+//The number of frames to capture when learning a target
+static int NUMBER_OF_FRAMES_TO_LEARN = 50;
+
 /**
  * Creates new instance of a ConfigLearner with the given preprocessor.
  */
-ConfigLearner::ConfigLearner(XMLTag preprocessor, cv::VideoCapture stream) {
+ConfigLearner::ConfigLearner(PreProcessor preprocessor, cv::VideoCapture stream) {
     this->constantResize = Size(stream.get(cv::CAP_PROP_FRAME_WIDTH), stream.get(cv::CAP_PROP_FRAME_HEIGHT));
-
     this->stream = stream;
-    this->configsettings = ConfigurationSettingsList();
-    this->configsettings.AddSetting("PreprocessorType", preprocessor.GetAttributesByName("type")[0].Value());
-    XMLTag threshold = preprocessor.GetTagsByName("targetThreshold")[0];
-        this->configsettings.AddSetting("thresholdValue", threshold.GetTagsByName("threshold")[0].Content());
-        this->configsettings.AddSetting("threshMaxValue", threshold.GetTagsByName("maxValue")[0].Content());
-        this->configsettings.AddSetting("threshType", threshold.GetTagsByName("type")[0].Content());
-
-    this->configsettings.AddSetting("dilation", preprocessor.GetTagsByName("dilation")[0].Content());
-    XMLTag color = preprocessor.GetTagsByName("targetColor")[0];
-        this->configsettings.AddSetting("colorH", color.GetTagsByName("h")[0].Content());
-        this->configsettings.AddSetting("colorS", color.GetTagsByName("s")[0].Content());
-        this->configsettings.AddSetting("colorV", color.GetTagsByName("v")[0].Content());
-        this->configsettings.AddSetting("colorH_error", color.GetTagsByName("h")[0].GetAttributesByName("error")[0].Value());
-        this->configsettings.AddSetting("colorS_error", color.GetTagsByName("s")[0].GetAttributesByName("error")[0].Value());
-        this->configsettings.AddSetting("colorV_error", color.GetTagsByName("v")[0].GetAttributesByName("error")[0].Value());
-
-    bool isFullPreprocessor = (preprocessor.GetAttributesByName("type")[0].Value() == "full" ? true : false);
-    this->preprocessor = PreProcessor(this->configsettings, isFullPreprocessor, true);
+    this->preprocessor = preprocessor;
 }
 
 /**
  * Learns the target and returns the XMLTag representing it.
  * Note that some distance information will need to be added
+ * @return An ExampleTarget that describes the target that was learned.
  */
-XMLTag ConfigLearner::LearnTarget() {
-    this->stream.read(this->out);
+ExampleTarget ConfigLearner::LearnTarget(int minArea) {
+    //define vector where the camera frames will be stored
+    std::cout << "Learning Target" << std::endl;
+    std::vector<CameraFrame> frames = std::vector<CameraFrame>();
+
+    //capture the images that will be used to learn the target
+    std::cout << "min area: " << minArea << std::endl;
+    for(int i=0; i<NUMBER_OF_FRAMES_TO_LEARN; i++) {
+        Mat img;
+        bool success = this->stream.read(img);
+
+        if(success) {
+            img = this->preprocessor.ProcessImage(img);
+            CameraFrame newFrame = CameraFrame(img, minArea);
+            frames.push_back(newFrame);
+        }
+    }
+
+    int framesCaptured = frames.size();
+    std::cout << "Captured " << framesCaptured << "/" << NUMBER_OF_FRAMES_TO_LEARN << " frames successfully." << std::endl;
+
+    //create a sorted list of the number of contours in each image (FYI it is double because DataUtils sorts doubles)
+    std::vector<double> numberContoursList;
+    for(int i=0; i<frames.size(); i++) {
+        numberContoursList.push_back((double) frames[i].NumberOfContours());
+    }
+
+    double regularNumberOfContours = DataUtils::MostCommonValue(numberContoursList);
+
+    //discard any frame that does not have the same contours as regularNumberOfContours
+    for(int i=0; i<frames.size(); i++) {
+        if(frames[i].NumberOfContours() != regularNumberOfContours) {
+            frames.erase(frames.begin() + i);
+            i--;
+        }
+    }
+
+    std::cout << "Normal number of contours is " << (int) regularNumberOfContours << ". Discarded " << (NUMBER_OF_FRAMES_TO_LEARN - frames.size()) << " Invalid frames." << std::endl;
+
+    
 }
 
 /**

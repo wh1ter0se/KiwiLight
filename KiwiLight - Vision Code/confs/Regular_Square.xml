@@ -4,7 +4,7 @@
         <height>0</height>
     </resolution>
     <settings>
-        <setting name="brightness">30</setting>
+        <setting name="brightness">65</setting>
         <setting name="contrast">5</setting>
         <setting name="saturation">150</setting>
         <setting name="white_balance_temperature_auto">-1</setting>
@@ -26,14 +26,14 @@
     </constantResize>
     <preprocessor type="full">
         <targetThreshold>
-            <threshold>19</threshold>
+            <threshold>48</threshold>
             <maxValue>255</maxValue>
             <type>0</type>
         </targetThreshold>
         <dilation>5</dilation>
         <targetColor>
             <h error="30">100</h>
-            <s error="30">254</s>
+            <s error="30">255</s>
             <v error="30">255</v>
         </targetColor>
     </preprocessor>
@@ -45,7 +45,7 @@
                 <y error="5.000000">0.000000</y>
                 <angle error="10.000000">0.000000</angle>
                 <solidity error="0.250000">0.900000</solidity>
-                <aspectRatio error="0.250000">1.000000</aspectRatio>
+                <aspectRatio error="0.250000">1.010000</aspectRatio>
                 <minimumArea>1000.000000</minimumArea>
             </contour>
             <knownWidth>19</knownWidth>

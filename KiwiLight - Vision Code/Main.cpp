@@ -112,10 +112,10 @@ void Update() {
         //pause streamer so it doesnt cause problems
         pauseStreamer = true;
         Flags::LowerFlag("SaveAndCloseEditor");
+        runner = Runner(configEditor.GetFileName(), true, configEditor.GetVideoCapture());
         configEditor.Save();
         configEditor.Close();
 
-        runner = Runner(configEditor.GetFileName(), true, cam);
         uiMode = UIMode::UI_RUNNER;
         pauseStreamer = false;
     }
@@ -126,7 +126,6 @@ void OpenNewCamera() {
         pauseStreamer = true;
         int newIndex = (int) cameraIndex.GetValue();
 
-        cam.release();
         cam.~VideoCapture();
         cam = VideoCapture(newIndex);
 
@@ -199,13 +198,8 @@ void OpenConfig() {
         configPanel.LoadConfig(file);
         runner = Runner(file, true, cam);
         uiMode = UIMode::UI_RUNNER;
-    } else { //otherwise...
-        if(uiMode == UIMode::UI_RUNNER) {
-            runner.Start();
-        } else if(uiMode == UIMode::UI_STREAM) {
-            cam = VideoCapture((int) cameraIndex.GetValue());
-        }
-    }
+    } 
+    
     pauseStreamer = false;
 }
 
@@ -217,6 +211,7 @@ void StopUsingRunner() {
         pauseStreamer = true;
         configPanel.Clear();
         displayingImage = false;
+        cam = runner.GetVideoStream();
         uiMode = UIMode::UI_STREAM;
         pauseStreamer = false;
     }
