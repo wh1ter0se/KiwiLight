@@ -103,7 +103,7 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
      * Determine if the passed vector of contours is a target or not by comparing the 
      * distances from the center of the target in target widths.
      * if a contour passes, it is removed from the array.
-     * if the array is empty by the end of the method, return true.
+     * if the array is empty by the end of the method, return true.0
      */
 
     std::vector<Contour> imageContours = objects;

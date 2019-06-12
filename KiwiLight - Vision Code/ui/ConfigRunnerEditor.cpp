@@ -10,7 +10,7 @@ using namespace KiwiLight;
 
 
 static void tuneDistancePressed() {
-    std::cout << "tune distance" << std::endl;
+    Flags::RaiseFlag("LearnDistanceConstants");
 }
 
 
@@ -208,6 +208,30 @@ double ConfigRunnerEditor::GetProperty(RunnerProperty prop) {
     }
 
     return finalValue;
+}
+
+
+void ConfigRunnerEditor::SetProperty(RunnerProperty prop, double value) {
+    switch(prop) {
+        case RunnerProperty::IMAGE_WIDTH:
+            this->imageResizeX.SetValue(value);
+            break;
+        case RunnerProperty::IMAGE_HEIGHT:
+            this->imageResizeY.SetValue(value);
+            break;
+        case RunnerProperty::TRUE_WIDTH:
+            this->TargetWidth.SetValue(value);
+            break;
+        case RunnerProperty::PERCEIVED_WIDTH:
+            this->TargetFocalWidth.SetValue(value);
+            break;
+        case RunnerProperty::CALIBRATED_DISTANCE:
+            this->TargetCalibratedDistance.SetValue(value);
+            break;
+        case RunnerProperty::ERROR_CORRECTION:
+            this->TargetDistErrCorrect.SetValue(value);
+            break;
+    }
 }
 
 

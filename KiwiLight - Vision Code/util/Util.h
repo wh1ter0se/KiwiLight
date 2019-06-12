@@ -58,7 +58,8 @@ namespace KiwiLight {
         static double AverageDifference(std::vector<double> data);
         static int NumberOfOccurrances(std::vector<double> data, double value);
         static double MostCommonValue(std::vector<double> data);
-        static bool IsOutlier(std::vector<double> data, int indexOfValue);
+        static bool IsOutlier(std::vector<double> data, int indexOfValue, double allowableError);
+        static std::vector<double> RemoveOutliers(std::vector<double> data, double allowableError);
 
         std::vector<int> VectorDoubleToInt(std::vector<double> data);
         std::vector<double> VectorIntToDouble(std::vector<int> data);
@@ -142,6 +143,16 @@ namespace KiwiLight {
         private:
         bool hasContents;
         std::vector<XMLTag> children;
+    };
+
+
+    struct Distance {
+        Distance(double x, double y) {
+            this->x = x;
+            this->y = y;
+        }
+        double x;
+        double y;
     };
 
     /**

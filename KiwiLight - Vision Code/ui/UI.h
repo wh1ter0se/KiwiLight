@@ -215,11 +215,15 @@ namespace KiwiLight {
         public:
         ConfirmationDialog() {};
         ConfirmationDialog(std::string message);
+        void SetBody(Panel pnl);
+        bool Show();
         bool ShowAndGetResponse();
+        void Destroy();
         GtkWidget *GetWidget() { return this->dialog; };
         void SetName(std::string name);
 
         private:
+        Panel content;
         GtkWidget *dialog;
     };
 
@@ -417,6 +421,7 @@ namespace KiwiLight {
         ConfigRunnerEditor(std::string fileName);
         void Update(cv::Mat originalImage, cv::Mat processedImage, double targetDistance);
         double GetProperty(RunnerProperty prop);
+        void SetProperty(RunnerProperty prop, double value);
         ConfigurationSettingsList GetSettings();
         std::string GetUDPAddress();
         int GetUDPPort();
@@ -457,7 +462,9 @@ namespace KiwiLight {
         void Update();
         int NumContours();
         double GetPreProcessorProperty(PreProcessorProperty prop);
+        void SetPreProcessorProperty(PreProcessorProperty prop, double value);
         SettingPair GetTargetPropertyValue(int contour, TargetProperty property);
+        void SetTargetPropertyValue(int contour, TargetProperty property, SettingPair values);
         GtkWidget *GetWidget() { return this->configtargeteditor; };
         void SetName(std::string name);
 

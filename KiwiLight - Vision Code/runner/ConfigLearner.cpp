@@ -38,6 +38,7 @@ ExampleTarget ConfigLearner::LearnTarget(int minArea) {
         bool success = this->stream.read(img);
 
         if(success) {
+            resize(img, img, this->constantResize);
             img = this->preprocessor.ProcessImage(img);
             CameraFrame newFrame = CameraFrame(img, minArea);
             frames.push_back(newFrame);
@@ -49,7 +50,9 @@ ExampleTarget ConfigLearner::LearnTarget(int minArea) {
 
     //create a sorted list of the number of contours in each image (FYI it is double because DataUtils sorts doubles)
     std::vector<double> numberContoursList;
+    std::vector <std::vector <Contour> > groupedContours; //vector of contours grouped by their distance from target center
     for(int i=0; i<frames.size(); i++) {
+        groupedContours.push_back(frames[i].GetContoursGrouped());
         numberContoursList.push_back((double) frames[i].NumberOfContours());
     }
 
@@ -65,7 +68,75 @@ ExampleTarget ConfigLearner::LearnTarget(int minArea) {
 
     std::cout << "Normal number of contours is " << (int) regularNumberOfContours << ". Discarded " << (NUMBER_OF_FRAMES_TO_LEARN - frames.size()) << " Invalid frames." << std::endl;
 
+    //group the contours by distance to center
     
+    if(regularNumberOfContours > 1) {
+        std::cout << "WARNING: Contour count exceeding 1 is not supported right now." << std::endl;
+    }
+
+    //go through groupedContours to get and format data.
+    std::vector<ExampleContour> finishedContours;
+    for(int i=0; i<regularNumberOfContours; i++) {
+
+        std::cout << "Gathering data for contour " << i << "..." << std::endl;
+
+        std::vector<double> horizontalDistances = std::vector<double>();
+        std::vector<double> verticalDistances   = std::vector<double>();
+        std::vector<double> angles              = std::vector<double>();
+        std::vector<double> solidities          = std::vector<double>();
+        std::vector<double> aspectRatios        = std::vector<double>();
+
+        for(int k=0; k<groupedContours.size(); k++) {
+            //gather and format contour data
+
+            Contour contourToAnalyze = groupedContours[k][i];
+            Distance contourDistToCenter = frames[k].GetContourDistance(contourToAnalyze);
+
+            horizontalDistances.push_back(contourDistToCenter.x);
+            verticalDistances.push_back(contourDistToCenter.y);
+            angles.push_back(contourToAnalyze.Angle());
+            solidities.push_back(contourToAnalyze.Solidity());
+            aspectRatios.push_back(contourToAnalyze.AspectRatio());
+        }
+
+        //sort the data and remove outliers
+        std::cout << "Sorting data for contour " << i << "..." << std::endl;
+
+        horizontalDistances = DataUtils::SortLeastGreatestDouble(horizontalDistances);
+        verticalDistances   = DataUtils::SortLeastGreatestDouble(verticalDistances);
+        angles              = DataUtils::SortLeastGreatestDouble(angles);
+        solidities          = DataUtils::SortLeastGreatestDouble(solidities);
+        aspectRatios        = DataUtils::SortLeastGreatestDouble(aspectRatios);
+
+        std::cout << "Removing outliers for contour " << i << "..." << std::endl;
+
+        //remove outliers
+        horizontalDistances = DataUtils::RemoveOutliers(horizontalDistances, 0.5);
+        verticalDistances   = DataUtils::RemoveOutliers(verticalDistances, 0.5);
+        angles              = DataUtils::RemoveOutliers(angles, 10.0);
+        solidities          = DataUtils::RemoveOutliers(solidities, 0.25);
+        aspectRatios        = DataUtils::RemoveOutliers(aspectRatios, 0.25);
+
+        std::cout << "Averaging data for contour " << i << "..." << std::endl;
+
+        double averageHorizontalDistance = DataUtils::Average(horizontalDistances);
+        double averageVerticaldistance   = DataUtils::Average(verticalDistances);
+        double averageAngle              = DataUtils::Average(angles);
+        double averageSolidity           = DataUtils::Average(solidities);
+        double averageAspectRatio        = DataUtils::Average(aspectRatios);
+
+        SettingPair horizontalDistancePair = SettingPair(averageHorizontalDistance, 0.25);
+        SettingPair verticalDistancePair   = SettingPair(averageVerticaldistance, 0.25);
+        SettingPair anglePair              = SettingPair(averageAngle, 10.0);
+        SettingPair solidityPair           = SettingPair(averageSolidity, 0.25);
+        SettingPair aspectRatioPair        = SettingPair(averageAspectRatio, 0.25);
+
+        ExampleContour newExampleContour = ExampleContour(i, horizontalDistancePair, verticalDistancePair, anglePair, aspectRatioPair, solidityPair, minArea);
+        finishedContours.push_back(newExampleContour);
+    }
+
+    ExampleTarget newTarget = ExampleTarget(0, finishedContours, 0.0, 0.0, 0.0, 0.0);
+    return newTarget;
 }
 
 /**

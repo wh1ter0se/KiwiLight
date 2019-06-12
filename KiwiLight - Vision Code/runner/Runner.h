@@ -86,12 +86,13 @@ namespace KiwiLight {
     class Contour {
         public:
         Contour(std::vector<cv::Point> points);
-        int X()      { return this->x;      };
-        int Y()      { return this->y;      };
-        int Width()  { return this->width;  };
-        int Height() { return this->height; };
-        int Angle()  { return this->angle;  };
-        int Area()   { return this->width * this->height;   };
+        int X()        { return this->x;      };
+        int Y()        { return this->y;      };
+        Point Center() { return this->center; };
+        int Width()    { return this->width;  };
+        int Height()   { return this->height; };
+        int Angle()    { return this->angle;  };
+        int Area()     { return this->width * this->height;   };
         double AspectRatio() { return this->width / (double) this->height; };
         double Solidity()    { return this->solidity;    };
 
@@ -104,6 +105,8 @@ namespace KiwiLight {
             angle;
         
         double solidity;
+
+        Point center;
     };
 
     
@@ -153,6 +156,7 @@ namespace KiwiLight {
         Target();
         Target(int id, std::vector<Contour> contours, double knownHeight, double focalHeight, double distErrorCorrect, double calibratedDistance);
         int ID() { return this->id; };
+        std::vector<Contour> Contours() { return this->contours; };
         double Distance();
         int Angle(int imageCenterX);
         int Angle(double distanceToTarget, int imageCenterX);
@@ -254,11 +258,14 @@ namespace KiwiLight {
         public:
         CameraFrame() {};
         CameraFrame(Mat img, int minimumArea);
-        int NumberOfContours() { return this->contours.size(); };
-        std::vector<Contour> GetContours() { return this->contours; };
+        Target SeenTarget() { return this->seenTarget; };
+        int NumberOfContours() { return this->seenTarget.Contours().size(); };
+        std::vector<Contour> GetContoursGrouped();
+        std::vector<Contour> GetContours() { return this->seenTarget.Contours(); };
+        Distance GetContourDistance(Contour contour);
 
         private:
-        std::vector<Contour> contours;
+        Target seenTarget;
     };
 
     /**
@@ -270,6 +277,8 @@ namespace KiwiLight {
         Runner(std::string filename, bool debugging);
         Runner(std::string filename, bool debugging, bool openNewVideoStream);
         Runner(std::string filename, bool debugging, VideoCapture cap);
+        PreProcessor GetPreProcessor() { return this->preprocessor; };
+        PostProcessor GetPostProcessor() { return this->postprocessor; };
         int GetCameraIndex() { return this->cameraIndex; };
         void SetImageResize(Size sz);
         void Loop();
@@ -285,6 +294,7 @@ namespace KiwiLight {
         cv::Mat GetOriginalImage() { return this->originalImage; };
         cv::Mat GetOutputImage() { return this->outputImage; imshow("out", this->outputImage); };
         cv::VideoCapture GetVideoStream() { return this->cap; };
+        Size GetConstantSize() { return this->constantResize; };
         ExampleTarget GetExampleTargetByID(int id);
         void SetPreprocessorProperty(PreProcessorProperty prop, double value);
         double GetPreprocessorProperty(PreProcessorProperty prop);
@@ -293,8 +303,6 @@ namespace KiwiLight {
         void SetRunnerProperty(RunnerProperty prop, double value);
         double GetRunnerProperty(RunnerProperty prop);
         std::string GetSetting(std::string settingName);
-
-        // void SetPreprocessorSetting();
 
         private:
         void parseDocument(XMLDocument doc);
@@ -340,6 +348,23 @@ namespace KiwiLight {
         cv::Mat original,
                 out;
         PreProcessor preprocessor;
+    };
+
+    /**
+     * A tool that calculates the constants needed for accurate distance calculation
+     */
+    class TargetDistanceLearner {
+        public:
+        TargetDistanceLearner() {};
+        TargetDistanceLearner(PreProcessor preprocessor, PostProcessor postprocessor, VideoCapture cap, Size constantSz);
+        double LearnFocalWidth(double trueWidth, double trueDistance);
+        double LearnErrorCorrect(double trueWidth, double trueDistance, double calibratedDistance, double focalWidth);
+
+        private:
+        Size constantResize;
+        PreProcessor preprocessor;
+        PostProcessor postprocessor;
+        VideoCapture cap;
     };
 }
 

@@ -12,9 +12,24 @@ ConfirmationDialog::ConfirmationDialog(std::string message) {
     GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     this->dialog = gtk_dialog_new_with_buttons("Confirmation", GTK_WINDOW(window), GTK_DIALOG_MODAL, "OK", GTK_RESPONSE_ACCEPT, "Cancel", GTK_RESPONSE_REJECT, NULL);
     GtkWidget *dialogContent = gtk_dialog_get_content_area(GTK_DIALOG(this->dialog));
-        GtkWidget *label = gtk_label_new(message.c_str());
-        gtk_container_add(GTK_CONTAINER(dialogContent), label);
+        this->content = Panel(false, 0);
+            Label lbl = Label(message);
+                this->content.Pack_start(lbl.GetWidget(), false, false, 0);
+
+            gtk_container_add(GTK_CONTAINER(dialogContent), this->content.GetWidget());
     
+}
+
+
+void ConfirmationDialog::SetBody(Panel pnl) {
+    this->content.Pack_start(pnl.GetWidget(), true, true, 0);
+}
+
+
+bool ConfirmationDialog::Show() {
+    gtk_widget_show_all(this->dialog);
+    gint response = gtk_dialog_run(GTK_DIALOG(this->dialog));
+    return response == GTK_RESPONSE_ACCEPT;
 }
 
 
@@ -23,6 +38,11 @@ bool ConfirmationDialog::ShowAndGetResponse() {
     gint response = gtk_dialog_run(GTK_DIALOG(this->dialog));
     gtk_widget_destroy(this->dialog);
     return response == GTK_RESPONSE_ACCEPT;
+}
+
+
+void ConfirmationDialog::Destroy() {
+    gtk_widget_destroy(this->dialog);
 }
 
 

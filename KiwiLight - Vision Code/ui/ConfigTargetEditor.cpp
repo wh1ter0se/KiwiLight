@@ -311,8 +311,42 @@ double ConfigTargetEditor::GetPreProcessorProperty(PreProcessorProperty prop) {
 }
 
 
+void ConfigTargetEditor::SetPreProcessorProperty(PreProcessorProperty prop, double value) {
+    this->runner.SetPreprocessorProperty(prop, value);
+}
+
+
 SettingPair ConfigTargetEditor::GetTargetPropertyValue(int contour, TargetProperty property) {
     return this->runner.GetPostProcessorContourProperty(contour, property);
+}
+
+
+void ConfigTargetEditor::SetTargetPropertyValue(int contour, TargetProperty property, SettingPair values) {
+    this->runner.SetPostProcessorContourProperty(contour, property, values);
+
+    //set the value on the slider
+    if(this->lastRequestedContour == contour) {
+        switch(property) {
+            case TargetProperty::DIST_X:
+                this->ContourDistX.SetValue(values.Value());
+                break;
+            case TargetProperty::DIST_Y:
+                this->ContourDistY.SetValue(values.Value());
+                break;
+            case TargetProperty::ANGLE:
+                this->ContourAngle.SetValue(values.Value());
+                break;
+            case TargetProperty::SOLIDITY:
+                this->ContourSolidity.SetValue(values.Value());
+                break;
+            case TargetProperty::ASPECT_RATIO:
+                this->ContourAR.SetValue(values.Value());
+                break;
+            case TargetProperty::MINIMUM_AREA:
+                this->ContourMinArea.SetValue(values.Value());
+                break;
+        }
+    }
 }
 
 

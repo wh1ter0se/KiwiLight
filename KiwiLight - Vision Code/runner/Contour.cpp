@@ -21,6 +21,10 @@ Contour::Contour(std::vector<cv::Point> points) {
     this->width = boundingRect.width;
     this->height = boundingRect.height;
 
+    int centerX = (this->width / 2) + this->x;
+    int centerY = (this->height / 2) + this->y;
+    this->center = Point(centerX, centerY);
+
     cv::RotatedRect angleRect = cv::minAreaRect(points);
     this->angle = angleRect.angle;
 

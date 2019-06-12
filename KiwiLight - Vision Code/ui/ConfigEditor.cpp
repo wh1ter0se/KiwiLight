@@ -130,12 +130,66 @@ void ConfigEditor::Update() {
     if(Flags::GetFlag("StopLearnerAndLearn")) {
         Flags::LowerFlag("StopLearnerAndLearn");
         ExampleTarget newTarg = this->learner.LearnTarget((int) this->targetEditor.GetTargetPropertyValue(0, TargetProperty::MINIMUM_AREA).Value());
+
+        std::vector<ExampleContour> newContours = newTarg.Contours();
+        for(int i=0; i<newContours.size(); i++) {
+            this->targetEditor.SetTargetPropertyValue(i, TargetProperty::DIST_X, newContours[i].DistX());
+            this->targetEditor.SetTargetPropertyValue(i, TargetProperty::DIST_Y, newContours[i].DistY());
+            this->targetEditor.SetTargetPropertyValue(i, TargetProperty::ANGLE, newContours[i].Angle());
+            this->targetEditor.SetTargetPropertyValue(i, TargetProperty::SOLIDITY, newContours[i].Solidity());
+            this->targetEditor.SetTargetPropertyValue(i, TargetProperty::ASPECT_RATIO, newContours[i].AspectRatio());
+        }
+
         this->editorMode = EditorMode::USE_RUNNER;
     }
 
     if(Flags::GetFlag("StopLearner")) {
         Flags::LowerFlag("StopLearner");
         this->editorMode = EditorMode::USE_RUNNER;
+    }
+
+    if(Flags::GetFlag("LearnDistanceConstants")) {
+        Flags::LowerFlag("LearnDistanceConstants");
+
+        TargetDistanceLearner newLearner = TargetDistanceLearner(this->runner.GetPreProcessor(), this->runner.GetPostProcessor(), this->runner.GetVideoStream(), this->runner.GetConstantSize());
+
+        //build a confirmation dialog with some numberboxes 
+        ConfirmationDialog firstDistanceDialog = ConfirmationDialog("Before figuring out the distance constants, I'll need a little information first.");
+            Panel dialogPanel = Panel(false, 0);
+                Panel trueWidthPanel = Panel(true, 0);
+                    Label trueWidthLabel = Label("Width of target in inches: ");
+                        trueWidthPanel.Pack_start(trueWidthLabel.GetWidget(), false, false, 0);
+
+                    NumberBox trueWidthNumber = NumberBox(0.1, 120.0, 12.0);
+                        trueWidthPanel.Pack_start(trueWidthNumber.GetWidget(), false, false, 0);
+
+                    dialogPanel.Pack_start(trueWidthPanel.GetWidget(), false, false, 0);
+
+                Panel trueDistancePanel = Panel(true, 0);
+                    Label trueDistanceLabel = Label("Distance from camera to target: ");
+                        trueDistancePanel.Pack_start(trueDistanceLabel.GetWidget(), false, false, 0);
+
+                    NumberBox trueDistanceNumber = NumberBox(6.0, 120.0, 12.0);
+                        trueDistancePanel.Pack_start(trueDistanceNumber.GetWidget(), false, false, 0);
+
+                    dialogPanel.Pack_start(trueDistancePanel.GetWidget(), false, false, 0);
+
+                firstDistanceDialog.SetBody(dialogPanel);
+
+        bool shouldContinue = firstDistanceDialog.Show();
+        if(shouldContinue) {
+            double trueWidth = trueWidthNumber.GetValue();
+            double trueDistance = trueDistanceNumber.GetValue();
+            firstDistanceDialog.Destroy();
+
+            this->runnerEditor.SetProperty(RunnerProperty::TRUE_WIDTH, trueWidth);
+            this->runnerEditor.SetProperty(RunnerProperty::CALIBRATED_DISTANCE, trueDistance);
+
+            double newFocalWidth = newLearner.LearnFocalWidth(trueWidth, trueDistance);
+
+            this->runnerEditor.SetProperty(RunnerProperty::PERCEIVED_WIDTH, newFocalWidth);
+        }
+
     }
 }
 

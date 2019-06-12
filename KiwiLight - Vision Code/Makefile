@@ -151,11 +151,14 @@ bin/ConfigLearner.o: runner/ConfigLearner.cpp
 bin/Runner.o: runner/Runner.cpp
 	$(CXX) -c -o bin/Runner.o runner/Runner.cpp $(GTK) $(CV)
 
+bin/TargetDistanceLearner.o: runner/TargetDistanceLearner.cpp
+	$(CXX) -c -o bin/TargetDistanceLearner.o runner/TargetDistanceLearner.cpp $(GTK) $(CV)
+
 bin/Target.o: runner/Target.cpp
 	$(CXX) -c -o bin/Target.o runner/Target.cpp $(GTK) $(CV)
 
-lib/Runner.a: bin/ConfigurationSetting.o bin/ConfigurationSettingsList.o bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/CameraFrame.o bin/ConfigLearner.o bin/Runner.o bin/Target.o
-	ar rs lib/Runner.a bin/Runner.o bin/ConfigLearner.o bin/ConfigurationSetting.o bin/ConfigurationSettingsList.o bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/CameraFrame.o bin/Target.o
+lib/Runner.a: bin/ConfigurationSetting.o bin/ConfigurationSettingsList.o bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/CameraFrame.o bin/ConfigLearner.o bin/Runner.o bin/Target.o bin/TargetDistanceLearner.o
+	ar rs lib/Runner.a bin/Runner.o bin/ConfigLearner.o bin/ConfigurationSetting.o bin/ConfigurationSettingsList.o bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/CameraFrame.o bin/Target.o bin/TargetDistanceLearner.o
 
 #ROOT
 
