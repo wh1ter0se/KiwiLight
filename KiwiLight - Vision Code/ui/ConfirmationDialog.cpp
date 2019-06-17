@@ -33,6 +33,11 @@ bool ConfirmationDialog::Show() {
 }
 
 
+void ConfirmationDialog::ShowWithoutRunning() {
+    gtk_widget_show_all(this->dialog);
+}
+
+
 bool ConfirmationDialog::ShowAndGetResponse() {
     gtk_widget_show_all(this->dialog);
     gint response = gtk_dialog_run(GTK_DIALOG(this->dialog));

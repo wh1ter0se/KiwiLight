@@ -30,6 +30,11 @@ Runner::Runner(std::string fileName, bool debugging) {
     this->cameraIndex = std::stoi(this->settings.GetSetting("cameraIndex"));
     this->preprocessor = PreProcessor(this->settings, isFull, this->debug);
     this->postprocessor = PostProcessor(this->postProcessorTargets, this->debug);
+
+    std::string udpAddr = this->settings.GetSetting("UDPAddress");
+    int udpPort = std::stoi(this->settings.GetSetting("UDPPort"));
+    this->udp = UDP(udpAddr, udpPort, false);
+
     this->applySettings();
     this->cap = VideoCapture(this->cameraIndex);
     this->stop = false;
@@ -55,6 +60,11 @@ Runner::Runner(std::string fileName, bool debugging, bool openNewVideoStream) {
     this->cameraIndex = std::stoi(this->settings.GetSetting("cameraIndex"));
     this->preprocessor = PreProcessor(this->settings, isFull, this->debug);
     this->postprocessor = PostProcessor(this->postProcessorTargets, this->debug);
+
+    std::string udpAddr = this->settings.GetSetting("UDPAddress");
+    int udpPort = std::stoi(this->settings.GetSetting("UDPPort"));
+    this->udp = UDP(udpAddr, udpPort, false);
+
     if(openNewVideoStream) {
         this->applySettings();
         this->cap = VideoCapture(this->cameraIndex);
@@ -82,6 +92,11 @@ Runner::Runner(std::string fileName, bool debugging, VideoCapture cap) {
     this->cameraIndex = std::stoi(this->settings.GetSetting("cameraIndex"));
     this->preprocessor = PreProcessor(this->settings, isFull, this->debug);
     this->postprocessor = PostProcessor(this->postProcessorTargets, this->debug);
+
+    std::string udpAddr = this->settings.GetSetting("UDPAddress");
+    int udpPort = std::stoi(this->settings.GetSetting("UDPPort"));
+    this->udp = UDP(udpAddr, udpPort, false);
+
     this->applySettings();
     this->cap = cap;
     this->stop = false;
@@ -111,16 +126,19 @@ void Runner::Loop() {
     std::cout << "------------------------------------" << std::endl;
     std::cout << std::endl;
 
-     //use the information from XML file to init the UDP
-    std::string udpAddr = this->settings.GetSetting("UDPAddress");
-    int udpPort = std::stoi(this->settings.GetSetting("UDPPort"));
-    UDP udp = UDP(udpAddr, udpPort);
+    std::cout << "Waiting for UDP to connect" << std::endl;
+    while(true) {
+        bool connectSuccess = this->udp.AttemptToConnect();
+        if(connectSuccess) {
+            std::cout << "UDP connected successfully." << std::endl;
+            break;
+        }
+    }
 
     //loops a lot until stopped
     while(!stop) {
         //run algorithm and get the udp message to send to rio
-        std::string rioString = Iterate();
-        udp.Send(rioString);
+        this->Iterate();
     }
 }
 
@@ -227,6 +245,19 @@ std::string Runner::Iterate() {
         out.copyTo(this->outputImage);
     }
 
+    //enabled the UDP if it was disabled and runner is not in debug mode
+    if(!this->debug) {
+        //since the UDP will just return true if it is already connected, ensure that the UDP is connected by calling AttemptToConnect()
+        this->udp.AttemptToConnect();
+        this->udp.SetEnabled(true);
+    }
+
+    //send the message to the RIO
+    if(this->udp.IsEnabled()) {
+        //send the UDP if it is enabled or running mode is enabled.
+        this->udp.Send(rioMessage);
+    }
+
     return rioMessage;
 }
 
@@ -234,13 +265,27 @@ std::string Runner::Iterate() {
  * Returns the example target at the given id. Returns the 0th exampletarget if id is out of bounds.
  */
 ExampleTarget Runner::GetExampleTargetByID(int id) {
+    return this->postprocessor.GetExampleTargetByID(id);
+}
+
+
+void Runner::SetUDPEnabled(bool enabled) {
+    this->udp.SetEnabled(enabled);
+}
+
+
+bool Runner::GetUDPEnabled() {
+    return this->udp.IsEnabled();
+}
+
+
+void Runner::SetExampleTarget(int contourID, ExampleTarget target) {
     for(int i=0; i<this->postProcessorTargets.size(); i++) {
-        if(postProcessorTargets[i].ID() == id) {
-            return postProcessorTargets[i];
+        if(this->postProcessorTargets[i].ID() == contourID) {
+            this->postProcessorTargets[i] = target;
+            return;
         }
     }
-    std::cout << "WARNING: Target at ID " << id << " does not exist!" << std::endl;
-    return postProcessorTargets[0];
 }
 
 /**

@@ -8,10 +8,21 @@
 using namespace cv;
 using namespace KiwiLight;
 
+ConfigLearner ConfigEditor::learner = ConfigLearner();
+ExampleTarget ConfigEditor::learnerResult = ExampleTarget();
+int ConfigEditor::learnerMinArea = 0;
+
+TargetDistanceLearner ConfigEditor::distLearner = TargetDistanceLearner();
+double ConfigEditor::distResult = 0;
+double ConfigEditor::targetTrueDistance = 0;
+double ConfigEditor::targetTrueWidth = 0;
+
 /**
  * Creates a window to edit the bassed file.
  */
 ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
+    this->monitorLearner = false;
+    this->monitorDistanceLearner = false;
     this->runner = Runner(fileName, true, cap);
     this->editorMode = EditorMode::USE_RUNNER;
     this->currentDoc = XMLDocument(fileName);
@@ -56,7 +67,6 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
  */
 void ConfigEditor::Update() {
     //update the trinity for its functionality
-    
     if(this->editorMode == EditorMode::USE_RUNNER) {
         //set all runner preprocessor settings to the values in the target editor
         this->runner.SetPreprocessorProperty(PreProcessorProperty::IS_FULL, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::IS_FULL));
@@ -69,7 +79,6 @@ void ConfigEditor::Update() {
         this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_ERROR, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_ERROR));
 
         //set all runner targeting settings to the ones in the target editor
-        // std::cout << "upate real runner" << std::endl;
         for(int i=0; i<this->targetEditor.NumContours(); i++) {
             this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_X, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::DIST_X));
             this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_Y, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::DIST_Y));
@@ -77,7 +86,6 @@ void ConfigEditor::Update() {
             this->runner.SetPostProcessorContourProperty(i, TargetProperty::ASPECT_RATIO, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::ASPECT_RATIO));
             this->runner.SetPostProcessorContourProperty(i, TargetProperty::SOLIDITY, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::SOLIDITY));
             this->runner.SetPostProcessorContourProperty(i, TargetProperty::MINIMUM_AREA, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::MINIMUM_AREA));
-            // std::cout << "min area editor: " << this->targetEditor.GetTargetPropertyValue(i, TargetProperty::MINIMUM_AREA).Value() << std::endl;
         }
 
         this->runner.SetRunnerProperty(RunnerProperty::TRUE_WIDTH, this->runnerEditor.GetProperty(RunnerProperty::TRUE_WIDTH));
@@ -129,7 +137,24 @@ void ConfigEditor::Update() {
 
     if(Flags::GetFlag("StopLearnerAndLearn")) {
         Flags::LowerFlag("StopLearnerAndLearn");
-        ExampleTarget newTarg = this->learner.LearnTarget((int) this->targetEditor.GetTargetPropertyValue(0, TargetProperty::MINIMUM_AREA).Value());
+        ConfigEditor::learnerMinArea = (int) this->targetEditor.GetTargetPropertyValue(0, TargetProperty::MINIMUM_AREA).Value();
+        g_thread_new("Learner", GThreadFunc(ConfigEditor::LearnTarget), NULL);
+        this->monitorLearner = true;
+        
+        this->learnerMonitorWindow = ConfirmationDialog("Learning the target...");
+            Panel learnerMonitorPanel = Panel(false, 0);
+                this->learnerMonitorLabel = Label("Collecting and processing images (0%)");
+                    learnerMonitorPanel.Pack_start(this->learnerMonitorLabel.GetWidget(), false, false, 0);
+
+                this->learnerMonitorWindow.SetBody(learnerMonitorPanel);
+
+        //run the dialog without blocking the UI
+        this->learnerMonitorWindow.ShowWithoutRunning();
+    }
+
+    if(Flags::GetFlag("ConfigLearnerDone")) {
+        Flags::LowerFlag("ConfigLearnerDone");
+        ExampleTarget newTarg = ConfigEditor::learnerResult;
 
         std::vector<ExampleContour> newContours = newTarg.Contours();
         for(int i=0; i<newContours.size(); i++) {
@@ -138,9 +163,24 @@ void ConfigEditor::Update() {
             this->targetEditor.SetTargetPropertyValue(i, TargetProperty::ANGLE, newContours[i].Angle());
             this->targetEditor.SetTargetPropertyValue(i, TargetProperty::SOLIDITY, newContours[i].Solidity());
             this->targetEditor.SetTargetPropertyValue(i, TargetProperty::ASPECT_RATIO, newContours[i].AspectRatio());
+            this->targetEditor.SetTargetPropertyValue(i, TargetProperty::MINIMUM_AREA, SettingPair(newContours[i].MinimumArea(), 0));
+
+            std::cout << "contour " << i << " dist X      : " << newContours[i].DistX().Value() << std::endl;
+            std::cout << "contour " << i << " dist Y      : " << newContours[i].DistY().Value() << std::endl;
+            std::cout << "contour " << i << " angle       : " << newContours[i].Angle().Value() << std::endl;
+            std::cout << "contour " << i << " solidity    : " << newContours[i].Solidity().Value() << std::endl;
+            std::cout << "contour " << i << " aspect ratio: " << newContours[i].AspectRatio().Value() << std::endl;
+            std::cout << std::endl;
         }
 
+        this->monitorLearner = false;
+        this->learnerMonitorWindow.Destroy();
         this->editorMode = EditorMode::USE_RUNNER;
+    }
+
+    //only runs when the learner is actively learning the target to update the output window
+    if(this->monitorLearner) {
+        this->learnerMonitorLabel.SetText(ConfigEditor::learner.GetOutputString());
     }
 
     if(Flags::GetFlag("StopLearner")) {
@@ -151,7 +191,7 @@ void ConfigEditor::Update() {
     if(Flags::GetFlag("LearnDistanceConstants")) {
         Flags::LowerFlag("LearnDistanceConstants");
 
-        TargetDistanceLearner newLearner = TargetDistanceLearner(this->runner.GetPreProcessor(), this->runner.GetPostProcessor(), this->runner.GetVideoStream(), this->runner.GetConstantSize());
+        ConfigEditor::distLearner = TargetDistanceLearner(this->runner.GetPreProcessor(), this->runner.GetPostProcessor(), this->runner.GetVideoStream(), this->runner.GetConstantSize());
 
         //build a confirmation dialog with some numberboxes 
         ConfirmationDialog firstDistanceDialog = ConfirmationDialog("Before figuring out the distance constants, I'll need a little information first.");
@@ -160,7 +200,7 @@ void ConfigEditor::Update() {
                     Label trueWidthLabel = Label("Width of target in inches: ");
                         trueWidthPanel.Pack_start(trueWidthLabel.GetWidget(), false, false, 0);
 
-                    NumberBox trueWidthNumber = NumberBox(0.1, 120.0, 12.0);
+                    NumberBox trueWidthNumber = NumberBox(0.1, 120.0, 0.01, 12.0);
                         trueWidthPanel.Pack_start(trueWidthNumber.GetWidget(), false, false, 0);
 
                     dialogPanel.Pack_start(trueWidthPanel.GetWidget(), false, false, 0);
@@ -169,7 +209,7 @@ void ConfigEditor::Update() {
                     Label trueDistanceLabel = Label("Distance from camera to target: ");
                         trueDistancePanel.Pack_start(trueDistanceLabel.GetWidget(), false, false, 0);
 
-                    NumberBox trueDistanceNumber = NumberBox(6.0, 120.0, 12.0);
+                    NumberBox trueDistanceNumber = NumberBox(6.0, 120.0, 0.01, 12.0);
                         trueDistancePanel.Pack_start(trueDistanceNumber.GetWidget(), false, false, 0);
 
                     dialogPanel.Pack_start(trueDistancePanel.GetWidget(), false, false, 0);
@@ -178,24 +218,43 @@ void ConfigEditor::Update() {
 
         bool shouldContinue = firstDistanceDialog.Show();
         if(shouldContinue) {
-            double trueWidth = trueWidthNumber.GetValue();
-            double trueDistance = trueDistanceNumber.GetValue();
+            ConfigEditor::targetTrueWidth = trueWidthNumber.GetValue();
+            ConfigEditor::targetTrueDistance = trueDistanceNumber.GetValue();
             firstDistanceDialog.Destroy();
 
-            this->runnerEditor.SetProperty(RunnerProperty::TRUE_WIDTH, trueWidth);
-            this->runnerEditor.SetProperty(RunnerProperty::CALIBRATED_DISTANCE, trueDistance);
+            this->runnerEditor.SetProperty(RunnerProperty::TRUE_WIDTH, ConfigEditor::targetTrueWidth);
+            this->runnerEditor.SetProperty(RunnerProperty::CALIBRATED_DISTANCE, ConfigEditor::targetTrueDistance);
 
-            double newFocalWidth = newLearner.LearnFocalWidth(trueWidth, trueDistance);
+            //create the body for the monitor window
+            this->distLearnerMonitorWindow = ConfirmationDialog("Learning Distance Constants");
+                Panel monitorBody = Panel(false, 0);
+                    this->distMonitorLabel = Label("Collecting and processing images (0%)");
+                        monitorBody.Pack_start(this->distMonitorLabel.GetWidget(), false, false, 0);
 
-            this->runnerEditor.SetProperty(RunnerProperty::PERCEIVED_WIDTH, newFocalWidth);
+                    this->distLearnerMonitorWindow.SetBody(monitorBody);
+
+                this->distLearnerMonitorWindow.ShowWithoutRunning();
+
+            g_thread_new("Dist Learner", GThreadFunc(ConfigEditor::LearnDistance), NULL);
+            this->monitorDistanceLearner = true;
         }
+    }
 
+    if(Flags::GetFlag("DistanceLearnerDone")) {
+        Flags::LowerFlag("DistanceLearnerDone");
+        this->distLearnerMonitorWindow.Destroy();
+        this->runnerEditor.SetProperty(RunnerProperty::PERCEIVED_WIDTH, ConfigEditor::distResult);
+        this->monitorDistanceLearner = false;
+    }
+
+    if(this->monitorDistanceLearner) {
+        this->distMonitorLabel.SetText(ConfigEditor::distLearner.GetOutputString());
     }
 }
 
 
 void ConfigEditor::UpdateImageOnly() {
-    if(this->editorMode == EditorMode::USE_RUNNER) {
+    if(this->editorMode == EditorMode::USE_RUNNER && !(this->monitorDistanceLearner || this->monitorLearner)) {
         this->runner.Iterate();
         this->out = this->runner.GetOutputImage();
     }
@@ -287,7 +346,7 @@ void ConfigEditor::Save() {
                     XMLTagAttribute targetIDAttr = XMLTagAttribute("id", "0");
                     targetTag.AddAttribute(targetIDAttr);
 
-                    for(int i=0; i<this->runner.GetNumberOfTargets(); i++) {
+                    for(int i=0; i<this->targetEditor.NumContours(); i++) {
                         XMLTag newContour = XMLTag("contour");
                             XMLTagAttribute ContourIDAttr = XMLTagAttribute("id", std::to_string(i));
                             newContour.AddAttribute(ContourIDAttr);
@@ -323,16 +382,16 @@ void ConfigEditor::Save() {
                             targetTag.AddTag(newContour);
                     }
 
-                    XMLTag targetKnownWidth = XMLTag("knownWidth", std::to_string((int) this->runner.GetRunnerProperty(RunnerProperty::TRUE_WIDTH)));
+                    XMLTag targetKnownWidth = XMLTag("knownWidth", std::to_string(this->runner.GetRunnerProperty(RunnerProperty::TRUE_WIDTH)));
                         targetTag.AddTag(targetKnownWidth);
 
-                    XMLTag targetFocalWidth = XMLTag("focalWidth", std::to_string((int) this->runner.GetRunnerProperty(RunnerProperty::PERCEIVED_WIDTH)));
+                    XMLTag targetFocalWidth = XMLTag("focalWidth", std::to_string(this->runner.GetRunnerProperty(RunnerProperty::PERCEIVED_WIDTH)));
                         targetTag.AddTag(targetFocalWidth);
 
-                    XMLTag targetCalibratedDistance = XMLTag("calibratedDistance", std::to_string((int) this->runner.GetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE)));
+                    XMLTag targetCalibratedDistance = XMLTag("calibratedDistance", std::to_string(this->runner.GetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE)));
                         targetTag.AddTag(targetCalibratedDistance);
 
-                    XMLTag targetErrCorrect = XMLTag("distErrorCorrect", std::to_string((int) this->runner.GetRunnerProperty(RunnerProperty::ERROR_CORRECTION)));
+                    XMLTag targetErrCorrect = XMLTag("distErrorCorrect", std::to_string(this->runner.GetRunnerProperty(RunnerProperty::ERROR_CORRECTION)));
                         targetTag.AddTag(targetErrCorrect);
 
                     postprocessorTag.AddTag(targetTag);
@@ -379,7 +438,28 @@ void ConfigEditor::Close() {
 }
 
 
+void ConfigEditor::SetUDPEnabled(bool enabled) {
+    this->runner.SetUDPEnabled(enabled);
+}
+
+
+bool ConfigEditor::GetUDPEnabled() {
+    return this->runner.GetUDPEnabled();
+}
+
+
 void ConfigEditor::SetName(std::string name) {
     gtk_widget_set_name(this->configeditor, name.c_str());
 }
 
+void ConfigEditor::LearnTarget() {
+    ConfigEditor::learnerResult = ConfigEditor::learner.LearnTarget(ConfigEditor::learnerMinArea);
+    Flags::RaiseFlag("ConfigLearnerDone");
+    g_thread_exit(0);
+}
+
+void ConfigEditor::LearnDistance() {
+    ConfigEditor::distResult = ConfigEditor::distLearner.LearnFocalWidth(ConfigEditor::targetTrueWidth, targetTrueDistance);
+    Flags::RaiseFlag("DistanceLearnerDone");
+    g_thread_exit(0);
+}

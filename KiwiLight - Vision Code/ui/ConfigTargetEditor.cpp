@@ -160,10 +160,10 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName, Runner runner) {
                     Label xLabel = Label("X Distance: ");
                         distXPanel.Pack_start(xLabel.GetWidget(), false, false, 0);
 
-                    this->ContourDistX = NumberBox(-10.0, 10.0, 0.0);
+                    this->ContourDistX = NumberBox(-10.0, 10.0, 0.1, 0.0);
                         distXPanel.Pack_start(this->ContourDistX.GetWidget(), false, false, 0);
 
-                    this->ContourDistXErr = LabeledSlider("Error", 0.0, 100.0, 0.05, 5);
+                    this->ContourDistXErr = LabeledSlider("Error", 0.0, 100.0, 0.05, 0.5);
                         distXPanel.Pack_start(this->ContourDistXErr.GetWidget(), true, true, 0);
 
                     this->panel.Pack_start(distXPanel.GetWidget(), true, true, 0);
@@ -172,10 +172,10 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName, Runner runner) {
                     Label yLabel = Label("Y Distance: ");
                         distYPanel.Pack_start(yLabel.GetWidget(), false, false, 0);
 
-                    this->ContourDistY = NumberBox(-10.0, 10.0, 0.0);
+                    this->ContourDistY = NumberBox(-10.0, 10.0, 0.1, 0.0);
                         distYPanel.Pack_start(this->ContourDistY.GetWidget(), false, false, 0);
 
-                    this->ContourDistYErr = LabeledSlider("Error", 0.0, 100.0, 0.05, 5);
+                    this->ContourDistYErr = LabeledSlider("Error", 0.0, 100.0, 0.05, 0.5);
                         distYPanel.Pack_start(this->ContourDistYErr.GetWidget(), true ,true, 0);
 
                     this->panel.Pack_start(distYPanel.GetWidget(), true, true, 0);
@@ -347,6 +347,11 @@ void ConfigTargetEditor::SetTargetPropertyValue(int contour, TargetProperty prop
                 break;
         }
     }
+}
+
+
+void ConfigTargetEditor::SetExampleTarget(int targetID, ExampleTarget target) {
+    this->runner.SetExampleTarget(targetID, target);
 }
 
 

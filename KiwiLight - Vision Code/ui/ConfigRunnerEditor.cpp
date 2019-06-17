@@ -90,12 +90,12 @@ ConfigRunnerEditor::ConfigRunnerEditor(std::string fileName) {
         }
 
         Panel widthPanel = Panel(true, 0);
-                this->TargetWidth = LabeledSlider("True Width(inches)", 0.5, 120.0, 0.1, 5.0);
+                this->TargetWidth = LabeledSlider("True Width(inches)", 0.5, 240.0, 0.05, 12.0);
                     double realWidth = std::stod(firstTarget.GetTagsByName("knownWidth")[0].Content());
                     this->TargetWidth.SetValue(realWidth);
                     widthPanel.Pack_start(this->TargetWidth.GetWidget(), true, true, 0);
 
-                this->TargetFocalWidth = LabeledSlider("Perceived Width", 0, 2000, 1, 0);
+                this->TargetFocalWidth = LabeledSlider("Focal Width", 0, 2000, 1, 0);
                     double realFocalWidth = std::stod(firstTarget.GetTagsByName("focalWidth")[0].Content());
                     this->TargetFocalWidth.SetValue(realFocalWidth);
                     widthPanel.Pack_start(this->TargetFocalWidth.GetWidget(), true, true, 0);
@@ -103,12 +103,12 @@ ConfigRunnerEditor::ConfigRunnerEditor(std::string fileName) {
                 this->panel.Pack_start(widthPanel.GetWidget(), false, false, 0);
 
         Panel errorCorrectPanel = Panel(true, 0);
-            this->TargetCalibratedDistance = LabeledSlider("Calibrated Distance(inches)", 12.0, 240.0, 0.5, 24.0);
+            this->TargetCalibratedDistance = LabeledSlider("Calibrated Distance(inches)", 12.0, 240.0, 0.25, 24.0);
                 double realCalibratedDistance = std::stod(firstTarget.GetTagsByName("calibratedDistance")[0].Content());
                 this->TargetCalibratedDistance.SetValue(realCalibratedDistance);
                 errorCorrectPanel.Pack_start(this->TargetCalibratedDistance.GetWidget(), true, true, 0);
 
-            this->TargetDistErrCorrect = LabeledSlider("Distance Error Correction", -3.0,3.0, 0.01, 0.0);
+            this->TargetDistErrCorrect = LabeledSlider("Distance Error Correction", -3.0, 3.0, 0.01, 0.0);
                 double realErrCorrect = std::stod(firstTarget.GetTagsByName("distErrorCorrect")[0].Content());
                 this->TargetDistErrCorrect.SetValue(realErrCorrect);
                 errorCorrectPanel.Pack_start(this->TargetDistErrCorrect.GetWidget(), true, true, 0);
@@ -184,7 +184,7 @@ int ConfigRunnerEditor::GetUDPPort() {
  * Returns the value of the property described by prop.
  */
 double ConfigRunnerEditor::GetProperty(RunnerProperty prop) {
-    double finalValue = -1.0;
+    double finalValue = -1.00;
 
     switch(prop) {
         case RunnerProperty::IMAGE_WIDTH:

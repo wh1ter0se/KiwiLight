@@ -26,7 +26,8 @@ Contour::Contour(std::vector<cv::Point> points) {
     this->center = Point(centerX, centerY);
 
     cv::RotatedRect angleRect = cv::minAreaRect(points);
-    this->angle = angleRect.angle;
+    this->angle = (int) angleRect.angle;
+    this->angle = this->angle % 90;
 
     int trueArea = cv::contourArea(points);
     this->solidity = trueArea / (double) this->Area();

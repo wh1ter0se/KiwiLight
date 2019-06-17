@@ -133,6 +133,7 @@ namespace KiwiLight {
         public:
         NumberBox() {};
         NumberBox(double min, double max, double value);
+        NumberBox(double min, double max, double step, double value);
         void SetValue(double value);
         double GetValue();
         GtkWidget *GetWidget() { return this->numberBox; };
@@ -217,6 +218,7 @@ namespace KiwiLight {
         ConfirmationDialog(std::string message);
         void SetBody(Panel pnl);
         bool Show();
+        void ShowWithoutRunning();
         bool ShowAndGetResponse();
         void Destroy();
         GtkWidget *GetWidget() { return this->dialog; };
@@ -404,7 +406,6 @@ namespace KiwiLight {
 
         private:
         static void ScheduleApplySettings();
-        static void FRCSettings();
         int searchAndReturnValue(std::string searchString, std::string term);
         CameraSetting frameWidth,
                       frameHeight;
@@ -464,6 +465,7 @@ namespace KiwiLight {
         double GetPreProcessorProperty(PreProcessorProperty prop);
         void SetPreProcessorProperty(PreProcessorProperty prop, double value);
         SettingPair GetTargetPropertyValue(int contour, TargetProperty property);
+        void SetExampleTarget(int targetID, ExampleTarget target);
         void SetTargetPropertyValue(int contour, TargetProperty property, SettingPair values);
         GtkWidget *GetWidget() { return this->configtargeteditor; };
         void SetName(std::string name);
@@ -551,6 +553,8 @@ namespace KiwiLight {
         void UpdateImageOnly();
         void Save();
         void Close();
+        void SetUDPEnabled(bool enabled);
+        bool GetUDPEnabled();
         std::string GetFileName() { return this->fileName; };
         VideoCapture GetVideoCapture() { return this->runner.GetVideoStream(); };
         cv::Mat GetOutputImage() { return this->out; };
@@ -558,8 +562,28 @@ namespace KiwiLight {
         void SetName(std::string name);
 
         private:
+        //static variables for learning target information in a separate thread
+        static void LearnTarget();
+        static ConfigLearner learner;
+        static ExampleTarget learnerResult;
+        static int learnerMinArea;
+        bool monitorLearner;
+
+        //static variables for learning target distance in a separate thread
+        static void LearnDistance();
+        static TargetDistanceLearner distLearner;
+        static double targetTrueDistance;
+        static double targetTrueWidth;
+        static double distResult;
+        bool monitorDistanceLearner;
+
+        ConfirmationDialog learnerMonitorWindow;
+        Label learnerMonitorLabel;
+
+        ConfirmationDialog distLearnerMonitorWindow;
+        Label distMonitorLabel;
+
         Runner runner;
-        ConfigLearner learner;
         EditorMode editorMode;
         XMLDocument currentDoc;
         std::string fileName;

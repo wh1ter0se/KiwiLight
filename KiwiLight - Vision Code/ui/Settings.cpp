@@ -44,17 +44,9 @@ Settings::Settings(int index) {
 
         this->settings.push_back(CameraSetting(settingName, min, max, value));
         panel.Pack_start(this->settings[i].GetWidget(), true, false, 0);
-
-        // //add a separator so it doesn't look like trash
-        // Separator sep = Separator(true);
-        //     panel.Pack_start(sep.GetWidget(), true, false, 0);
     }
 
     Panel buttonPanel = Panel(true, 0);
-
-        Button frcButton = Button("Recommended FRC Settings", Settings::FRCSettings);
-            buttonPanel.Pack_start(frcButton.GetWidget(), true, true, 5);
-
         Button applyButton = Button("Apply Settings", Settings::ScheduleApplySettings);
             buttonPanel.Pack_start(applyButton.GetWidget(), true, true, 5);
 
@@ -69,12 +61,6 @@ Settings::Settings(int index) {
  */
 void Settings::ScheduleApplySettings() {
     Flags::RaiseFlag("CloseCamera");
-}
-
-
-void Settings::FRCSettings() {
-    std::cout << "Display FRC Settings" << std::endl;
-    std::cout.flush();
 }
 
 /**

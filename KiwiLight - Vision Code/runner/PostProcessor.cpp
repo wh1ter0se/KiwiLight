@@ -39,6 +39,8 @@ std::vector<Target> PostProcessor::ProcessImage(cv::Mat img) {
     for(int k=0; k<this->targets.size(); k++) {
         std::vector<Target> targs = this->targets[k].GetTargets(objects);
 
+        // std::cout << "targets: " << targs.size() << std::endl;
+
         // add results to our found targets 
         for(int a=0; a<targs.size(); a++) {
             foundTargets.push_back(targs[a]);
@@ -58,6 +60,18 @@ void PostProcessor::SetTargetContourProperty(int contour, TargetProperty prop, S
 
 SettingPair PostProcessor::GetTargetContourProperty(int contour, TargetProperty prop) {
     return this->targets[0].GetContourProperty(contour, prop);
+}
+
+
+ExampleTarget PostProcessor::GetExampleTargetByID(int id) {
+    for(int i=0; i<this->targets.size(); i++) {
+        if(this->targets[i].ID() == id) {
+            return this->targets[i];
+        }
+    }
+    
+    std::cout << "WARNING: Target at ID " << id << " does not exist!" << std::endl;
+    return targets[0];
 }
 
 

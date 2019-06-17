@@ -16,7 +16,16 @@
 using namespace cv;
 
 namespace KiwiLight {
-    
+
+    struct Distance {
+        Distance(double x, double y) {
+            this->x = x;
+            this->y = y;
+        }
+        double x;
+        double y;
+    };
+
     /**
      * An easy event and variable flagging system
      */
@@ -51,6 +60,7 @@ namespace KiwiLight {
     class DataUtils {
         public:
         static std::vector<double> SortLeastGreatestDouble(std::vector<double> data);
+        static double Total(std::vector<double> data);
         static double Average(std::vector<double> data);
         static double Median(std::vector<double> data);
         static double Greatest(std::vector<double> data);
@@ -60,6 +70,7 @@ namespace KiwiLight {
         static double MostCommonValue(std::vector<double> data);
         static bool IsOutlier(std::vector<double> data, int indexOfValue, double allowableError);
         static std::vector<double> RemoveOutliers(std::vector<double> data, double allowableError);
+        static std::string VectorToString(std::vector<double> data);
 
         std::vector<int> VectorDoubleToInt(std::vector<double> data);
         std::vector<double> VectorIntToDouble(std::vector<int> data);
@@ -73,6 +84,11 @@ namespace KiwiLight {
         public:
         UDP(){};
         UDP(std::string dest_ip, int port);
+        UDP(std::string dest_ip, int port, bool blockUntilConnected);
+        bool AttemptToConnect();
+        bool Connected() { return this->connected; };
+        void SetEnabled(bool enabled);
+        bool IsEnabled() { return this->enabled; };
         void Send(std::string msg);
         std::string Recieve();
         void Close();
@@ -80,6 +96,9 @@ namespace KiwiLight {
         private:
         int sock; //sock fd returned by socket() call
         sockaddr_in server_address; //address of the server
+
+        bool connected;
+        bool enabled;
     };
 
     class XMLTagAttribute {
@@ -143,16 +162,6 @@ namespace KiwiLight {
         private:
         bool hasContents;
         std::vector<XMLTag> children;
-    };
-
-
-    struct Distance {
-        Distance(double x, double y) {
-            this->x = x;
-            this->y = y;
-        }
-        double x;
-        double y;
     };
 
     /**

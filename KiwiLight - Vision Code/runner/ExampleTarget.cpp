@@ -26,7 +26,7 @@ ExampleTarget::ExampleTarget(int id, std::vector<ExampleContour> contours, doubl
 std::vector<Target> ExampleTarget::GetTargets(std::vector<Contour> objects) {
     std::vector<Target> foundTargets = std::vector<Target>();
     std::vector<Contour> validContours = std::vector<Contour>();
-
+    
     //find valid contours
     for(int i=0; i<objects.size(); i++) {
         for(int k=0; k<this->contours.size(); k++) {
@@ -58,24 +58,39 @@ std::vector<Target> ExampleTarget::GetTargets(std::vector<Contour> objects) {
                 places[i] = 0;
             }
 
+            std::vector< std::vector<int> > originalCombos;
+
             //while new combos are possible, generate and test combos of targets
             while(!ArrayMaxed(places, numTargetContours, numImageContours)) {
-                std::string out = "";
                 if(!ContainsDuplicates(places, numTargetContours)) {
-                    std::vector<Contour> potentialTarget = std::vector<Contour>();
-                    for(int i=0; i<numTargetContours; i++) {
-                        int index = places[i];
-                        potentialTarget.push_back(objects[index]);
-                        out += std::to_string(index) + " ";
-                    }
+                    if(!CombonationAlreadyTested(places, originalCombos, numTargetContours)) {
+                        //add to original combos and then test;
 
-                    //test new target
-                    if(isTarget(potentialTarget)) {
-                        Target newTarget = Target(this->id, potentialTarget, this->knownHeight, this->focalHeight, this->distErrorCorrect, this->calibratedDistance);
-                        foundTargets.push_back(newTarget);
+                        //we create new vector to protect it from being changed in the vector
+                        std::vector<int> newOriginalCombo;
+
+                        for(int i=0; i<numTargetContours; i++) {
+                            newOriginalCombo.push_back(places[i]);
+                        }
+                        originalCombos.push_back(newOriginalCombo);
+
+                        //the testing part
+
+                        std::vector<Contour> potentialTarget = std::vector<Contour>();
+                        for(int i=0; i<numTargetContours; i++) {
+                            int index = places[i];
+                            potentialTarget.push_back(objects[index]);
+                        }
+
+                        //test new target
+                        if(isTarget(potentialTarget)) {
+                            Target newTarget = Target(this->id, potentialTarget, this->knownHeight, this->focalHeight, this->distErrorCorrect, this->calibratedDistance);
+                            foundTargets.push_back(newTarget);
+                        }
                     }
                 }
 
+                //calculate the next combo of contours
                 for(int i=0; i<numTargetContours; i++) {
                     places[i]++;
 
@@ -85,7 +100,7 @@ std::vector<Target> ExampleTarget::GetTargets(std::vector<Contour> objects) {
 
                     if(places[i] < numImageContours) {
                         break;
-                    }   
+                    }  
                 }
             }
         }
@@ -103,7 +118,7 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
      * Determine if the passed vector of contours is a target or not by comparing the 
      * distances from the center of the target in target widths.
      * if a contour passes, it is removed from the array.
-     * if the array is empty by the end of the method, return true.0
+     * if the array is empty by the end of the method, return true
      */
 
     std::vector<Contour> imageContours = objects;
@@ -112,30 +127,67 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
     int totalGood = 0;
 
     //find center of target by averaging the x and y coordinates
-    int centerX = 0;
-    int centerY = 0;
-    for(int i=0; i<objects.size(); i++) {
-        centerX += objects[i].X();
-        centerY += objects[i].Y();
+    // int centerX = 0;
+    // int centerY = 0;
+    // for(int i=0; i<objects.size(); i++) {
+    //     centerX += objects[i].X();
+    //     centerY += objects[i].Y();
+    // }
+
+    // centerX /= objects.size();
+    // centerY /= objects.size();
+
+    int biggestX = -5000;
+    int smallestX = 5000;
+    int biggestY = -5000;
+    int smallestY = 5000;
+
+    int biggestXWidth = 0;
+    int biggestYHeight = 0;
+
+    for(int i=0; i<imageContours.size(); i++) {
+        Contour object = imageContours[i];
+
+        if(object.X() > biggestX) {
+            biggestX = object.X();
+            biggestXWidth = object.Width();
+        }
+        
+        if(object.X() < smallestX) {
+            smallestX = object.X();
+        }
+
+        if(object.Y() > biggestY) {
+            biggestY = object.Y();
+            biggestYHeight = object.Height();
+        }
+
+        if(object.Y() < smallestY) {
+            smallestY = object.Y();
+        }
     }
 
-    centerX /= objects.size();
-    centerY /= objects.size();
+    int objectWidth = (biggestX - smallestX) + biggestXWidth;
+    int objectHeight = (biggestY - smallestY) + biggestYHeight;
+
+    int centerX = (objectWidth / 2) + smallestX;
+    int centerY = (objectWidth / 2) + smallestY;
 
     for(int i=0; i<imageContours.size(); i++) {
         Contour object = imageContours[i];
         //determine how many widths to the center for the object and compare to our targets
         int width = object.Width();
+
+        int distToCenterX = centerX - object.X();
+        double widthsToCenterX = distToCenterX / (double) width;
+
+        int distToCenterY = centerY - object.Y();
+        double widthsToCenterY = distToCenterY / (double) width;
+
         for(int k=0; k<targetContours.size(); k++) {
             //measure distance in pixels, convert to widths, and compare to exampleContours.
-            int distToCenterX = centerX - object.X();
-            double widthsToCenterX = distToCenterX / (double) width;
-
             bool distXValid = (widthsToCenterX > targetContours[k].DistX().LowerBound() &&
                                widthsToCenterX < targetContours[k].DistX().UpperBound() );
-            
-            int distToCenterY = centerY - object.Y();
-            double widthsToCenterY = distToCenterY / (double) width;
 
             bool distYValid = (widthsToCenterY > targetContours[k].DistY().LowerBound() &&
                                widthsToCenterY < targetContours[k].DistY().UpperBound() );
@@ -144,6 +196,8 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
                 totalGood++;
             }
         }
+
+        // std::cout << std::endl;
     }
 
     return (this->contours.size() == totalGood);
@@ -165,6 +219,12 @@ ExampleContour ExampleTarget::GetExampleContourByID(int id) {
 
 void ExampleTarget::SetContourProperty(int contour, TargetProperty prop, SettingPair values) {  
     //get the index of the contour we want to change, that way we directly set the values instead of taking a reference
+        
+    //make sure we have a contour with the id "contour"
+    while(contour >= this->contours.size()) {
+        this->AddGenericContour();
+    }
+
     int contourIndex = 0;
     for(int i=0; i<this->contours.size(); i++) {
         if(this->contours[i].ID() == contour) {
@@ -251,7 +311,7 @@ void ExampleTarget::SetTargetProperty(RunnerProperty prop, double value) {
 
 
 double ExampleTarget::GetTargetProperty(RunnerProperty prop) {
-    double value = -1;
+    double value = -1.0;
 
     switch(prop) {
         case RunnerProperty::TRUE_WIDTH:
@@ -269,6 +329,18 @@ double ExampleTarget::GetTargetProperty(RunnerProperty prop) {
     }
 
     return value;
+}
+
+
+void ExampleTarget::AddGenericContour() {
+    SettingPair genericDistX = SettingPair(0.0, 0.4);
+    SettingPair genericDistY = SettingPair(0.0, 0.4);
+    SettingPair genericAngle = SettingPair(0.0, 12.0);
+    SettingPair genericSolidity = SettingPair(1.0, 0.35);
+    SettingPair genericAspectRatio = SettingPair(1.0, 0.35);
+
+    ExampleContour newContour = ExampleContour(this->contours.size(), genericDistX, genericDistY, genericAngle, genericAspectRatio, genericSolidity, 1000);
+    this->contours.push_back(newContour);
 }
 
 
@@ -290,4 +362,32 @@ bool ExampleTarget::ContainsDuplicates(int arr[], int size) {
             }
         }
     }
+}
+
+
+bool ExampleTarget::CombonationAlreadyTested(int combo[], std::vector< std::vector<int> > testedCombos, int comboSize) {    
+    for(int i=0; i<testedCombos.size(); i++) {
+        std::vector<int> originalCombo = testedCombos[i];
+        int matchingNumbers = 0;
+
+        //compare all numbers between the two arrays
+        for(int x=0; x<comboSize; x++) {
+            int numberToTest = combo[x];
+
+            for(int y=0; y<comboSize; y++) {
+                int originalNumber = originalCombo[y];
+
+                if(numberToTest == originalNumber) {
+                    matchingNumbers++;
+                }   
+            }
+        }
+
+        //if all numbers in the combo match, then "combo" is not original, therefore return true.
+        if(matchingNumbers == comboSize) {
+            return true;
+        }
+    }
+
+    return false;
 }

@@ -85,6 +85,7 @@ namespace KiwiLight {
 
     class Contour {
         public:
+        Contour() {};
         Contour(std::vector<cv::Point> points);
         int X()        { return this->x;      };
         int Y()        { return this->y;      };
@@ -92,7 +93,7 @@ namespace KiwiLight {
         int Width()    { return this->width;  };
         int Height()   { return this->height; };
         int Angle()    { return this->angle;  };
-        int Area()     { return this->width * this->height;   };
+        int Area()     { return (this->width * this->height);   };
         double AspectRatio() { return this->width / (double) this->height; };
         double Solidity()    { return this->solidity;    };
 
@@ -181,6 +182,7 @@ namespace KiwiLight {
 
     class ExampleTarget {
         public:
+        ExampleTarget() {};
         ExampleTarget(int id, std::vector<ExampleContour> contours, double knownHeight, double focalHeight, double distErrorCorrect, double calibratedDistance);
         std::vector<Target> GetTargets(std::vector<Contour> contours);
         bool isTarget(std::vector<Contour> contours);
@@ -191,10 +193,12 @@ namespace KiwiLight {
         SettingPair GetContourProperty(int contour, TargetProperty prop);
         void SetTargetProperty(RunnerProperty prop, double value);
         double GetTargetProperty(RunnerProperty prop);
+        void AddGenericContour();
 
         private:
         bool ArrayMaxed(int arr[], int size, int max);
         bool ContainsDuplicates(int arr[], int size);
+        bool CombonationAlreadyTested(int combonation[], std::vector< std::vector<int> > testedCombos, int comboSize);
         int id;
         std::vector<ExampleContour> contours;
 
@@ -246,6 +250,7 @@ namespace KiwiLight {
         SettingPair GetTargetContourProperty(int contour, TargetProperty prop);
         void SetRunnerProperty(RunnerProperty prop, double value);
         double GetRunnerProperty(RunnerProperty prop);
+        ExampleTarget GetExampleTargetByID(int id);
         std::vector<Target> ProcessImage(cv::Mat img);
 
         private:
@@ -296,6 +301,9 @@ namespace KiwiLight {
         cv::VideoCapture GetVideoStream() { return this->cap; };
         Size GetConstantSize() { return this->constantResize; };
         ExampleTarget GetExampleTargetByID(int id);
+        void SetUDPEnabled(bool enabled);
+        bool GetUDPEnabled();
+        void SetExampleTarget(int targetID, ExampleTarget target);
         void SetPreprocessorProperty(PreProcessorProperty prop, double value);
         double GetPreprocessorProperty(PreProcessorProperty prop);
         void SetPostProcessorContourProperty(int contour, TargetProperty prop, SettingPair values);
@@ -326,6 +334,8 @@ namespace KiwiLight {
              debug;
 
         int centerOffset;
+
+        UDP udp;
     };
 
     /**
@@ -339,6 +349,7 @@ namespace KiwiLight {
         void Update(int minArea);
         void Stop();
         void SetConstantResize(Size sz);
+        std::string GetOutputString() { return this->outString; }; //this is here because I run this in a separate thread and want to show progress
         cv::Mat GetOriginalImage() { return this->original; };
         cv::Mat GetOutputImage() { return this->out; };
 
@@ -348,6 +359,9 @@ namespace KiwiLight {
         cv::Mat original,
                 out;
         PreProcessor preprocessor;
+
+        int framesCollected;
+        std::string outString;
     };
 
     /**
@@ -359,12 +373,16 @@ namespace KiwiLight {
         TargetDistanceLearner(PreProcessor preprocessor, PostProcessor postprocessor, VideoCapture cap, Size constantSz);
         double LearnFocalWidth(double trueWidth, double trueDistance);
         double LearnErrorCorrect(double trueWidth, double trueDistance, double calibratedDistance, double focalWidth);
+        std::string GetOutputString() { return this->outString; };
 
         private:
         Size constantResize;
         PreProcessor preprocessor;
         PostProcessor postprocessor;
         VideoCapture cap;
+
+        int framesCollected;
+        std::string outString;
     };
 }
 

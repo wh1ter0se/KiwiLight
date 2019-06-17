@@ -55,7 +55,7 @@ Target::Target(int id, std::vector<Contour> contours, double knownHeight, double
                 biggestX = contours[i].X();
                 biggestXWidth = contours[i].Width();
             } 
-            else if(contours[i].X() < smallestX) {
+             if(contours[i].X() < smallestX) {
                 smallestX = contours[i].X();
             }
 
@@ -63,7 +63,7 @@ Target::Target(int id, std::vector<Contour> contours, double knownHeight, double
                 biggestY = contours[i].Y();
                 biggestYHeight = contours[i].Height();
             }
-            else if(contours[i].Y() < smallestY) {
+             if(contours[i].Y() < smallestY) {
                 smallestY = contours[i].Y();
             }
         }
@@ -72,6 +72,11 @@ Target::Target(int id, std::vector<Contour> contours, double knownHeight, double
         this->height = (biggestY - smallestY) + biggestYHeight;
         this->x = (this->width / 2) + smallestX;
         this->y = (this->height / 2) + smallestY;
+
+        // std::cout << "biggest x: " << biggestX << std::endl;
+        // std::cout << "biggest x width: " << biggestXWidth << std::endl;
+        // std::cout << "smallest x: " << smallestX << std::endl;
+        // std::cout << "total width: " << this->width << std::endl;
     }
 }
 

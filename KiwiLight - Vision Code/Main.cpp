@@ -41,7 +41,8 @@ Runner runner;
 bool displayingImage = false,
      cameraOpen = true,
      imageCaptureSuccess = false,
-     pauseStreamer = false;
+     pauseStreamer = false,
+     udpEnabledForIterate = false;
 
 UIMode uiMode;
 
@@ -168,6 +169,7 @@ void RunStream() {
                     break;
                 case UIMode::UI_CONFIG_RUNNING:
                 case UIMode::UI_QUTTING:
+                    cam.~VideoCapture();
                     g_thread_exit(0);
                     break;
             }
@@ -225,12 +227,34 @@ void EditSelected() {
 
     if(uiMode == UIMode::UI_RUNNER) {
         configEditor = ConfigEditor(runner.GetFileName(), cam);
+        configEditor.SetUDPEnabled(runner.GetUDPEnabled());
     } else if(uiMode == UIMode::UI_STREAM) {
         configEditor = ConfigEditor("confs/generic.xml", cam);
     }
     
     uiMode = UIMode::UI_EDITOR;
     pauseStreamer = false;
+}
+
+
+void ToggleUDP() {
+    bool udpEnabled;
+
+    if(uiMode == UIMode::UI_RUNNER) {
+        bool udpIsEnabled = runner.GetUDPEnabled();
+        runner.SetUDPEnabled(!udpIsEnabled);
+        udpEnabled = !udpIsEnabled;
+    }
+
+    if(uiMode == UIMode::UI_EDITOR) {
+        bool udpIsEnabled = configEditor.GetUDPEnabled();
+        configEditor.SetUDPEnabled(!udpIsEnabled);
+        udpEnabled = !udpIsEnabled;
+    }
+
+    //update UI based on what state the UDP is.
+    configPanel.SetUDPEnabled(udpEnabled);
+    udpEnabledForIterate = udpEnabled;
 }
 
 /**
@@ -262,7 +286,6 @@ void HELPME() {
 
 void Quit() {
     uiMode == UIMode::UI_QUTTING;
-    cam.~VideoCapture();
     gtk_main_quit();
 }
 
@@ -317,7 +340,7 @@ void CreateMenuBar() {
  */
 int main(int argc, char *argv[]) {
 
-    //check argc. If 1 arg is present, make ui, otherwise, the user wants something else.
+    //check argc. If 1 arg (aka: only the command) is present, make ui, otherwise, the user wants something else.
     if(argc == 1) {
         //lets make ourselves a ui
         gtk_init(&argc, &argv);

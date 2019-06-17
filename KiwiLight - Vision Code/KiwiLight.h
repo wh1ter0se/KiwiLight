@@ -25,6 +25,7 @@ namespace KiwiLight {
         public:
         ConfigPanel() {};
         ConfigPanel(std::string configFilePath);
+        void SetUDPEnabled(bool enabled);
         void LoadConfig(std::string fileName);
         void Clear();
         std::string GetConfig() { return this->configFile; };
@@ -43,6 +44,7 @@ namespace KiwiLight {
               UDPAddressLabel,
               UDPPortLabel;
         Button editConfig;
+        Button toggleUDP;
         std::string configFile;
         GtkWidget *configPanel;
     };

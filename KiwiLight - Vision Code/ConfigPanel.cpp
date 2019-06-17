@@ -7,8 +7,8 @@
 
 using namespace KiwiLight;
 
-// extern void RunSelected(); //from Main.cpp
 extern void EditSelected(); //from Main.cpp
+extern void ToggleUDP(); //from Main.cpp
 
 /**
  * Creates a new config panel. No configuration will be loaded.
@@ -50,6 +50,9 @@ ConfigPanel::ConfigPanel(std::string configFilePath) {
             this->editConfig = Button("Edit", EditSelected);
                 this->buttonPanel.Pack_start(editConfig.GetWidget(), true, true, 0);
 
+            this->toggleUDP = Button("Enable UDP", ToggleUDP);
+                this->buttonPanel.Pack_start(toggleUDP.GetWidget(), true, true, 0);
+
             this->panel.Pack_start(this->buttonPanel.GetWidget(), true, true, 0);
 
     if(configFilePath != "") {
@@ -57,6 +60,17 @@ ConfigPanel::ConfigPanel(std::string configFilePath) {
     }
 
     this->configPanel = this->panel.GetWidget();
+}
+
+/**
+ * Sets the UI based on whether or not the UDP is enabled.
+ */
+void ConfigPanel::SetUDPEnabled(bool enabled) {
+    if(enabled) {
+        this->toggleUDP.SetText("Disable UDP");
+    } else {
+        this->toggleUDP.SetText("Enable UDP");
+    }
 }
 
 /**

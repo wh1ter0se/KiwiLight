@@ -16,6 +16,14 @@ NumberBox::NumberBox(double min, double max, double value) {
 }
 
 
+NumberBox::NumberBox(double min, double max, double step, double value) {
+    this->min = min;
+    this->max = max;
+    this->numberBox = gtk_spin_button_new_with_range(min, max, step);
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(this->numberBox), value);
+}
+
+
 void NumberBox::SetValue(double value) {
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(this->numberBox), value);
 }
