@@ -19,6 +19,17 @@ LabeledSlider::LabeledSlider(std::string label, double min, double max, double s
 }
 
 
+LabeledSlider::LabeledSlider(bool horizontal, std::string label, double min, double max, double step, double value) {
+    this->panel = Panel(false, 0);
+        this->label = Label(label.c_str());
+            this->panel.Pack_start(this->label.GetWidget(), false, false, 0);
+        this->slider = Slider(horizontal, min, max, step, value);
+            this->panel.Pack_start(this->slider.GetWidget(), false, false, 0);
+
+    this->labeledslider = this->panel.GetWidget();
+}
+
+
 double LabeledSlider::GetValue() {
     return (double) this->slider.GetValue();
 }

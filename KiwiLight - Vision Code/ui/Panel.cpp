@@ -13,10 +13,7 @@ using namespace KiwiLight;
  */
 Panel::Panel(bool horizontal, int spacing) {
     //using depreciated gtk_hbox_new() until gtk_box_new() is implemented in current version of gtk.
-    if(horizontal)
-        this->panel = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, spacing);
-    else
-        this->panel = gtk_box_new(GTK_ORIENTATION_VERTICAL, spacing);
+    this->panel = gtk_box_new((horizontal ? GTK_ORIENTATION_HORIZONTAL : GTK_ORIENTATION_VERTICAL), spacing);
 }
 
 /**

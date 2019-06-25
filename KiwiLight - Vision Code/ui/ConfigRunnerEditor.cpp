@@ -19,6 +19,11 @@ static void SaveAndExit() {
 }
 
 
+static void UDPReconnect() {
+    Flags::RaiseFlag("UDPReconnect");
+}
+
+
 ConfigRunnerEditor::ConfigRunnerEditor(std::string fileName) {
 
     //define the xml file we will be parsing, and get the postprocessor tag to pull information from it
@@ -33,27 +38,38 @@ ConfigRunnerEditor::ConfigRunnerEditor(std::string fileName) {
             UDPHeader.SetName("subHeader");
             this->panel.Pack_start(UDPHeader.GetWidget(), false, false, 0);
 
-        Panel UDPAddrPanel = Panel(true, 0);
-            Label UDPAddrPanelHeader = Label("UDP Address(IPv4): ");
-                UDPAddrPanel.Pack_start(UDPAddrPanelHeader.GetWidget(), false, false, 0);
+        Panel UDPPanel = Panel(true, 0);
+            Panel UDPInput = Panel(false, 0);
 
-            this->UDPAddr = TextBox("127.0.0.1");
-                std::string realAddr = udpTag.GetTagsByName("address")[0].Content();
-                UDPAddr.SetText(realAddr);
-                UDPAddrPanel.Pack_start(this->UDPAddr.GetWidget(), true, true, 0);
+                Panel UDPAddrPanel = Panel(true, 0);
+                    Label UDPAddrPanelHeader = Label("UDP Address(IPv4): ");
+                        UDPAddrPanel.Pack_start(UDPAddrPanelHeader.GetWidget(), false, false, 0);
 
-            this->panel.Pack_start(UDPAddrPanel.GetWidget(), true, true, 0);
+                    this->UDPAddr = TextBox("127.0.0.1");
+                        std::string realAddr = udpTag.GetTagsByName("address")[0].Content();
+                        UDPAddr.SetText(realAddr);
+                        UDPAddrPanel.Pack_start(this->UDPAddr.GetWidget(), true, true, 0);
 
-        Panel UDPPortPanel = Panel(true, 0);
-            Label UDPPortPanelHeader = Label("UDP Port: ");
-                UDPPortPanel.Pack_start(UDPPortPanelHeader.GetWidget(), false, false, 0);
+                    UDPInput.Pack_start(UDPAddrPanel.GetWidget(), true, true, 0);
 
-            this->UDPPort = TextBox("3695");
-                std::string realPort = udpTag.GetTagsByName("port")[0].Content();
-                UDPPort.SetText(realPort);
-                UDPPortPanel.Pack_start(this->UDPPort.GetWidget(), true, true, 0);
+                Panel UDPPortPanel = Panel(true, 0);
+                    Label UDPPortPanelHeader = Label("UDP Port: ");
+                        UDPPortPanel.Pack_start(UDPPortPanelHeader.GetWidget(), false, false, 0);
 
-            this->panel.Pack_start(UDPPortPanel.GetWidget(), true, true, 0);
+                    this->UDPPort = TextBox("3695");
+                        std::string realPort = udpTag.GetTagsByName("port")[0].Content();
+                        UDPPort.SetText(realPort);
+                        UDPPortPanel.Pack_start(this->UDPPort.GetWidget(), true, true, 0);
+
+                    UDPInput.Pack_start(UDPPortPanel.GetWidget(), true, true, 0);
+
+                UDPPanel.Pack_start(UDPInput.GetWidget(), true, true, 0);
+                
+            Button reconnectUDP = Button("Reconnect", UDPReconnect);
+                UDPPanel.Pack_start(reconnectUDP.GetWidget(), false, false, 0);
+
+            this->panel.Pack_start(UDPPanel.GetWidget(), false, false, 0);
+
 
         Separator sep = Separator(true);
             this->panel.Pack_start(sep.GetWidget(), false, false, 0);

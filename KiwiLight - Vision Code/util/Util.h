@@ -85,6 +85,7 @@ namespace KiwiLight {
         UDP(){};
         UDP(std::string dest_ip, int port);
         UDP(std::string dest_ip, int port, bool blockUntilConnected);
+        UDP(std::string this_ip, std::string dest_ip, int port, bool blockUntilConnected);
         bool AttemptToConnect();
         bool Connected() { return this->connected; };
         void SetEnabled(bool enabled);
@@ -95,7 +96,7 @@ namespace KiwiLight {
 
         private:
         int sock; //sock fd returned by socket() call
-        sockaddr_in server_address; //address of the server
+        sockaddr_in client_address; //address of the server
 
         bool connected;
         bool enabled;

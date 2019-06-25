@@ -1,7 +1,7 @@
 <camera index="0">
     <resolution>
-        <width>0</width>
-        <height>0</height>
+        <width>600</width>
+        <height>400</height>
     </resolution>
     <settings>
         <setting name="brightness">35</setting>

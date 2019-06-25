@@ -49,6 +49,19 @@ namespace KiwiLight {
     };
 
 
+    class Scrollable : public Widget {
+        public:
+        Scrollable() {};
+        Scrollable(bool horizontal, bool vertical);
+        void PackWidget(GtkWidget *wid);
+        GtkWidget *GetWidget() { return this->scrollable; };
+        void SetName(std::string name);
+
+        private:
+        GtkWidget *scrollable;
+    };
+
+
     class Frame : public Widget {
         public:
         Frame() {};
@@ -169,6 +182,7 @@ namespace KiwiLight {
         public:
         Slider() {};
         Slider(double min, double max, double step, double value);
+        Slider(bool horizontal, double min, double max, double step, double value);
         void SetValue(double value);
         double GetValue();
         GtkWidget *GetWidget() { return this->slider; };
@@ -319,6 +333,7 @@ namespace KiwiLight {
         public:
         LabeledSlider() {};
         LabeledSlider(std::string label, double min, double max, double step, double value);
+        LabeledSlider(bool horizontal, std::string label, double min, double max, double step, double value);
         double GetValue();
         void SetValue(double value);
         void SetLabel(std::string text);
@@ -394,7 +409,7 @@ namespace KiwiLight {
     class Settings : public Widget {
         public:
         Settings() {};
-        Settings(int index);
+        Settings(int index, VideoCapture cap);
         void Update();
         void UpdateValue();
         void Show() { gtk_widget_show_all(this->settingsWidget); };
@@ -478,6 +493,7 @@ namespace KiwiLight {
         Runner runner;
 
         Panel panel;
+        Scrollable scrl;
 
         CheckBox fullPreProcessor,
                  partialPreProcessor;
@@ -555,6 +571,9 @@ namespace KiwiLight {
         void Close();
         void SetUDPEnabled(bool enabled);
         bool GetUDPEnabled();
+        void StopCamera();
+        void RestartCamera();
+        void ResetRunnerResolution();
         std::string GetFileName() { return this->fileName; };
         VideoCapture GetVideoCapture() { return this->runner.GetVideoStream(); };
         cv::Mat GetOutputImage() { return this->out; };

@@ -35,7 +35,7 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
                     Label settingsHeader = Label("Camera Settings");
                         settingsHeader.SetName("header");
                         settingsContent.Pack_start(settingsHeader.GetWidget(), false, false, 0);
-                    this->cameraSettings = Settings(0);
+                    this->cameraSettings = Settings(this->runner.GetCameraIndex(), cap);
                         settingsContent.Pack_start(this->cameraSettings.GetWidget(), false, false, 0);
                     this->content.Pack_start(settingsContent.GetWidget(), true, true, 0);
 
@@ -43,8 +43,8 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
                     Label targetHeader = Label("Targeting");
                         targetHeader.SetName("header");
                         targetContent.Pack_start(targetHeader.GetWidget(), false, false, 0);
-                    this->targetEditor = ConfigTargetEditor(fileName, this->runner);
-                        targetContent.Pack_start(this->targetEditor.GetWidget(), false, false, 0);
+                        this->targetEditor = ConfigTargetEditor(fileName, this->runner);
+                            targetContent.Pack_start(this->targetEditor.GetWidget(), true, true, 0);
                     this->content.Pack_start(targetContent.GetWidget(), true, true, 0);
 
                 Panel runnerContent = Panel(false, 0);
@@ -247,6 +247,13 @@ void ConfigEditor::Update() {
         this->monitorDistanceLearner = false;
     }
 
+    if(Flags::GetFlag("UDPReconnect")) {
+        Flags::LowerFlag("UDPReconnect");
+        std::string newUDPAddr = this->runnerEditor.GetUDPAddress();
+        int newUDPPort = this->runnerEditor.GetUDPPort();
+        this->runner.ReconnectUDP(newUDPAddr, newUDPPort);
+    }
+
     if(this->monitorDistanceLearner) {
         this->distMonitorLabel.SetText(ConfigEditor::distLearner.GetOutputString());
     }
@@ -445,6 +452,29 @@ void ConfigEditor::SetUDPEnabled(bool enabled) {
 
 bool ConfigEditor::GetUDPEnabled() {
     return this->runner.GetUDPEnabled();
+}
+
+
+void ConfigEditor::StopCamera() {
+    this->runner.Stop();
+}
+
+
+void ConfigEditor::RestartCamera() {
+    this->runner.Start();
+
+    int camResX = this->cameraSettings.GetWidth();
+    int camResY = this->cameraSettings.GetHeight();
+    Size newRes = Size(camResX, camResY);
+    this->runner.SetResolution(newRes);
+}
+
+
+void ConfigEditor::ResetRunnerResolution() {
+    int camResX = this->cameraSettings.GetWidth();
+    int camResY = this->cameraSettings.GetHeight();
+    Size newRes = Size(camResX, camResY);
+    this->runner.SetResolution(newRes);
 }
 
 

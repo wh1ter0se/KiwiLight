@@ -11,18 +11,21 @@ using namespace KiwiLight;
 /**
  * Create a new Settings menu.
  */
-Settings::Settings(int index) {
+Settings::Settings(int index, VideoCapture cap) {
     //get the settings for the current camera, as well as their ranges.
     std::string command = "v4l2-ctl -d " + std::to_string(index) + " --list-ctrls";
     std::string settingsAsString = Shell::ExecuteCommand(command);
     std::vector<std::string> settingsList = StringUtils::SplitString(settingsAsString, '\n');
 
+    this->camWidth = cap.get(CAP_PROP_FRAME_WIDTH);
+    this->camHeight = cap.get(CAP_PROP_FRAME_HEIGHT);
+
     Panel panel = Panel(false, 5);
 
-    this->frameWidth  = CameraSetting("Frame Width (int)", 1, 2000, 600);
+    this->frameWidth  = CameraSetting("Frame Width (int)", 1, 2000, this->camWidth);
         panel.Pack_start(frameWidth.GetWidget(), true, false, 0);
 
-    this->frameHeight = CameraSetting("Frame Height (int)", 1, 2000, 400);
+    this->frameHeight = CameraSetting("Frame Height (int)", 1, 2000, this->camHeight);
         panel.Pack_start(frameHeight.GetWidget(), true, false, 0);
 
     Label warning = Label("NOTE: Some resolutions may not be supported by your camera!");

@@ -88,11 +88,13 @@ void Update() {
         Flags::LowerFlag("CloseCamera");
         cameraOpen = false;
         displayingImage = true; //block out updating image so nothing uses camera
-        if(uiMode == UIMode::UI_RUNNER) {
-            runner.Stop();
-        } else {
-            cam.~VideoCapture();
-        }
+        // if(uiMode == UIMode::UI_RUNNER) {
+        //     runner.Stop();
+        // } else if(uiMode == UIMode::UI_EDITOR) {
+        //     configEditor.StopCamera();
+        // } else {
+        //     cam.~VideoCapture();
+        // }
         
         Flags::RaiseFlag("CameraClosed");
     }
@@ -101,11 +103,13 @@ void Update() {
         Flags::LowerFlag("StartCamera");
         cameraOpen = true;
         displayingImage = false;
-        if(uiMode == UIMode::UI_RUNNER) {
-            runner.Start();
-        } else if(uiMode == UIMode::UI_RUNNER) {
-            cam = VideoCapture(cameraIndex.GetValue());
-        }
+        // if(uiMode == UIMode::UI_RUNNER) {
+        //     runner.Start();
+        // } else if(uiMode == UIMode::UI_EDITOR) {
+            configEditor.ResetRunnerResolution();
+        // } else {
+        //     cam = VideoCapture(cameraIndex.GetValue());
+        // }
         pauseStreamer = false;
     }
 
@@ -151,7 +155,7 @@ void SaveConfig() {
  * Based on the value of UIMode, Updates the output image in a separate thread
  */
 void RunStream() {
-    while(uiMode != UIMode::UI_CONFIG_RUNNING) {
+    while(uiMode != UIMode::UI_CONFIG_RUNNING && uiMode != UIMode::UI_QUTTING) {
         if(!pauseStreamer) {
             switch(uiMode) {
                 case UIMode::UI_STREAM:
@@ -170,12 +174,14 @@ void RunStream() {
                 case UIMode::UI_CONFIG_RUNNING:
                 case UIMode::UI_QUTTING:
                     cam.~VideoCapture();
+                    Flags::RaiseFlag("StreamerQuit");
                     g_thread_exit(0);
                     break;
             }
         }
     }
 
+    Flags::RaiseFlag("StreamerQuit");
     g_thread_exit(0);
 }
 
@@ -286,6 +292,11 @@ void HELPME() {
 
 void Quit() {
     uiMode == UIMode::UI_QUTTING;
+
+    while(!Flags::GetFlag("StreamerQuit")) {
+        //haha do nothing
+    }
+
     gtk_main_quit();
 }
 

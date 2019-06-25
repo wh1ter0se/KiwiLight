@@ -37,6 +37,7 @@ Runner::Runner(std::string fileName, bool debugging) {
 
     this->applySettings();
     this->cap = VideoCapture(this->cameraIndex);
+    this->SetResolution(this->cameraResolution);
     this->stop = false;
 }
 
@@ -68,6 +69,7 @@ Runner::Runner(std::string fileName, bool debugging, bool openNewVideoStream) {
     if(openNewVideoStream) {
         this->applySettings();
         this->cap = VideoCapture(this->cameraIndex);
+        this->SetResolution(this->cameraResolution);
     }
     this->stop = false;
 }
@@ -99,12 +101,19 @@ Runner::Runner(std::string fileName, bool debugging, VideoCapture cap) {
 
     this->applySettings();
     this->cap = cap;
+    this->SetResolution(this->cameraResolution);
     this->stop = false;
 }
 
 
 void Runner::SetImageResize(Size sz) {
     this->constantResize = sz;
+}
+
+
+void Runner::SetResolution(Size sz) {
+    this->cap.set(CAP_PROP_FRAME_WIDTH, sz.width);
+    this->cap.set(CAP_PROP_FRAME_HEIGHT, sz.height);
 }
 
 /**
@@ -247,14 +256,13 @@ std::string Runner::Iterate() {
 
     //enabled the UDP if it was disabled and runner is not in debug mode
     if(!this->debug) {
-        //since the UDP will just return true if it is already connected, ensure that the UDP is connected by calling AttemptToConnect()
-        this->udp.AttemptToConnect();
         this->udp.SetEnabled(true);
     }
 
     //send the message to the RIO
     if(this->udp.IsEnabled()) {
         //send the UDP if it is enabled or running mode is enabled.
+        this->udp.AttemptToConnect();
         this->udp.Send(rioMessage);
     }
 
@@ -321,6 +329,11 @@ void Runner::Start() {
     int cameraIndex = std::stoi(this->settings.GetSetting("cameraIndex"));
     this->cap = VideoCapture(cameraIndex);
     this->stop = false;
+}
+
+
+void Runner::ReconnectUDP(std::string udpAddr, int udpPort) {
+    this->udp = UDP(udpAddr, udpPort);
 }
 
 
@@ -458,14 +471,18 @@ void Runner::parseDocument(XMLDocument doc) {
  */
 void Runner::applySettings() {
     XMLDocument document = XMLDocument(this->GetFileName());
-    std::vector<XMLTag> camSettings = document.GetTagsByName("camera")[0].GetTagsByName("settings")[0].GetTagsByName("setting");\
-
+    XMLTag cameraTag = document.GetTagsByName("camera")[0];
+        XMLTag resolutionTag = cameraTag.GetTagsByName("resolution")[0];
+            int resWidth = std::stoi(resolutionTag.GetTagsByName("width")[0].Content());
+            int resHeight = std::stoi(resolutionTag.GetTagsByName("height")[0].Content());
+            this->cameraResolution = Size(resWidth, resHeight);
+    
+    std::vector<XMLTag> camSettings = cameraTag.GetTagsByName("settings")[0].GetTagsByName("setting");
     for(int i=0; i<camSettings.size(); i++) {
         //find basic information for the setting and format it into a shell command 
         XMLTag setting = camSettings[i];
         std::string settingName = setting.GetAttributesByName("name")[0].Value();
         std::string settingValue = setting.Content();
-
         std::string command = "v4l2-ctl --set-ctrl=" + settingName + "=" + settingValue;
         Shell::ExecuteCommand(command);
     }

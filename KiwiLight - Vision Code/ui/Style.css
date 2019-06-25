@@ -45,6 +45,19 @@ window:not(dialog) button:disabled {
     color:rgb(7, 22, 1);
 }
 
+scrolledwindow * {
+    background-color: transparent;
+}
+
+scrollbar {
+    background-color: white;
+}
+
+scale * {
+    background-color: rgb(39, 39, 39);
+    color: rgb(52, 117, 22);
+}
+
 #mainHeader {
     background-color:rgb(40, 40, 40);
 }

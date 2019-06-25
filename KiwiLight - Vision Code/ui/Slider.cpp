@@ -13,6 +13,14 @@ Slider::Slider(double min, double max, double step, double value) {
     gtk_range_set_value(GTK_RANGE(this->slider), gdouble(value));
 }
 
+
+Slider::Slider(bool horizontal, double min, double max, double step, double value) {
+    // this->slider = gtk_scale_new_with_range((horizontal ? GTK_ORIENTATION_HORIZONTAL : GTK_ORIENTATION_VERTICAL), min, max, step);
+    this->slider = gtk_scale_new_with_range(GTK_ORIENTATION_VERTICAL, min, max, step);
+    gtk_range_set_value(GTK_RANGE(this->slider), gdouble(value));
+}
+
+
 void Slider::SetValue(double value) {
     gtk_range_set_value(GTK_RANGE(this->slider), value);
 }
