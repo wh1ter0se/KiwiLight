@@ -17,12 +17,16 @@ double ConfigEditor::distResult = 0;
 double ConfigEditor::targetTrueDistance = 0;
 double ConfigEditor::targetTrueWidth = 0;
 
+TargetTroubleshooter ConfigEditor::troubleshooter = TargetTroubleshooter();
+TroubleshootingData ConfigEditor::troubleData[0];
+
 /**
  * Creates a window to edit the bassed file.
  */
 ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
     this->monitorLearner = false;
     this->monitorDistanceLearner = false;
+    this->monitorTroubleshooter = false;
     this->runner = Runner(fileName, true, cap);
     this->editorMode = EditorMode::USE_RUNNER;
     this->currentDoc = XMLDocument(fileName);
@@ -66,40 +70,43 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
  * Updates the editor and checks for button presses, etc.
  */
 void ConfigEditor::Update() {
-    //update the trinity for its functionality
-    if(this->editorMode == EditorMode::USE_RUNNER) {
-        //set all runner preprocessor settings to the values in the target editor
-        this->runner.SetPreprocessorProperty(PreProcessorProperty::IS_FULL, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::IS_FULL));
-        this->runner.SetPreprocessorProperty(PreProcessorProperty::THRESHOLD, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::THRESHOLD));
-        this->runner.SetPreprocessorProperty(PreProcessorProperty::THRESH_VALUE, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::THRESH_VALUE));
-        this->runner.SetPreprocessorProperty(PreProcessorProperty::DILATION, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::DILATION));
-        this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_HUE, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_HUE));
-        this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_SATURATION, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_SATURATION));
-        this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_VALUE, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_VALUE));
-        this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_ERROR, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_ERROR));
+    if(!monitorLearner && !monitorDistanceLearner && !monitorTroubleshooter) {
 
-        //set all runner targeting settings to the ones in the target editor
-        for(int i=0; i<this->targetEditor.NumContours(); i++) {
-            this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_X, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::DIST_X));
-            this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_Y, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::DIST_Y));
-            this->runner.SetPostProcessorContourProperty(i, TargetProperty::ANGLE, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::ANGLE));
-            this->runner.SetPostProcessorContourProperty(i, TargetProperty::ASPECT_RATIO, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::ASPECT_RATIO));
-            this->runner.SetPostProcessorContourProperty(i, TargetProperty::SOLIDITY, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::SOLIDITY));
-            this->runner.SetPostProcessorContourProperty(i, TargetProperty::MINIMUM_AREA, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::MINIMUM_AREA));
+        //update the trinity for its functionality
+        if(this->editorMode == EditorMode::USE_RUNNER) {
+            //set all runner preprocessor settings to the values in the target editor
+            this->runner.SetPreprocessorProperty(PreProcessorProperty::IS_FULL, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::IS_FULL));
+            this->runner.SetPreprocessorProperty(PreProcessorProperty::THRESHOLD, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::THRESHOLD));
+            this->runner.SetPreprocessorProperty(PreProcessorProperty::THRESH_VALUE, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::THRESH_VALUE));
+            this->runner.SetPreprocessorProperty(PreProcessorProperty::DILATION, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::DILATION));
+            this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_HUE, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_HUE));
+            this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_SATURATION, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_SATURATION));
+            this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_VALUE, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_VALUE));
+            this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_ERROR, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_ERROR));
+
+            //set all runner targeting settings to the ones in the target editor
+            for(int i=0; i<this->targetEditor.NumContours(); i++) {
+                this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_X, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::DIST_X));
+                this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_Y, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::DIST_Y));
+                this->runner.SetPostProcessorContourProperty(i, TargetProperty::ANGLE, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::ANGLE));
+                this->runner.SetPostProcessorContourProperty(i, TargetProperty::ASPECT_RATIO, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::ASPECT_RATIO));
+                this->runner.SetPostProcessorContourProperty(i, TargetProperty::SOLIDITY, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::SOLIDITY));
+                this->runner.SetPostProcessorContourProperty(i, TargetProperty::MINIMUM_AREA, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::MINIMUM_AREA));
+            }
+
+            this->runner.SetRunnerProperty(RunnerProperty::TRUE_WIDTH, this->runnerEditor.GetProperty(RunnerProperty::TRUE_WIDTH));
+            this->runner.SetRunnerProperty(RunnerProperty::PERCEIVED_WIDTH, this->runnerEditor.GetProperty(RunnerProperty::PERCEIVED_WIDTH));
+            this->runner.SetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE, this->runnerEditor.GetProperty(RunnerProperty::CALIBRATED_DISTANCE));
+            this->runner.SetRunnerProperty(RunnerProperty::ERROR_CORRECTION, this->runnerEditor.GetProperty(RunnerProperty::ERROR_CORRECTION));
+
+            this->runnerEditor.Update(this->runner.GetOriginalImage(), this->out, this->runner.GetClosestTargetToCenter().Distance());
+        } else if(this->editorMode == EditorMode::USE_LEARNER) {
+            // this->runnerEditor.Update(this->learner.GetOriginalImage(), this->learner.GetOutputImage(), -1);
+            double minimumArea = this->targetEditor.GetTargetPropertyValue(0, TargetProperty::MINIMUM_AREA).Value();
+            this->learner.Update(minimumArea); //use minimumArea in above line instead of constant 500
+            this->out = this->learner.GetOutputImage();
+            this->runnerEditor.Update(this->learner.GetOriginalImage(), this->learner.GetOutputImage(), -1);
         }
-
-        this->runner.SetRunnerProperty(RunnerProperty::TRUE_WIDTH, this->runnerEditor.GetProperty(RunnerProperty::TRUE_WIDTH));
-        this->runner.SetRunnerProperty(RunnerProperty::PERCEIVED_WIDTH, this->runnerEditor.GetProperty(RunnerProperty::PERCEIVED_WIDTH));
-        this->runner.SetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE, this->runnerEditor.GetProperty(RunnerProperty::CALIBRATED_DISTANCE));
-        this->runner.SetRunnerProperty(RunnerProperty::ERROR_CORRECTION, this->runnerEditor.GetProperty(RunnerProperty::ERROR_CORRECTION));
-
-        this->runnerEditor.Update(this->runner.GetOriginalImage(), this->out, this->runner.GetClosestTargetToCenter().Distance());
-    } else if(this->editorMode == EditorMode::USE_LEARNER) {
-        // this->runnerEditor.Update(this->learner.GetOriginalImage(), this->learner.GetOutputImage(), -1);
-        double minimumArea = this->targetEditor.GetTargetPropertyValue(0, TargetProperty::MINIMUM_AREA).Value();
-        this->learner.Update(minimumArea); //use minimumArea in above line instead of constant 500
-        this->out = this->learner.GetOutputImage();
-        this->runnerEditor.Update(this->learner.GetOriginalImage(), this->learner.GetOutputImage(), -1);
     }
 
     this->cameraSettings.Update();
@@ -247,6 +254,11 @@ void ConfigEditor::Update() {
         this->monitorDistanceLearner = false;
     }
 
+    if(this->monitorDistanceLearner) {
+        this->distMonitorLabel.SetText(ConfigEditor::distLearner.GetOutputString());
+    }
+
+
     if(Flags::GetFlag("UDPReconnect")) {
         Flags::LowerFlag("UDPReconnect");
         std::string newUDPAddr = this->runnerEditor.GetUDPAddress();
@@ -254,14 +266,38 @@ void ConfigEditor::Update() {
         this->runner.ReconnectUDP(newUDPAddr, newUDPPort);
     }
 
-    if(this->monitorDistanceLearner) {
-        this->distMonitorLabel.SetText(ConfigEditor::distLearner.GetOutputString());
+    if(Flags::GetFlag("TroubleshootTarget")) {
+        Flags::LowerFlag("TroubleshootTarget");
+
+        this->targetTroubleshooterMonitorWindow = ConfirmationDialog("Troubleshooting the target");
+            Panel monitorBody = Panel(false, 0);
+                this->troubleshooterLabel = Label("Collecting and processing images (0%)");
+                    monitorBody.Pack_start(this->troubleshooterLabel.GetWidget(), false, false, 0);
+
+                this->targetTroubleshooterMonitorWindow.SetBody(monitorBody);
+            this->targetTroubleshooterMonitorWindow.ShowWithoutRunning();
+
+        ConfigEditor::troubleshooter = TargetTroubleshooter(this->runner.GetVideoStream(), this->runner.GetPreProcessor(), this->runner.GetExampleTargetByID(0));
+        g_thread_new("Target Troubleshooter", GThreadFunc(ConfigEditor::TroubleshootTarget), NULL);
+        this->monitorTroubleshooter = true;
+    }
+
+    if(Flags::GetFlag("TargetTroubleshooterDone")) {
+        Flags::LowerFlag("TargetTroubleshooterDone");
+        this->monitorTroubleshooter = false;
+        ConfigEditor::targetTroubleshooterMonitorWindow.Destroy();
+
+        std::cout << "show window" << std::endl;
+    }
+
+    if(this->monitorTroubleshooter) {
+        this->troubleshooterLabel.SetText(ConfigEditor::troubleshooter.GetOutputString());
     }
 }
 
 
 void ConfigEditor::UpdateImageOnly() {
-    if(this->editorMode == EditorMode::USE_RUNNER && !(this->monitorDistanceLearner || this->monitorLearner)) {
+    if(this->editorMode == EditorMode::USE_RUNNER && !(this->monitorDistanceLearner || this->monitorLearner || this->monitorTroubleshooter)) {
         this->runner.Iterate();
         this->out = this->runner.GetOutputImage();
     }
@@ -491,5 +527,11 @@ void ConfigEditor::LearnTarget() {
 void ConfigEditor::LearnDistance() {
     ConfigEditor::distResult = ConfigEditor::distLearner.LearnFocalWidth(ConfigEditor::targetTrueWidth, targetTrueDistance);
     Flags::RaiseFlag("DistanceLearnerDone");
+    g_thread_exit(0);
+}
+
+void ConfigEditor::TroubleshootTarget() {
+    ConfigEditor::troubleshooter.Troubleshoot(ConfigEditor::troubleData);
+    Flags::RaiseFlag("TargetTroubleshooterDone");
     g_thread_exit(0);
 }

@@ -375,6 +375,20 @@ namespace KiwiLight {
         GtkWidget *helpwindow;
     };
 
+
+    class TroubleshootingWindow : public Widget {
+        public:
+        TroubleshootingWindow() {};
+        TroubleshootingWindow(TroubleshootingData data[], int dataLen);
+        void Show();
+        GtkWidget *GetWidget() { return this->troubleshootingwindow; };
+        void SetName(std::string name);
+
+        private:
+        Window window;
+        GtkWidget *troubleshootingwindow;
+    }
+
     /**
      * A singlular widget adjusting a camera setting
      */
@@ -527,7 +541,8 @@ namespace KiwiLight {
                       ContourARErr,
                       ContourMinArea;
             
-        Button learnTarget;
+        Button learnTarget,
+               troubleshootTarget;
         
         GtkWidget *configtargeteditor;
     };
@@ -596,11 +611,20 @@ namespace KiwiLight {
         static double distResult;
         bool monitorDistanceLearner;
 
+        //static variables for troubleshooting targets in a separate thread
+        static void TroubleshootTarget();
+        static TargetTroubleshooter troubleshooter;
+        static TroubleshootingData troubleData[];
+        bool monitorTroubleshooter;
+
         ConfirmationDialog learnerMonitorWindow;
         Label learnerMonitorLabel;
 
         ConfirmationDialog distLearnerMonitorWindow;
         Label distMonitorLabel;
+
+        ConfirmationDialog targetTroubleshooterMonitorWindow;
+        Label troubleshooterLabel;
 
         Runner runner;
         EditorMode editorMode;

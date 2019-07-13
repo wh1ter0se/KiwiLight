@@ -21,6 +21,16 @@ static void learnTargetPressed() {
     }
 }
 
+
+static void troubleshootTargetPressed() {
+    ConfirmationDialog confirmTroubleshoot = ConfirmationDialog("Ensure that the area you are in has as little ambient noise as possible. Then press OK.");
+    bool userWantsTroubleshoot = confirmTroubleshoot.ShowAndGetResponse();
+
+    if(userWantsTroubleshoot) {
+        Flags::RaiseFlag("TroubleshootTarget"); //handled in ConfigEditor.cpp
+    }
+}
+
 /**
  * Creates a new ConfigTargetEditor editing the targets in the file at fileName
  */
@@ -225,6 +235,9 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName, Runner runner) {
 
                 this->learnTarget = Button("Learn Target", learnTargetPressed);
                     this->panel.Pack_start(this->learnTarget.GetWidget(), false, false, 0);
+
+                this->troubleshootTarget = Button("Troubleshoot", troubleshootTargetPressed);
+                    this->panel.Pack_start(this->troubleshootTarget.GetWidget(), false, false, 0);
 
     //set the sliders to the values for contour 0
     this->SetValues(0);

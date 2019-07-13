@@ -126,17 +126,6 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
 
     int totalGood = 0;
 
-    //find center of target by averaging the x and y coordinates
-    // int centerX = 0;
-    // int centerY = 0;
-    // for(int i=0; i<objects.size(); i++) {
-    //     centerX += objects[i].X();
-    //     centerY += objects[i].Y();
-    // }
-
-    // centerX /= objects.size();
-    // centerY /= objects.size();
-
     int biggestX = -5000;
     int smallestX = 5000;
     int biggestY = -5000;
@@ -176,13 +165,11 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
     for(int i=0; i<imageContours.size(); i++) {
         Contour object = imageContours[i];
         //determine how many widths to the center for the object and compare to our targets
-        int width = object.Width();
+        int distToCenterX = centerX - object.Center().x;
+        double widthsToCenterX = distToCenterX / (double) objectWidth;
 
-        int distToCenterX = centerX - object.X();
-        double widthsToCenterX = distToCenterX / (double) width;
-
-        int distToCenterY = centerY - object.Y();
-        double widthsToCenterY = distToCenterY / (double) width;
+        int distToCenterY = centerY - object.Center().y;
+        double widthsToCenterY = distToCenterY / (double) objectWidth;
 
         for(int k=0; k<targetContours.size(); k++) {
             //measure distance in pixels, convert to widths, and compare to exampleContours.

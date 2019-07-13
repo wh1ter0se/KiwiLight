@@ -53,6 +53,27 @@ namespace KiwiLight {
         MINIMUM_AREA
     };
 
+
+    struct TroubleshootingData {
+        int missedHorizontalDistances,
+            missedVerticalDistances,
+            missedAngles,
+            missedSolidities,
+            missedAspectRatios;
+
+        double averageHorizontalDistance,
+               averageVerticalDistance,
+               averageAngle,
+               averageSolidity,
+               averageAspectRatio;
+
+        double targetHorizontalDistance,
+               targetVerticalDistance,
+               targetAngle,
+               targetSolidity,
+               targetAspectRatio;
+    };
+
     /**
      * Represents a single setting that is used by either the PostProcessor or Preprocessor.
      */
@@ -383,6 +404,23 @@ namespace KiwiLight {
         PreProcessor preprocessor;
         PostProcessor postprocessor;
         VideoCapture cap;
+
+        int framesCollected;
+        std::string outString;
+    };
+
+
+    class TargetTroubleshooter {
+        public:
+        TargetTroubleshooter() {};
+        TargetTroubleshooter(VideoCapture cap, PreProcessor preprocessor, ExampleTarget target);
+        bool Troubleshoot(TroubleshootingData dataOut[]);
+        std::string GetOutputString() { return this->outString; };
+
+        private:
+        VideoCapture cap;
+        PreProcessor preprocessor;
+        ExampleTarget target;
 
         int framesCollected;
         std::string outString;
