@@ -41,7 +41,7 @@ ExampleTarget ConfigLearner::LearnTarget(int minArea) {
             success = this->stream.read(img);
         } else {
             success = true;
-            img = imread("runner/dual.png");
+            img = imread(RunnerSettings::IMAGE_TO_USE);
         }
 
         if(success) {
@@ -49,15 +49,6 @@ ExampleTarget ConfigLearner::LearnTarget(int minArea) {
             img = this->preprocessor.ProcessImage(img);
             CameraFrame newFrame = CameraFrame(img, minArea);
             frames.push_back(newFrame);
-
-            // for(int i=0; i<newFrame.NumberOfContours(); i++) {
-            //     std::cout << "contour " << i << "dist x      : " << newFrame.GetContourDistance(newFrame.GetContours()[i]).x << std::endl;
-            //     std::cout << "contour " << i << "dist y      : " << newFrame.GetContourDistance(newFrame.GetContours()[i]).y << std::endl;
-            //     std::cout << "contour " << i << "angle       : " << newFrame.GetContours()[i].Angle() << std::endl;
-            //     std::cout << "contour " << i << "solidity    : " << newFrame.GetContours()[i].Solidity() << std::endl;
-            //     std::cout << "contour " << i << "aspect ratio: " << newFrame.GetContours()[i].AspectRatio() << std::endl;
-            //     std::cout << std::endl;
-            // }
         }
 
         //update the progress string (collecting images will be 90% of the work)
@@ -116,12 +107,21 @@ ExampleTarget ConfigLearner::LearnTarget(int minArea) {
             aspectRatios.push_back(contourToAnalyze.AspectRatio());
         }
 
-        // std::cout << "CURRENT AVERAGES BEFORE SORT" << std::endl;
-        // std::cout << "horizontal distances : " << DataUtils::Average(horizontalDistances) << std::endl;
-        // std::cout << "vertical distances   : " << DataUtils::Average(verticalDistances) << std::endl;
-        // std::cout << "angles               : " << DataUtils::Average(angles) << std::endl;
-        // std::cout << "solidities           : " << DataUtils::Average(solidities) << std::endl;
-        // std::cout << "aspect ratios        : " << DataUtils::Average(aspectRatios) << std::endl;
+
+        std::cout << "ACTUAL VECTORS" << std::endl;
+        std::cout << "horizontal distances : " << DataUtils::VectorToString(horizontalDistances) << std::endl;
+        std::cout << "vertical distances   : " << DataUtils::VectorToString(verticalDistances) << std::endl;
+        std::cout << "angles               : " << DataUtils::VectorToString(angles) << std::endl;
+        std::cout << "solidities           : " << DataUtils::VectorToString(solidities) << std::endl;
+        std::cout << "aspect ratios        : " << DataUtils::VectorToString(aspectRatios) << std::endl;
+        std::cout << std::endl;
+
+        std::cout << "CURRENT AVERAGES BEFORE SORT" << std::endl;
+        std::cout << "horizontal distances : " << DataUtils::Average(horizontalDistances) << std::endl;
+        std::cout << "vertical distances   : " << DataUtils::Average(verticalDistances) << std::endl;
+        std::cout << "angles               : " << DataUtils::Average(angles) << std::endl;
+        std::cout << "solidities           : " << DataUtils::Average(solidities) << std::endl;
+        std::cout << "aspect ratios        : " << DataUtils::Average(aspectRatios) << std::endl;
 
         // std::cout << "CURRENT VECTORS BEFORE SORT" << std::endl;
         // std::cout << "horizontal distances : " << DataUtils::VectorToString(horizontalDistances) << std::endl;

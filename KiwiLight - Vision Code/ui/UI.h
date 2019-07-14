@@ -387,7 +387,7 @@ namespace KiwiLight {
         private:
         Window window;
         GtkWidget *troubleshootingwindow;
-    }
+    };
 
     /**
      * A singlular widget adjusting a camera setting

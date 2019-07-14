@@ -148,3 +148,24 @@ double PreProcessor::GetProperty(PreProcessorProperty prop) {
 
     return finalValue;
 }
+
+
+std::string PreProcessor::toString() {
+    std::string endline = "\n";
+    std::string thisString = "";
+    thisString += std::string("Debugging: ") + std::string((this->debugging ? "YES" : "NO")) + endline;
+
+    if(this->isFullPreprocessor) {
+                      std::string("Type: FULL\n") +
+                      std::string("Threshold Value: ") + std::to_string(this->threshold) + endline +
+                      std::string("Dilation: ") + std::to_string(this->dilate) + endline + 
+                      std::string("Color H: ") + std::to_string(this->targetColor.GetH()) + endline + 
+                      std::string("Color S: ") + std::to_string(this->targetColor.GetS()) + endline + 
+                      std::string("Color V: ") + std::to_string(this->targetColor.GetV()) + endline +
+                      std::string("Color Error: ") + std::to_string(this->targetColor.GetHError()) + endline;
+    } else {
+        thisString += std::string("Type: PARTIAL") + endline;
+    }
+
+    return thisString;
+}

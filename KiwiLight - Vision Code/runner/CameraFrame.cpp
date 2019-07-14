@@ -13,6 +13,8 @@ using namespace KiwiLight;
  * Precondition: "img" is already preprocessed.
  */
 CameraFrame::CameraFrame(Mat img, int minimumArea) {
+
+    img.copyTo(this->image);
     
     //find the contours
     std::vector <std::vector <Point> > contours;
@@ -78,8 +80,8 @@ Distance CameraFrame::GetContourDistance(Contour contour) {
     //find the amount of contour widths to the center of the target and return the distance
 
     double contourWidth = contour.Width();
-    double xDifference = targetCenter.x - contour.X();
-    double yDifference = targetCenter.y - contour.Y();
+    double xDifference = targetCenter.x - contour.Center().x;
+    double yDifference = targetCenter.y - contour.Center().y;
 
     xDifference /= contourWidth;
     yDifference /= contourWidth;

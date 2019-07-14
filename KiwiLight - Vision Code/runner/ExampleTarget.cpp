@@ -126,44 +126,49 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
 
     int totalGood = 0;
 
-    int biggestX = -5000;
-    int smallestX = 5000;
-    int biggestY = -5000;
-    int smallestY = 5000;
+    // int biggestX = -5000;
+    // int smallestX = 5000;
+    // int biggestY = -5000;
+    // int smallestY = 5000;
 
-    int biggestXWidth = 0;
-    int biggestYHeight = 0;
+    // int biggestXWidth = 0;
+    // int biggestYHeight = 0;
 
-    for(int i=0; i<imageContours.size(); i++) {
-        Contour object = imageContours[i];
+    // for(int i=0; i<imageContours.size(); i++) {
+    //     Contour object = imageContours[i];
 
-        if(object.X() > biggestX) {
-            biggestX = object.X();
-            biggestXWidth = object.Width();
-        }
+    //     if(object.X() > biggestX) {
+    //         biggestX = object.X();
+    //         biggestXWidth = object.Width();
+    //     }
         
-        if(object.X() < smallestX) {
-            smallestX = object.X();
-        }
+    //     if(object.X() < smallestX) {
+    //         smallestX = object.X();
+    //     }
 
-        if(object.Y() > biggestY) {
-            biggestY = object.Y();
-            biggestYHeight = object.Height();
-        }
+    //     if(object.Y() > biggestY) {
+    //         biggestY = object.Y();
+    //         biggestYHeight = object.Height();
+    //     }
 
-        if(object.Y() < smallestY) {
-            smallestY = object.Y();
-        }
-    }
+    //     if(object.Y() < smallestY) {
+    //         smallestY = object.Y();
+    //     }
+    // }
 
-    int objectWidth = (biggestX - smallestX) + biggestXWidth;
-    int objectHeight = (biggestY - smallestY) + biggestYHeight;
+    // int objectWidth = (biggestX - smallestX) + biggestXWidth;
+    // int objectHeight = (biggestY - smallestY) + biggestYHeight;
 
-    int centerX = (objectWidth / 2) + smallestX;
-    int centerY = (objectWidth / 2) + smallestY;
+    // int centerX = (objectWidth / 2) + smallestX;
+    // int centerY = (objectWidth / 2) + smallestY;
+
+    Target potentialTarg = Target(0, imageContours, 0, 0 , 0, 0);
+    int centerX = potentialTarg.Center().x;
+    int centerY = potentialTarg.Center().y;
 
     for(int i=0; i<imageContours.size(); i++) {
         Contour object = imageContours[i];
+        int objectWidth = object.Width();
         //determine how many widths to the center for the object and compare to our targets
         int distToCenterX = centerX - object.Center().x;
         double widthsToCenterX = distToCenterX / (double) objectWidth;

@@ -137,8 +137,8 @@ void ConfigEditor::Update() {
         double dilation = this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::DILATION);
 
         PreProcessor learnerPreprocessor = PreProcessor(FullPreProcessor, targetColor, threshold, dilation, true);
-        this->learner = ConfigLearner(learnerPreprocessor, this->runner.GetVideoStream());
-        this->learner.SetConstantResize(newSize);
+        ConfigEditor::learner = ConfigLearner(learnerPreprocessor, this->runner.GetVideoStream());
+        ConfigEditor::learner.SetConstantResize(newSize);
         this->editorMode = EditorMode::USE_LEARNER;
     }
 

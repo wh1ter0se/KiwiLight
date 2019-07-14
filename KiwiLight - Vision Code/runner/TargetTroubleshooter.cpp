@@ -38,7 +38,13 @@ bool TargetTroubleshooter::Troubleshoot(TroubleshootingData dataOut[]) {
     //capture the frames
     for(int i=0; i<TROUBLESHOOT_FRAMES; i++) {
         Mat img;
-        bool success = this->cap.read(img);
+        bool success = false;
+        if(RunnerSettings::USE_CAMERA) {
+            success = this->cap.read(img);
+        } else {
+            success = true;
+            img = imread(RunnerSettings::IMAGE_TO_USE);
+        }
         img = this->preprocessor.ProcessImage(img);
 
         if(success) {

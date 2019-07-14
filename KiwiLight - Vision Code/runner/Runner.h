@@ -240,6 +240,7 @@ namespace KiwiLight {
         void SetProperty(PreProcessorProperty prop, double value);
         double GetProperty(PreProcessorProperty prop);
         cv::Mat ProcessImage(cv::Mat img);
+        std::string toString();
 
         private:
         bool isFullPreprocessor,
@@ -292,6 +293,7 @@ namespace KiwiLight {
 
         private:
         Target seenTarget;
+        Mat image;
     };
 
     /**

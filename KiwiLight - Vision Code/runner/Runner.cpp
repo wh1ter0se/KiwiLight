@@ -165,7 +165,7 @@ std::string Runner::Iterate() {
             return "";
         }
     } else {
-        img = cv::imread("runner/dual.png");
+        img = cv::imread(RunnerSettings::IMAGE_TO_USE);
     }
 
     resize(img, img, this->constantResize);

@@ -199,7 +199,11 @@ std::string DataUtils::VectorToString(std::vector<double> data) {
     std::string vectorString = "[";
 
     for(int i=0; i<data.size(); i++) {
-        vectorString += " " + std::to_string(data[i]) + ",";
+        vectorString += " " + std::to_string(data[i]);
+
+        if(i < data.size() - 1) {
+            vectorString += ", ";
+        }
     }
 
     vectorString += " ]";
