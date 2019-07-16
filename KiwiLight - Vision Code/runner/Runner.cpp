@@ -174,21 +174,40 @@ std::string Runner::Iterate() {
     img.copyTo(out);
     std::vector<Target> targets = this->postprocessor.ProcessImage(img);
     //find the percieved robot center using this->centerOffset
-    int trueCenter = (this->constantResize.width / 2);
-    int robotCenter = trueCenter;
-    //offset the true center here
+    int trueCenterX = (this->constantResize.width / 2);
+    int robotCenterX = trueCenterX;
+
+    int trueCenterY = (this->constantResize.height / 2);
+    int robotCenterY = trueCenterY;
 
     //find the target that is closest to the robot center
     Target bestTarget;
     int closestDist = 5000; // closest horizontal distance to the center
     for(int i=0; i<targets.size(); i++) {
         Target targ = targets[i];
-        int distFromCenter = robotCenter - targ.Center().x;
-        distFromCenter = abs(distFromCenter);
 
-        if(distFromCenter < closestDist) {
-            closestDist = distFromCenter;
+        //find the offset center of the camera based on the target's distance
+        double inchesPerPixel = targ.KnownWidth() / targ.Bounds().width;
+        double centerInchesX = trueCenterX * inchesPerPixel;
+        double centerInchesY = trueCenterY * inchesPerPixel;
+
+        double offsetInchesX = centerInchesX - this->centerOffsetX;
+        double offestInchesY = centerInchesY - this->centerOffsetY;
+    
+        //convert back to pixels
+        double offsetPixelsX = offsetInchesX / inchesPerPixel;
+        double offsetPixelsY = offestInchesY / inchesPerPixel;
+
+        //calculate the distance from the offset center
+        double distFromCenterX = offsetPixelsX - targ.Center().x;
+        double distFromCenterY = offsetPixelsY - targ.Center().y;
+        double trueDistance = sqrt(pow(distFromCenterX, 2) + pow(distFromCenterY, 2));
+
+        if(trueDistance < closestDist) {
+            closestDist = trueDistance;
             bestTarget = targ;
+            robotCenterX = (int) offsetPixelsX;
+            robotCenterY = (int) offsetPixelsY;
         }
     }
 
@@ -198,7 +217,8 @@ std::string Runner::Iterate() {
     int coordX = -1,
         coordY = -1,
         distance = -1,
-        angle = 180;
+        HAngle = 180,
+        VAngle = 180;
 
     std::string rioMessage = "";
     
@@ -209,30 +229,38 @@ std::string Runner::Iterate() {
 
         distance = bestTarget.Distance();
 
-        angle = bestTarget.Angle(distance, robotCenter);
+        HAngle = bestTarget.HorizontalAngle(distance, robotCenterX);
+        VAngle = bestTarget.VerticalAngle(distance, robotCenterY);
     }
 
     this->lastFrameTargets = targets;
 
     std::string x = std::to_string(coordX),
-                    y = std::to_string(coordY),
-                    d = std::to_string(distance),
-                    a = std::to_string(angle);
+                y = std::to_string(coordY),
+                d = std::to_string(distance),
+                ax = std::to_string(HAngle),
+                ay = std::to_string(VAngle);
 
-    rioMessage = ":" + x + "," + y + "," + d + "," + a + ";";
+    rioMessage = ":" + x + "," + y + "," + d + "," + ax + "," + ay + ";";
 
+    //mark up the image with some stuff for the programmers to look at :)
     if(this->debug) {
         cv::cvtColor(out, out, cv::COLOR_GRAY2BGR);
 
         //write the out string onto the image
         cv::putText(out, rioMessage, cv::Point(5, 15), cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar(0,0,255), 2);
         
-        //draw a line where the perceived robot center is
-        int camHeight = std::stoi(this->settings.GetSetting("cameraHeight"));
-        cv::Point lineTopPoint    = cv::Point(robotCenter, 0);
-        cv::Point lineBottomPoint = cv::Point(robotCenter, camHeight);
+        //draw a line where the perceived horizontal robot center is
+        int camHeight = this->constantResize.height;
+        cv::Point HlineTopPoint    = cv::Point(robotCenterX, 0);
+        cv::Point HlineBottomPoint = cv::Point(robotCenterX, camHeight);
+        cv::line(out, HlineTopPoint, HlineBottomPoint, cv::Scalar(255,0,255));
 
-        cv::line(out, lineTopPoint, lineBottomPoint, cv::Scalar(255,0,255));
+        //draw another line where the vertical robot center is
+        int camWidth = this->constantResize.width;
+        cv::Point VlineTopPoint    = cv::Point(0, robotCenterY);
+        cv::Point VlineBottomPoint = cv::Point(camWidth, robotCenterY);
+        cv::line(out, VlineTopPoint, VlineBottomPoint, cv::Scalar(255, 0, 255));
 
         for(int i=0; i<targets.size(); i++) {
             cv::rectangle(out, targets[i].Bounds(), cv::Scalar(255,0,0), 3);
@@ -362,11 +390,28 @@ SettingPair Runner::GetPostProcessorContourProperty(int contour, TargetProperty 
 
 
 void Runner::SetRunnerProperty(RunnerProperty prop, double value) {
-    this->postprocessor.SetRunnerProperty(prop, value);
+    switch(prop) {
+        case RunnerProperty::OFFSET_X:
+            this->centerOffsetX = value;
+            break;
+        case RunnerProperty::OFFSET_Y:
+            this->centerOffsetY = value;
+            break;
+        default:
+            this->postprocessor.SetRunnerProperty(prop, value);
+            break;
+    }
 }
 
 
 double Runner::GetRunnerProperty(RunnerProperty prop) {
+    switch(prop) {
+        case RunnerProperty::OFFSET_X:
+            return this->centerOffsetX;
+        case RunnerProperty::OFFSET_Y:
+            return this->centerOffsetY;
+    }
+
     return this->postprocessor.GetRunnerProperty(prop);
 }
 
@@ -394,6 +439,13 @@ void Runner::parseDocument(XMLDocument doc) {
     XMLTag config = doc.GetTagsByName("configuration")[0];
         this->settings.AddSetting("configName", config.GetAttributesByName("name")[0].Value());
 
+        XMLTag cameraOffset = config.GetTagsByName("cameraOffset")[0];
+            this->settings.AddSetting("centerOffsetX", cameraOffset.GetTagsByName("horizontal")[0].Content());
+            this->settings.AddSetting("centerOffsetY", cameraOffset.GetTagsByName("vertical")[0].Content());
+
+            this->centerOffsetX = std::stod(this->settings.GetSetting("centerOffsetX"));
+            this->centerOffsetY = std::stod(this->settings.GetSetting("centerOffsetY"));
+
         XMLTag constResize = config.GetTagsByName("constantResize")[0];
             this->settings.AddSetting("resizeX", constResize.GetTagsByName("width")[0].Content());
             this->settings.AddSetting("resizeY", constResize.GetTagsByName("height")[0].Content());
@@ -414,9 +466,6 @@ void Runner::parseDocument(XMLDocument doc) {
                 this->settings.AddSetting("colorS_error", color.GetTagsByName("s")[0].GetAttributesByName("error")[0].Value());
                 this->settings.AddSetting("colorV_error", color.GetTagsByName("v")[0].GetAttributesByName("error")[0].Value());
         XMLTag postprocess = config.GetTagsByName("postprocessor")[0];
-            this->settings.AddSetting("centerOffset", postprocess.GetTagsByName("centerOffset")[0].Content());
-            this->centerOffset = std::stoi(this->settings.GetSetting("centerOffset"));
-
             XMLTag udp = postprocess.GetTagsByName("UDP")[0];
                 this->settings.AddSetting("UDPAddress", udp.GetTagsByName("address")[0].Content());
                 this->settings.AddSetting("UDPPort", udp.GetTagsByName("port")[0].Content());

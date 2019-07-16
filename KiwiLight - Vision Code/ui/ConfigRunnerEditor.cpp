@@ -28,7 +28,8 @@ ConfigRunnerEditor::ConfigRunnerEditor(std::string fileName) {
 
     //define the xml file we will be parsing, and get the postprocessor tag to pull information from it
     XMLDocument document = XMLDocument(fileName);
-    XMLTag postprocessor = document.GetTagsByName("configuration")[0].GetTagsByName("postprocessor")[0];
+    XMLTag configuration = document.GetTagsByName("configuration")[0];
+    XMLTag postprocessor = configuration.GetTagsByName("postprocessor")[0];
 
     this->panel = Panel(false, 3);
 
@@ -74,15 +75,40 @@ ConfigRunnerEditor::ConfigRunnerEditor(std::string fileName) {
         Separator sep = Separator(true);
             this->panel.Pack_start(sep.GetWidget(), false, false, 0);
 
+        Label cameraOffsetHeader = Label("Camera Offset");
+            cameraOffsetHeader.SetName("subHeader");
+            this->panel.Pack_start(cameraOffsetHeader.GetWidget(), true, true, 0);
+
+        Panel cameraOffsetPanel = Panel(true, 0);
+            XMLTag cameraOffsetTag = configuration.GetTagsByName("cameraOffset")[0];
+
+            this->cameraOffsetX = LabeledSlider("Horizontal", -50.0, 50.0, 0.1, 0.0);
+                double realOffsetX = std::stod(cameraOffsetTag.GetTagsByName("horizontal")[0].Content());
+                cameraOffsetX.SetValue(realOffsetX);
+                cameraOffsetPanel.Pack_start(this->cameraOffsetX.GetWidget(), true, true, 0);
+            
+            this->cameraOffsetY = LabeledSlider("Vertical", -50.0, 50.0, 0.1, 0.0);
+                double realOffsetY = std::stod(cameraOffsetTag.GetTagsByName("vertical")[0].Content());
+                cameraOffsetY.SetValue(realOffsetY);
+                cameraOffsetPanel.Pack_start(this->cameraOffsetY.GetWidget(), true, true, 0);
+
+            this->panel.Pack_start(cameraOffsetPanel.GetWidget(), true, true, 0);
+
         Label imageResizeHeader = Label("Image Resize");
             imageResizeHeader.SetName("subHeader");
             this->panel.Pack_start(imageResizeHeader.GetWidget(), true, true, 0);
 
         Panel imageResizePanel = Panel(true, 0);
+            XMLTag resizeTag = configuration.GetTagsByName("constantResize")[0];
+
             this->imageResizeX = LabeledSlider("Image Width", 25, 800, 1, 200);
+                double realResizeX = std::stod(resizeTag.GetTagsByName("width")[0].Content());
+                this->imageResizeX.SetValue(realResizeX);
                 imageResizePanel.Pack_start(this->imageResizeX.GetWidget(), true, true, 0);
 
             this->imageResizeY = LabeledSlider("Image Height", 25, 800, 1, 145);
+                double realResizeY = std::stod(resizeTag.GetTagsByName("height")[0].Content());
+                this->imageResizeY.SetValue(realResizeY);
                 imageResizePanel.Pack_start(this->imageResizeY.GetWidget(), true ,true, 0);
 
             this->panel.Pack_start(imageResizePanel.GetWidget(), true ,true, 0);
@@ -203,6 +229,12 @@ double ConfigRunnerEditor::GetProperty(RunnerProperty prop) {
     double finalValue = -1.00;
 
     switch(prop) {
+        case RunnerProperty::OFFSET_X:
+            finalValue = this->cameraOffsetX.GetValue();
+            break;
+        case RunnerProperty::OFFSET_Y:
+            finalValue = this->cameraOffsetY.GetValue();
+            break;
         case RunnerProperty::IMAGE_WIDTH:
             finalValue = this->imageResizeX.GetValue();
             break;
@@ -229,6 +261,12 @@ double ConfigRunnerEditor::GetProperty(RunnerProperty prop) {
 
 void ConfigRunnerEditor::SetProperty(RunnerProperty prop, double value) {
     switch(prop) {
+        case RunnerProperty::OFFSET_X:
+            this->cameraOffsetX.SetValue(value);
+            break;
+        case RunnerProperty::OFFSET_Y:
+            this->cameraOffsetY.SetValue(value);
+            break;
         case RunnerProperty::IMAGE_WIDTH:
             this->imageResizeX.SetValue(value);
             break;

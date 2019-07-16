@@ -1,7 +1,7 @@
 #include "Settings.h"
 
 /**
- * This file's only purpose is to literally define one variable that I couldnt define in the header
+ * This file's only purpose is literally to define one variable that I couldnt define in the header
  * Written By: Brach Knutson
  */
 

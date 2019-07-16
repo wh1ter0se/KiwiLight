@@ -21,6 +21,8 @@ namespace KiwiLight {
     };
 
     enum RunnerProperty {
+        OFFSET_X,
+        OFFSET_Y,
         IMAGE_WIDTH,
         IMAGE_HEIGHT,
         TRUE_WIDTH,
@@ -180,8 +182,14 @@ namespace KiwiLight {
         int ID() { return this->id; };
         std::vector<Contour> Contours() { return this->contours; };
         double Distance();
-        int Angle(int imageCenterX);
-        int Angle(double distanceToTarget, int imageCenterX);
+        int HorizontalAngle(int imageCenterX);
+        int HorizontalAngle(double distanceToTarget, int imageCenterX);
+        int VerticalAngle(int imageCenterY);
+        int VerticalAngle(double distanceToTarget, int imageCenterY);
+        double KnownWidth() { return this->knownHeight; };
+        double FocalWidth() { return this->focalHeight; };
+        double DistanceErrorCorrection() { return this->distErrorCorrect; };
+        double CalibratedDistance() { return this->calibratedDistance; };
         cv::Point Center() { return cv::Point(this->x, this->y); };
         cv::Rect Bounds();
 
@@ -359,8 +367,9 @@ namespace KiwiLight {
         bool stop,
              debug;
 
-        int centerOffset;
-
+        double centerOffsetX,
+               centerOffsetY;
+               
         UDP udp;
     };
 

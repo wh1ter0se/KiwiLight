@@ -20,6 +20,10 @@
     </settings>
 </camera>
 <configuration name="Generic Configuration">
+    <cameraOffset>
+        <horizontal>0</horizontal>
+        <vertical>0</vertical>
+    </cameraOffset>
     <constantResize>
         <width>200</width>
         <height>145</height>

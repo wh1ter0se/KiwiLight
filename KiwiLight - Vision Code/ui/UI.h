@@ -467,6 +467,10 @@ namespace KiwiLight {
         TextBox UDPAddr,
                 UDPPort;
 
+        //sliders used to adjust the camera offset
+        LabeledSlider cameraOffsetX,
+                      cameraOffsetY;
+
         //sliders used to adjust image resize
         LabeledSlider imageResizeX,
                       imageResizeY;

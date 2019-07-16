@@ -93,7 +93,9 @@ void ConfigEditor::Update() {
                 this->runner.SetPostProcessorContourProperty(i, TargetProperty::SOLIDITY, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::SOLIDITY));
                 this->runner.SetPostProcessorContourProperty(i, TargetProperty::MINIMUM_AREA, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::MINIMUM_AREA));
             }
-
+            
+            this->runner.SetRunnerProperty(RunnerProperty::OFFSET_X, this->runnerEditor.GetProperty(RunnerProperty::OFFSET_X));
+            this->runner.SetRunnerProperty(RunnerProperty::OFFSET_Y, this->runnerEditor.GetProperty(RunnerProperty::OFFSET_Y));
             this->runner.SetRunnerProperty(RunnerProperty::TRUE_WIDTH, this->runnerEditor.GetProperty(RunnerProperty::TRUE_WIDTH));
             this->runner.SetRunnerProperty(RunnerProperty::PERCEIVED_WIDTH, this->runnerEditor.GetProperty(RunnerProperty::PERCEIVED_WIDTH));
             this->runner.SetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE, this->runnerEditor.GetProperty(RunnerProperty::CALIBRATED_DISTANCE));
@@ -330,6 +332,15 @@ void ConfigEditor::Save() {
         XMLTag configurationTag = XMLTag("configuration");
             XMLTagAttribute confNameAttr = XMLTagAttribute("name", nameResult);
             configurationTag.AddAttribute(confNameAttr);
+
+            XMLTag centerOffsetTag = XMLTag("cameraOffset");
+                XMLTag horizontalOffset = XMLTag("horizontal", std::to_string(this->runnerEditor.GetProperty(RunnerProperty::OFFSET_X)));
+                    centerOffsetTag.AddTag(horizontalOffset);
+
+                XMLTag verticalOffset = XMLTag("vertical", std::to_string(this->runnerEditor.GetProperty(RunnerProperty::OFFSET_Y)));
+                    centerOffsetTag.AddTag(verticalOffset);
+
+                configurationTag.AddTag(centerOffsetTag);
 
             XMLTag constantResizeTag = XMLTag("constantResize");
                 XMLTag resizeWidth = XMLTag("width", std::to_string((int) this->runnerEditor.GetProperty(RunnerProperty::IMAGE_WIDTH)));

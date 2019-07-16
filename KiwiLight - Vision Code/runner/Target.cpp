@@ -94,11 +94,11 @@ double Target::Distance() {
 }
 
 
-int Target::Angle(double distanceToTarget, int imageCenterX) {
-    double pixelsToInches = this->knownHeight / this->Bounds().width;
+int Target::HorizontalAngle(double distanceToTarget, int imageCenterX) {
+    double inchesPerPixel = this->knownHeight / this->Bounds().width;
     int pixelsToTarget = imageCenterX - this->Center().x;
 
-    double inchesToTarget = pixelsToTarget * pixelsToInches;
+    double inchesToTarget = pixelsToTarget * inchesPerPixel;
     double angle = atan(inchesToTarget / distanceToTarget);
 
     //convert to degrees
@@ -107,8 +107,26 @@ int Target::Angle(double distanceToTarget, int imageCenterX) {
 }
 
 
-int Target::Angle(int imageCenterX) {
-    return this->Angle(this->Distance(), imageCenterX);
+int Target::HorizontalAngle(int imageCenterX) {
+    return this->HorizontalAngle(this->Distance(), imageCenterX);
+}
+
+
+int Target::VerticalAngle(double distanceToTarget, int imageCenterY) {
+    double InchesPerPixel = this->knownHeight / this->Bounds().width;
+    int pixelsToTarget = imageCenterY - this->Center().y;
+    
+    double inchesToTarget = pixelsToTarget * InchesPerPixel;
+    double angle = atan(inchesToTarget / distanceToTarget);
+
+    //convert to degrees and return
+    angle *= (180 / M_PI);
+    return (int) angle;
+}
+
+
+int Target::VerticalAngle(int imageCenterY) {
+    return this->VerticalAngle(this->Distance(), imageCenterY);
 }
 
 /**

@@ -22,10 +22,10 @@ Settings::Settings(int index, VideoCapture cap) {
 
     Panel panel = Panel(false, 5);
 
-    this->frameWidth  = CameraSetting("Frame Width (int)", 1, 2000, this->camWidth);
+    this->frameWidth  = CameraSetting("Width (int)", 1, 2000, this->camWidth);
         panel.Pack_start(frameWidth.GetWidget(), true, false, 0);
 
-    this->frameHeight = CameraSetting("Frame Height (int)", 1, 2000, this->camHeight);
+    this->frameHeight = CameraSetting("Height (int)", 1, 2000, this->camHeight);
         panel.Pack_start(frameHeight.GetWidget(), true, false, 0);
 
     Label warning = Label("NOTE: Some resolutions may not be supported by your camera!");
