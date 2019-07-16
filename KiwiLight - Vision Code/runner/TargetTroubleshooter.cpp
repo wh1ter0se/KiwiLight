@@ -189,6 +189,10 @@ bool TargetTroubleshooter::Troubleshoot(TroubleshootingData dataOut[]) {
         }
 
         std::cout << "horizontal distances: " << DataUtils::VectorToString(HorizontalDistances) << std::endl;
+        std::cout << "vertical distances: " << DataUtils::VectorToString(VerticalDistances) << std::endl;
+        std::cout << "angles: " << DataUtils::VectorToString(Angles) << std::endl;
+        std::cout << "solidities: " << DataUtils::VectorToString(Solidities) << std::endl;
+        std::cout << "aspect ratios: " << DataUtils::VectorToString(AspectRatios) << std::endl;
 
         data[i].averageHorizontalDistance = DataUtils::Average(HorizontalDistances);
         data[i].averageVerticalDistance = DataUtils::Average(VerticalDistances);

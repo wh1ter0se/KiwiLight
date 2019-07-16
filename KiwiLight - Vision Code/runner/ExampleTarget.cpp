@@ -126,43 +126,7 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
 
     int totalGood = 0;
 
-    // int biggestX = -5000;
-    // int smallestX = 5000;
-    // int biggestY = -5000;
-    // int smallestY = 5000;
-
-    // int biggestXWidth = 0;
-    // int biggestYHeight = 0;
-
-    // for(int i=0; i<imageContours.size(); i++) {
-    //     Contour object = imageContours[i];
-
-    //     if(object.X() > biggestX) {
-    //         biggestX = object.X();
-    //         biggestXWidth = object.Width();
-    //     }
-        
-    //     if(object.X() < smallestX) {
-    //         smallestX = object.X();
-    //     }
-
-    //     if(object.Y() > biggestY) {
-    //         biggestY = object.Y();
-    //         biggestYHeight = object.Height();
-    //     }
-
-    //     if(object.Y() < smallestY) {
-    //         smallestY = object.Y();
-    //     }
-    // }
-
-    // int objectWidth = (biggestX - smallestX) + biggestXWidth;
-    // int objectHeight = (biggestY - smallestY) + biggestYHeight;
-
-    // int centerX = (objectWidth / 2) + smallestX;
-    // int centerY = (objectWidth / 2) + smallestY;
-
-    Target potentialTarg = Target(0, imageContours, 0, 0 , 0, 0);
+    Target potentialTarg = Target(0, imageContours, 0, 0, 0, 0);
     int centerX = potentialTarg.Center().x;
     int centerY = potentialTarg.Center().y;
 
@@ -174,7 +138,7 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
         double widthsToCenterX = distToCenterX / (double) objectWidth;
 
         int distToCenterY = centerY - object.Center().y;
-        double widthsToCenterY = distToCenterY / (double) objectWidth;
+        double widthsToCenterY = (double) distToCenterY / (double) objectWidth;
 
         for(int k=0; k<targetContours.size(); k++) {
             //measure distance in pixels, convert to widths, and compare to exampleContours.
@@ -183,7 +147,7 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
 
             bool distYValid = (widthsToCenterY > targetContours[k].DistY().LowerBound() &&
                                widthsToCenterY < targetContours[k].DistY().UpperBound() );
-
+                               
             if(distXValid && distYValid && targetContours[k].IsContour(imageContours[i])) {
                 totalGood++;
             }

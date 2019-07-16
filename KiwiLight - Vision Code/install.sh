@@ -56,7 +56,7 @@ echo "Welcome to the KiwiLight installer!"
 echo "Installing KiwiLight will download many packages and may take a long time."
 echo "Would you like to continue? [y/n]: "
 
-read -n 1 confirm
+read -N1 confirm
 echo
 
 if [ ${confirm} = 'y' ]; then

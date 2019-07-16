@@ -1,0 +1,68 @@
+<camera index="0">
+    <resolution>
+        <width>640</width>
+        <height>360</height>
+    </resolution>
+    <settings>
+        <setting name="brightness">35</setting>
+        <setting name="contrast">5</setting>
+        <setting name="saturation">150</setting>
+        <setting name="white_balance_temperature_auto">-1</setting>
+        <setting name="power_line_frequency">2</setting>
+        <setting name="white_balance_temperature">2800</setting>
+        <setting name="sharpness">25</setting>
+        <setting name="backlight_compensation">0</setting>
+        <setting name="exposure_auto">1</setting>
+        <setting name="exposure_absolute">5</setting>
+        <setting name="pan_absolute">0</setting>
+        <setting name="tilt_absolute">0</setting>
+        <setting name="zoom_absolute">0</setting>
+    </settings>
+</camera>
+<configuration name="Lifecam Brackets">
+    <cameraOffset>
+        <horizontal>0.000000</horizontal>
+        <vertical>0.000000</vertical>
+    </cameraOffset>
+    <constantResize>
+        <width>200</width>
+        <height>125</height>
+    </constantResize>
+    <preprocessor type="full">
+        <threshold>75</threshold>
+        <dilation>5</dilation>
+        <targetColor error="20.000000">
+            <h>86</h>
+            <s>255</s>
+            <v>255</v>
+        </targetColor>
+    </preprocessor>
+    <postprocessor>
+        <target id="0">
+            <contour id="0">
+                <x error="0.450000">1.250000</x>
+                <y error="0.450000">-0.016500</y>
+                <angle error="50.000000">-0.638298</angle>
+                <solidity error="0.350000">0.554618</solidity>
+                <aspectRatio error="0.350000">0.256633</aspectRatio>
+                <minimumArea>5.000000</minimumArea>
+            </contour>
+            <contour id="1">
+                <x error="0.250000">-1.331707</x>
+                <y error="0.250000">-0.001276</y>
+                <angle error="10.000000">-0.480000</angle>
+                <solidity error="0.250000">0.553438</solidity>
+                <aspectRatio error="0.250000">0.259580</aspectRatio>
+                <minimumArea>5.000000</minimumArea>
+            </contour>
+            <knownWidth>12.000000</knownWidth>
+            <focalWidth>300.000000</focalWidth>
+            <calibratedDistance>36.000000</calibratedDistance>
+            <distErrorCorrect>-0.100000</distErrorCorrect>
+        </target>
+        <UDP>
+            <address>127.0.0.1</address>
+            <port>3695</port>
+        </UDP>
+    </postprocessor>
+</configuration>
