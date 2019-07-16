@@ -151,6 +151,10 @@ std::vector<XMLTag> XMLDocument::GetTagsByName(std::string name) {
         }
     }
 
+    if(results.size() == 0) {
+        std::cout << "There were no XML Tag results for \"" << name << "\"" << std::endl;
+    }
+
     return results;
 }
 

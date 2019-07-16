@@ -274,7 +274,6 @@ namespace KiwiLight {
         public:
         PostProcessor() {};
         PostProcessor(std::vector<ExampleTarget> targets, bool debugging);
-        //x, y, angle, solidity, aspectratio, minarea
         int NumTargets() { return this->targets.size(); };
         void SetTargetContourProperty(int contour, TargetProperty prop, SettingPair values);
         SettingPair GetTargetContourProperty(int contour, TargetProperty prop);
@@ -343,7 +342,6 @@ namespace KiwiLight {
         SettingPair GetPostProcessorContourProperty(int contour, TargetProperty prop);
         void SetRunnerProperty(RunnerProperty prop, double value);
         double GetRunnerProperty(RunnerProperty prop);
-        std::string GetSetting(std::string settingName);
 
         private:
         void parseDocument(XMLDocument doc);
@@ -356,12 +354,14 @@ namespace KiwiLight {
              cameraResolution;
         Target closestTarget;
 
-        std::string src;
+        std::string src,
+                    configName;
+
         int cameraIndex;
 
         cv::Mat outputImage,
                 originalImage;
-        ConfigurationSettingsList settings;
+
         std::vector<ExampleTarget> postProcessorTargets;
         std::vector<Target> lastFrameTargets;
         bool stop,

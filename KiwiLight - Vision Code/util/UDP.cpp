@@ -22,6 +22,8 @@ void err(const char *msg) {
  * @param port the port to connect on
  */
 UDP::UDP(std::string dest_ip, int port) {
+    this->address = dest_ip;
+    this->port = port;
 
     std::cout << "Setting up UDP..." << std::endl;
 
@@ -52,6 +54,9 @@ UDP::UDP(std::string dest_ip, int port) {
 
 
 UDP::UDP(std::string dest_ip, int port, bool blockUntilConnected) {
+    this->address = dest_ip;
+    this->port = port;
+
     std::cout << "Setting up UDP..." << std::endl;
 
     this->sock = socket(AF_INET, SOCK_DGRAM, 0); //"0" for wildcard of what protocol is best
@@ -81,6 +86,9 @@ UDP::UDP(std::string dest_ip, int port, bool blockUntilConnected) {
 
 
 UDP::UDP(std::string this_ip, std::string dest_ip, int port, bool blockUntilConnected) {
+    this->address = dest_ip;
+    this->port = port;
+
     std::cout << "Setting up UDP..." << std::endl;
     
     this->enabled = true;

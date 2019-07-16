@@ -32,7 +32,6 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
     this->currentDoc = XMLDocument(fileName);
     this->fileName = fileName;
     this->confName = this->currentDoc.GetTagsByName("configuration")[0].GetAttributesByName("name")[0].Value();
-
     this->window = Window(GTK_WINDOW_TOPLEVEL, false);
         this->content = Panel(true, 5);
                 Panel settingsContent = Panel(false, 0);
@@ -42,7 +41,6 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
                     this->cameraSettings = Settings(this->runner.GetCameraIndex(), cap);
                         settingsContent.Pack_start(this->cameraSettings.GetWidget(), false, false, 0);
                     this->content.Pack_start(settingsContent.GetWidget(), true, true, 0);
-
                 Panel targetContent = Panel(false, 0);
                     Label targetHeader = Label("Targeting");
                         targetHeader.SetName("header");
@@ -50,7 +48,6 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
                         this->targetEditor = ConfigTargetEditor(fileName, this->runner);
                             targetContent.Pack_start(this->targetEditor.GetWidget(), true, true, 0);
                     this->content.Pack_start(targetContent.GetWidget(), true, true, 0);
-
                 Panel runnerContent = Panel(false, 0);
                     Label runnerHeader = Label("Runner");
                         runnerHeader.SetName("header");
@@ -58,12 +55,12 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
                     this->runnerEditor = ConfigRunnerEditor(fileName);
                         runnerContent.Pack_start(this->runnerEditor.GetWidget(), false, false, 0);
                     this->content.Pack_start(runnerContent.GetWidget(), true, true, 0);
-
             this->window.SetPane(this->content);
 
     this->window.Show();
     this->configeditor = this->window.GetWidget();
     this->Update();
+
 }
 
 /**
@@ -357,35 +354,23 @@ void ConfigEditor::Save() {
                 XMLTagAttribute preprocessorTypeAttr = XMLTagAttribute("type", preprocessorTypeString);
                 preprocessorTag.AddAttribute(preprocessorTypeAttr);
 
-                XMLTag targetThreshold = XMLTag("targetThreshold");
-                    XMLTag thresh = XMLTag("threshold", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::THRESHOLD)));
-                        targetThreshold.AddTag(thresh);
-
-                    XMLTag maxValue = XMLTag("maxValue", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::THRESH_VALUE)));
-                        targetThreshold.AddTag(maxValue);
-
-                    XMLTag threshType = XMLTag("type", "0");
-                        targetThreshold.AddTag(threshType);
-
-                    preprocessorTag.AddTag(targetThreshold);
+                XMLTag thresh = XMLTag("threshold", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::THRESHOLD)));
+                    preprocessorTag.AddTag(thresh);
 
                 XMLTag dilationTag = XMLTag("dilation", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::DILATION)));
                     preprocessorTag.AddTag(dilationTag);
 
                 XMLTag colorTag = XMLTag("targetColor");
+                    XMLTagAttribute colorError = XMLTagAttribute("error", std::to_string(this->runner.GetPreprocessorProperty(PreProcessorProperty::COLOR_ERROR)));
+                        colorTag.AddAttribute(colorError);
+
                     XMLTag hueTag = XMLTag("h", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::COLOR_HUE)));
-                        XMLTagAttribute hueError = XMLTagAttribute("error", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::COLOR_ERROR)));
-                        hueTag.AddAttribute(hueError);
                         colorTag.AddTag(hueTag);
 
                     XMLTag saturationTag = XMLTag("s", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::COLOR_SATURATION)));
-                        XMLTagAttribute saturationError = XMLTagAttribute("error", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::COLOR_ERROR)));
-                        saturationTag.AddAttribute(saturationError);
                         colorTag.AddTag(saturationTag);
 
                     XMLTag valueTag = XMLTag("v", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::COLOR_VALUE)));
-                        XMLTagAttribute valueError = XMLTagAttribute("error", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::COLOR_ERROR)));
-                        valueTag.AddAttribute(valueError);
                         colorTag.AddTag(valueTag);
 
                     preprocessorTag.AddTag(colorTag);
@@ -393,9 +378,6 @@ void ConfigEditor::Save() {
                 configurationTag.AddTag(preprocessorTag);
 
             XMLTag postprocessorTag = XMLTag("postprocessor");
-                XMLTag centerOffset = XMLTag("centerOffset", "0");
-                    postprocessorTag.AddTag(centerOffset);
-
                 XMLTag targetTag = XMLTag("target");
                     XMLTagAttribute targetIDAttr = XMLTagAttribute("id", "0");
                     targetTag.AddAttribute(targetIDAttr);

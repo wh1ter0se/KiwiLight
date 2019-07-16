@@ -29,20 +29,15 @@
         <height>145</height>
     </constantResize>
     <preprocessor type="full">
-        <targetThreshold>
-            <threshold>75</threshold>
-            <maxValue>255</maxValue>
-            <type>0</type>
-        </targetThreshold>
+        <threshold>75</threshold>
         <dilation>5</dilation>
-        <targetColor>
-            <h error="20">0</h>
-            <s error="20">0</s>
-            <v error="20">255</v>
+        <targetColor error="20">
+            <h>0</h>
+            <s>0</s>
+            <v>255</v>
         </targetColor>
     </preprocessor>
     <postprocessor>
-        <centerOffset>0</centerOffset>
         <target id="0">
             <contour id="0">
                 <x error="0.350000">0.000000</x>

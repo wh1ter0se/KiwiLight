@@ -88,13 +88,6 @@ void Update() {
         Flags::LowerFlag("CloseCamera");
         cameraOpen = false;
         displayingImage = true; //block out updating image so nothing uses camera
-        // if(uiMode == UIMode::UI_RUNNER) {
-        //     runner.Stop();
-        // } else if(uiMode == UIMode::UI_EDITOR) {
-        //     configEditor.StopCamera();
-        // } else {
-        //     cam.~VideoCapture();
-        // }
         
         Flags::RaiseFlag("CameraClosed");
     }
@@ -102,14 +95,7 @@ void Update() {
     if(Flags::GetFlag("StartCamera")) {
         Flags::LowerFlag("StartCamera");
         cameraOpen = true;
-        displayingImage = false;
-        // if(uiMode == UIMode::UI_RUNNER) {
-        //     runner.Start();
-        // } else if(uiMode == UIMode::UI_EDITOR) {
-            configEditor.ResetRunnerResolution();
-        // } else {
-        //     cam = VideoCapture(cameraIndex.GetValue());
-        // }
+        configEditor.ResetRunnerResolution();
         pauseStreamer = false;
     }
 
@@ -117,9 +103,10 @@ void Update() {
         //pause streamer so it doesnt cause problems
         pauseStreamer = true;
         Flags::LowerFlag("SaveAndCloseEditor");
-        runner = Runner(configEditor.GetFileName(), true, configEditor.GetVideoCapture());
         configEditor.Save();
         configEditor.Close();
+
+        runner = Runner(configEditor.GetFileName(), true, configEditor.GetVideoCapture());
 
         uiMode = UIMode::UI_RUNNER;
         pauseStreamer = false;

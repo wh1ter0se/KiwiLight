@@ -105,13 +105,13 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName, Runner runner) {
                         preprocessorPanel.Pack_start(preprocessorColorChooser.GetWidget(), false, false, 0);
 
                     this->colorError = LabeledSlider("Color Error", 0, 100, 1, 0);
-                        int realColorError = std::stoi(targetColor.GetTagsByName("h")[0].GetAttributesByName("error")[0].Value());
+                        int realColorError = std::stoi(targetColor.GetAttributesByName("error")[0].Value());
                         this->colorError.SetValue(realColorError);
                         preprocessorPanel.Pack_start(this->colorError.GetWidget(), false, false, 0);
 
                     //now create threshold and dilation sliders and set the values to the ones from the file
                     this->thresholdValue = LabeledSlider("Threshold Value:", 0.0, 255.0, 1.0, 0.0);
-                        int realThreshold = std::stoi(preprocessorTag.GetTagsByName("targetThreshold")[0].GetTagsByName("threshold")[0].Content());
+                        int realThreshold = std::stoi(preprocessorTag.GetTagsByName("threshold")[0].Content());
                         this->thresholdValue.SetValue((double) realThreshold);
                         preprocessorPanel.Pack_start(this->thresholdValue.GetWidget(), false, false, 0);
 

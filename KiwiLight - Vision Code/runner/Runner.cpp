@@ -21,19 +21,6 @@ Runner::Runner(std::string fileName, bool debugging) {
     } else {
         std::cout << "sorry! the file could not be found. " << std::endl;
     }
-    //figure out constant resize
-    int resizeX = std::stoi(this->settings.GetSetting("resizeX"));
-    int resizeY = std::stoi(this->settings.GetSetting("resizeY"));
-    this->constantResize = Size(resizeX, resizeY);
-
-    bool isFull = (this->settings.GetSetting("PreprocessorType") == "full");
-    this->cameraIndex = std::stoi(this->settings.GetSetting("cameraIndex"));
-    this->preprocessor = PreProcessor(this->settings, isFull, this->debug);
-    this->postprocessor = PostProcessor(this->postProcessorTargets, this->debug);
-
-    std::string udpAddr = this->settings.GetSetting("UDPAddress");
-    int udpPort = std::stoi(this->settings.GetSetting("UDPPort"));
-    this->udp = UDP(udpAddr, udpPort, false);
 
     this->applySettings();
     this->cap = VideoCapture(this->cameraIndex);
@@ -52,19 +39,6 @@ Runner::Runner(std::string fileName, bool debugging, bool openNewVideoStream) {
     } else {
         std::cout << "sorry! the file could not be found. " << std::endl;
     }
-    //figure out constant resize
-    int resizeX = std::stoi(this->settings.GetSetting("resizeX"));
-    int resizeY = std::stoi(this->settings.GetSetting("resizeY"));
-    this->constantResize = Size(resizeX, resizeY);
-
-    bool isFull = (this->settings.GetSetting("PreprocessorType") == "full");
-    this->cameraIndex = std::stoi(this->settings.GetSetting("cameraIndex"));
-    this->preprocessor = PreProcessor(this->settings, isFull, this->debug);
-    this->postprocessor = PostProcessor(this->postProcessorTargets, this->debug);
-
-    std::string udpAddr = this->settings.GetSetting("UDPAddress");
-    int udpPort = std::stoi(this->settings.GetSetting("UDPPort"));
-    this->udp = UDP(udpAddr, udpPort, false);
 
     if(openNewVideoStream) {
         this->applySettings();
@@ -85,19 +59,6 @@ Runner::Runner(std::string fileName, bool debugging, VideoCapture cap) {
     } else {
         std::cout << "sorry! the file could not be found. " << std::endl;
     }
-    //figure out constant resize
-    int resizeX = std::stoi(this->settings.GetSetting("resizeX"));
-    int resizeY = std::stoi(this->settings.GetSetting("resizeY"));
-    this->constantResize = Size(resizeX, resizeY);
-
-    bool isFull = (this->settings.GetSetting("PreprocessorType") == "full");
-    this->cameraIndex = std::stoi(this->settings.GetSetting("cameraIndex"));
-    this->preprocessor = PreProcessor(this->settings, isFull, this->debug);
-    this->postprocessor = PostProcessor(this->postProcessorTargets, this->debug);
-
-    std::string udpAddr = this->settings.GetSetting("UDPAddress");
-    int udpPort = std::stoi(this->settings.GetSetting("UDPPort"));
-    this->udp = UDP(udpAddr, udpPort, false);
 
     this->applySettings();
     this->cap = cap;
@@ -126,12 +87,12 @@ void Runner::Loop() {
     std::cout << "------------------------------------" << std::endl;
     std::cout << "KiwiLight Runner starting..." << std::endl;
     std::cout << "  Mode: " << (this->debug? "Debug" : "Running") << std::endl;
-    std::cout << "  Configuration Name: " << this->settings.GetSetting("configName") << std::endl;
-    std::cout << "  Preprocessor: " << this->settings.GetSetting("PreprocessorType") << std::endl;
-    std::cout << "  Postprocessor: full" << std::endl;
+    std::cout << "  Configuration Name: " << this->configName << std::endl;
+    std::cout << "  Preprocessor: " << (this->preprocessor.GetProperty(PreProcessorProperty::IS_FULL) == 1.0 ? "FULL" : "PARTIAL") << std::endl;
+    std::cout << "  Postprocessor: FULL" << std::endl;
     std::cout << "    Number of Contours: " << this->postProcessorTargets[0].Contours().size() << std::endl;
-    std::cout << "  UDP Destination Address: " << this->settings.GetSetting("UDPAddress") << std::endl;
-    std::cout << "  UDP Port: " << this->settings.GetSetting("UDPPort") << std::endl;
+    std::cout << "  UDP Destination Address: " << this->udp.GetAddress() << std::endl;
+    std::cout << "  UDP Port: " << std::to_string(this->udp.GetPort()) << std::endl;
     std::cout << "------------------------------------" << std::endl;
     std::cout << std::endl;
 
@@ -354,8 +315,7 @@ void Runner::UnlockLoop() {
  * NOTE: THIS METHOD DOES NOT CALL LOOP(). Loop() must be called separately.
  */
 void Runner::Start() {
-    int cameraIndex = std::stoi(this->settings.GetSetting("cameraIndex"));
-    this->cap = VideoCapture(cameraIndex);
+    this->cap = VideoCapture(this->cameraIndex);
     this->stop = false;
 }
 
@@ -416,59 +376,45 @@ double Runner::GetRunnerProperty(RunnerProperty prop) {
 }
 
 /**
- * Returns the value of the settings at settingName.
- */
-std::string Runner::GetSetting(std::string settingName) {
-    return this->settings.GetSetting(settingName);
-}
-
-/**
  * Parses the XMLdocument doc and initalizes all runner settings and variables.
  */
 void Runner::parseDocument(XMLDocument doc) {
-    this->settings = ConfigurationSettingsList();
-
     XMLTag camera = doc.GetTagsByName("camera")[0];
-        this->settings.AddSetting("cameraIndex", camera.GetAttributesByName("index")[0].Value());
+        this->cameraIndex = std::stoi(camera.GetAttributesByName("index")[0].Value());
+        
         XMLTag camRes = camera.GetTagsByName("resolution")[0];
-            this->settings.AddSetting("cameraWidth", camRes.GetTagsByName("width")[0].Content());
-            this->settings.AddSetting("cameraHeight", camRes.GetTagsByName("height")[0].Content());
+            int camResX = std::stoi(camRes.GetTagsByName("width")[0].Content());
+            int camResY = std::stoi(camRes.GetTagsByName("height")[0].Content());
+            this->cameraResolution = Size(camResX, camResY);
 
-        XMLTag camSettings = camera.GetTagsByName("settings")[0];
-            //do things for the settings here
     XMLTag config = doc.GetTagsByName("configuration")[0];
-        this->settings.AddSetting("configName", config.GetAttributesByName("name")[0].Value());
 
         XMLTag cameraOffset = config.GetTagsByName("cameraOffset")[0];
-            this->settings.AddSetting("centerOffsetX", cameraOffset.GetTagsByName("horizontal")[0].Content());
-            this->settings.AddSetting("centerOffsetY", cameraOffset.GetTagsByName("vertical")[0].Content());
+            this->centerOffsetX = std::stod(cameraOffset.GetTagsByName("horizontal")[0].Content());
+            this->centerOffsetY = std::stod(cameraOffset.GetTagsByName("vertical")[0].Content());
 
-            this->centerOffsetX = std::stod(this->settings.GetSetting("centerOffsetX"));
-            this->centerOffsetY = std::stod(this->settings.GetSetting("centerOffsetY"));
 
         XMLTag constResize = config.GetTagsByName("constantResize")[0];
-            this->settings.AddSetting("resizeX", constResize.GetTagsByName("width")[0].Content());
-            this->settings.AddSetting("resizeY", constResize.GetTagsByName("height")[0].Content());
+            int resizeX = std::stoi(constResize.GetTagsByName("width")[0].Content());
+            int resizeY = std::stoi(constResize.GetTagsByName("height")[0].Content());
+            this->constantResize = Size(resizeX, resizeY);
 
         XMLTag preprocess = config.GetTagsByName("preprocessor")[0];
-            this->settings.AddSetting("PreprocessorType", preprocess.GetAttributesByName("type")[0].Value());
-            XMLTag threshold = preprocess.GetTagsByName("targetThreshold")[0];
-                this->settings.AddSetting("thresholdValue", threshold.GetTagsByName("threshold")[0].Content());
-                this->settings.AddSetting("threshMaxValue", threshold.GetTagsByName("maxValue")[0].Content());
-                this->settings.AddSetting("threshType", threshold.GetTagsByName("type")[0].Content());
-
-            this->settings.AddSetting("dilation", preprocess.GetTagsByName("dilation")[0].Content());
+            bool preprocessorTypeIsFull = (preprocess.GetAttributesByName("type")[0].Value() == "full" ? true : false);
+            
+            int preprocessorThreshold = std::stoi(preprocess.GetTagsByName("threshold")[0].Content());
+            int preprocessorDilation = std::stoi(preprocess.GetTagsByName("dilation")[0].Content());
             XMLTag color = preprocess.GetTagsByName("targetColor")[0];
-                this->settings.AddSetting("colorH", color.GetTagsByName("h")[0].Content());
-                this->settings.AddSetting("colorS", color.GetTagsByName("s")[0].Content());
-                this->settings.AddSetting("colorV", color.GetTagsByName("v")[0].Content());
-                this->settings.AddSetting("colorH_error", color.GetTagsByName("h")[0].GetAttributesByName("error")[0].Value());
-                this->settings.AddSetting("colorS_error", color.GetTagsByName("s")[0].GetAttributesByName("error")[0].Value());
-                this->settings.AddSetting("colorV_error", color.GetTagsByName("v")[0].GetAttributesByName("error")[0].Value());
+                int error = std::stoi(color.GetAttributesByName("error")[0].Value());
+                int h = std::stoi(color.GetTagsByName("h")[0].Content());
+                int s = std::stoi(color.GetTagsByName("s")[0].Content());
+                int v = std::stoi(color.GetTagsByName("v")[0].Content());
+                Color preprocessorColor = Color(h, s, v, error, error, error);
+
         XMLTag postprocess = config.GetTagsByName("postprocessor")[0];
             XMLTag udp = postprocess.GetTagsByName("UDP")[0];
-                this->settings.AddSetting("UDPAddress", udp.GetTagsByName("address")[0].Content());
-                this->settings.AddSetting("UDPPort", udp.GetTagsByName("port")[0].Content());
+                std::string udpAddr = udp.GetTagsByName("address")[0].Content();
+                int udpPort = std::stoi(udp.GetTagsByName("port")[0].Content());
 
             std::vector<XMLTag> targets = postprocess.GetTagsByName("target");
             for(int i=0; i<targets.size(); i++) {
@@ -513,6 +459,11 @@ void Runner::parseDocument(XMLDocument doc) {
                 ExampleTarget newTarget = ExampleTarget(targetId, contours, knownWidth, focalWidth, distErrorCorrect, calibratedDistance);
                 this->postProcessorTargets.push_back(newTarget);
             }
+
+    //init the preprocessor and postprocessor here
+    this->preprocessor = PreProcessor(preprocessorTypeIsFull, preprocessorColor, preprocessorThreshold, preprocessorDilation, this->debug);
+    this->postprocessor = PostProcessor(this->postProcessorTargets, this->debug);
+    this->udp = UDP(udpAddr, udpPort);
 }
 
 /**

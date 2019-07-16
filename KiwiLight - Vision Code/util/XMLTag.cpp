@@ -77,6 +77,10 @@ std::vector<XMLTag> XMLTag::GetTagsByName(std::string name) {
         }
     }
 
+    if(results.size() == 0) {
+        std::cout << "There were no XML Tag results for \"" << name << "\"" << std::endl;
+    }
+
     return results;
 }
 
@@ -88,6 +92,10 @@ std::vector<XMLTagAttribute> XMLTag::GetAttributesByName(std::string name) {
         if(this->attributes[i].Name() == name) {
             results.push_back(this->attributes[i]);
         }
+    }
+
+    if(results.size() == 0) {
+        std::cout << "There were no XML Attribute results for \"" << name << "\"" << std::endl;
     }
 
     return results;
@@ -112,11 +120,8 @@ std::string XMLTag::ReturnString(std::string prefix) {
 
         finalString += "\n" + prefix + "</" + this->name + ">";
     } else {
-        // finalString += "\n";
-        // finalString += prefix + "    ";
         finalString += this->content;
         finalString += "</" + this->name + ">";
-        // finalString += "\n";
     }
 
     return finalString;

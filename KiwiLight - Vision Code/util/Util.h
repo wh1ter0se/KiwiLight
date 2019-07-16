@@ -93,6 +93,8 @@ namespace KiwiLight {
         void Send(std::string msg);
         std::string Recieve();
         void Close();
+        std::string GetAddress() { return this->address; };
+        int GetPort() { return this->port; };
 
         private:
         int sock; //sock fd returned by socket() call
@@ -100,6 +102,9 @@ namespace KiwiLight {
 
         bool connected;
         bool enabled;
+
+        std::string address;
+        int port;
     };
 
     class XMLTagAttribute {
