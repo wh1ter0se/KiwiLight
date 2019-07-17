@@ -27,16 +27,8 @@ std::vector<Target> ExampleTarget::GetTargets(std::vector<Contour> objects) {
     std::vector<Target> foundTargets = std::vector<Target>();
     std::vector<Contour> validContours = std::vector<Contour>();
     
-    //find valid contours
-    for(int i=0; i<objects.size(); i++) {
-        for(int k=0; k<this->contours.size(); k++) {
-            if(this->contours[k].IsContour(objects[i])) {
-                validContours.push_back(objects[i]);
-                break;
-            }
-        }
-    }
-
+    validContours = this->GetValidContours(objects);
+        
     int numTargetContours = this->contours.size();
     int numImageContours = validContours.size();
 
@@ -148,6 +140,12 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
             bool distYValid = (widthsToCenterY > targetContours[k].DistY().LowerBound() &&
                                widthsToCenterY < targetContours[k].DistY().UpperBound() );
                                
+            //std::cout << "xlb: " << targetContours[k].DistX().LowerBound() << std::endl;
+            //std::cout << "xub: " << targetContours[k].DistX().UpperBound() << std::endl;
+            //std::cout << "x value: " << widthsToCenterX << std::endl;
+            //std::cout << "x valid: " << distXValid << std::endl;
+            //std::cout << std::endl;
+                               
             if(distXValid && distYValid && targetContours[k].IsContour(imageContours[i])) {
                 totalGood++;
             }
@@ -157,6 +155,22 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
     }
 
     return (this->contours.size() == totalGood);
+}
+
+
+std::vector<Contour> ExampleTarget::GetValidContours(std::vector<Contour> objects) {
+    std::vector<Contour> validContours;
+    
+    for(int i=0; i<objects.size(); i++) {
+        for(int k=0; k<this->contours.size(); k++) {
+            if(this->contours[k].IsContour(objects[i])) {
+                validContours.push_back(objects[i]);
+                break;
+            }
+        }
+    }
+    
+    return validContours;
 }
 
 /**

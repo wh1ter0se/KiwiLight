@@ -215,6 +215,7 @@ namespace KiwiLight {
         ExampleTarget(int id, std::vector<ExampleContour> contours, double knownHeight, double focalHeight, double distErrorCorrect, double calibratedDistance);
         std::vector<Target> GetTargets(std::vector<Contour> contours);
         bool isTarget(std::vector<Contour> contours);
+        std::vector<Contour> GetValidContours(std::vector<Contour> contours);
         int ID() { return this->id; };
         std::vector<ExampleContour> Contours() { return this->contours; };
         ExampleContour GetExampleContourByID(int id);
@@ -281,10 +282,13 @@ namespace KiwiLight {
         double GetRunnerProperty(RunnerProperty prop);
         ExampleTarget GetExampleTargetByID(int id);
         std::vector<Target> ProcessImage(cv::Mat img);
+        std::vector<Contour> GetValidContoursForTarget(std::vector<Contour> contours);
+        std::vector<Contour> GetContoursFromLastFrame() { return this->contoursFromLastFrame; };
 
         private:
         bool debugging;
         std::vector<ExampleTarget> targets;
+        std::vector<Contour> contoursFromLastFrame;
     };
 
 

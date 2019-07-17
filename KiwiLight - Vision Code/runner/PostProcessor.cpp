@@ -35,6 +35,8 @@ std::vector<Target> PostProcessor::ProcessImage(cv::Mat img) {
         Contour newContour = Contour(contours[i]);
         objects.push_back(newContour);
     }
+    
+    this->contoursFromLastFrame = objects;
 
     for(int k=0; k<this->targets.size(); k++) {
         std::vector<Target> targs = this->targets[k].GetTargets(objects);
@@ -48,6 +50,11 @@ std::vector<Target> PostProcessor::ProcessImage(cv::Mat img) {
     }
 
     return foundTargets;
+}
+
+
+std::vector<Contour> PostProcessor::GetValidContoursForTarget(std::vector<Contour> contours) {
+    return this->targets[0].GetValidContours(contours);
 }
 
 

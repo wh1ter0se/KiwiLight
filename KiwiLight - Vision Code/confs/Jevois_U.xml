@@ -1,0 +1,58 @@
+<camera index="0">
+    <resolution>
+        <width>320</width>
+        <height>200</height>
+    </resolution>
+    <settings>
+        <setting name="brightness">3</setting>
+        <setting name="contrast">5</setting>
+        <setting name="saturation">4</setting>
+        <setting name="white_balance_component_auto">-1</setting>
+        <setting name="white_balance_red_component">110</setting>
+        <setting name="white_balance_blue_component">170</setting>
+        <setting name="gain">32</setting>
+        <setting name="power_line_frequency">2</setting>
+        <setting name="sharpness">25</setting>
+        <setting name="exposure_auto">0</setting>
+        <setting name="exposure_absolute">312</setting>
+    </settings>
+</camera>
+<configuration name="Jevois U">
+    <cameraOffset>
+        <horizontal>0.000000</horizontal>
+        <vertical>0.000000</vertical>
+    </cameraOffset>
+    <constantResize>
+        <width>200</width>
+        <height>145</height>
+    </constantResize>
+    <preprocessor type="partial">
+        <threshold>75</threshold>
+        <dilation>5</dilation>
+        <targetColor error="20.000000">
+            <h>0</h>
+            <s>0</s>
+            <v>255</v>
+        </targetColor>
+    </preprocessor>
+    <postprocessor>
+        <target id="0">
+            <contour id="0">
+                <x error="0.350000">0.000000</x>
+                <y error="0.350000">0.000000</y>
+                <angle error="12.000000">0.000000</angle>
+                <solidity error="0.350000">0.408954</solidity>
+                <aspectRatio error="0.350000">1.142778</aspectRatio>
+                <minimumArea>500.000000</minimumArea>
+            </contour>
+            <knownWidth>12.000000</knownWidth>
+            <focalWidth>300.000000</focalWidth>
+            <calibratedDistance>36.000000</calibratedDistance>
+            <distErrorCorrect>-0.100000</distErrorCorrect>
+        </target>
+        <UDP>
+            <address>127.0.0.1</address>
+            <port>3695</port>
+        </UDP>
+    </postprocessor>
+</configuration>

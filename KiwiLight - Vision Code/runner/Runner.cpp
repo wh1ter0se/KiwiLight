@@ -222,6 +222,14 @@ std::string Runner::Iterate() {
         cv::Point VlineTopPoint    = cv::Point(0, robotCenterY);
         cv::Point VlineBottomPoint = cv::Point(camWidth, robotCenterY);
         cv::line(out, VlineTopPoint, VlineBottomPoint, cv::Scalar(255, 0, 255));
+        
+        //draw a dot in the center of each valid contour
+        std::vector<Contour> contoursFromFrame = this->postprocessor.GetContoursFromLastFrame();
+        std::vector<Contour> validContours = this->postprocessor.GetValidContoursForTarget(contoursFromFrame);
+        
+        for(int i=0; i<validContours.size(); i++) {
+            cv::circle(out, validContours[i].Center(), 3, Scalar(0,255,0), 4);
+        }
 
         for(int i=0; i<targets.size(); i++) {
             cv::rectangle(out, targets[i].Bounds(), cv::Scalar(255,0,0), 3);
