@@ -196,10 +196,10 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName, Runner runner) {
 
                         //angle editor
                         Panel anglePanel = Panel(true, 0);
-                            this->ContourAngle = LabeledSlider("Angle", -360.0, 360.0, 0.05, 0);
+                            this->ContourAngle = LabeledSlider("Angle", -90.0, 90.0, 0.05, 0);
                                 anglePanel.Pack_start(this->ContourAngle.GetWidget(), true, true, 0);
 
-                            this->ContourAngleErr = LabeledSlider("Angle Error", 0.0, 50.0, 0.05, 5.0);
+                            this->ContourAngleErr = LabeledSlider("Angle Error", 0.0, 90.0, 0.05, 12.0);
                                 anglePanel.Pack_start(this->ContourAngleErr.GetWidget(), true, true, 0);
 
                             scrollableEditor.Pack_start(anglePanel.GetWidget(), true, true, 0);

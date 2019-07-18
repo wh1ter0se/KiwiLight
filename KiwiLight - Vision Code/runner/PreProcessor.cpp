@@ -57,9 +57,14 @@ cv::Mat PreProcessor::ProcessImage(cv::Mat img) {
 
     if(this->isFullPreprocessor) {
         cv::threshold(img, img, this->threshold, this->threshValue, this->threshtype);
-        cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, 
+        cv::Mat dilateKernel = cv::getStructuringElement(cv::MORPH_RECT, 
                                                 cv::Size(this->dilate,this->dilate));
-        cv::dilate(img, img, kernel);
+                                                
+        cv::Mat erodeKernel = cv::getStructuringElement(cv::MORPH_RECT,
+                                                        cv::Size(3,3));
+        
+        cv::erode(img, img, erodeKernel);
+        cv::dilate(img, img, dilateKernel);
         cv::cvtColor(img, img, cv::COLOR_BGR2HSV);
         cv::inRange(img, this->targetColor.GetLowerBound(), this->targetColor.GetUpperBound(), out);
     } else {

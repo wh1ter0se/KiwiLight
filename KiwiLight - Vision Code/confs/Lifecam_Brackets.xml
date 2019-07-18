@@ -29,8 +29,8 @@
         <height>125</height>
     </constantResize>
     <preprocessor type="full">
-        <threshold>75</threshold>
-        <dilation>5</dilation>
+        <threshold>8</threshold>
+        <dilation>1</dilation>
         <targetColor error="20.000000">
             <h>86</h>
             <s>255</s>
@@ -40,20 +40,20 @@
     <postprocessor>
         <target id="0">
             <contour id="0">
-                <x error="0.450000">1.250000</x>
-                <y error="0.450000">-0.016500</y>
-                <angle error="50.000000">-0.638298</angle>
-                <solidity error="0.350000">0.554618</solidity>
-                <aspectRatio error="0.350000">0.256633</aspectRatio>
-                <minimumArea>5.000000</minimumArea>
+                <x error="0.250000">-1.410196</x>
+                <y error="0.250000">0.000000</y>
+                <angle error="10.000000">-1.200000</angle>
+                <solidity error="0.250000">0.423192</solidity>
+                <aspectRatio error="0.250000">0.309455</aspectRatio>
+                <minimumArea>250.000000</minimumArea>
             </contour>
             <contour id="1">
-                <x error="0.250000">-1.331707</x>
-                <y error="0.250000">-0.001276</y>
-                <angle error="10.000000">-0.480000</angle>
-                <solidity error="0.250000">0.553438</solidity>
-                <aspectRatio error="0.250000">0.259580</aspectRatio>
-                <minimumArea>5.000000</minimumArea>
+                <x error="0.600000">1.210526</x>
+                <y error="0.250000">0.000000</y>
+                <angle error="10.000000">-86.140000</angle>
+                <solidity error="0.250000">0.384651</solidity>
+                <aspectRatio error="0.250000">0.345455</aspectRatio>
+                <minimumArea>250.000000</minimumArea>
             </contour>
             <knownWidth>12.000000</knownWidth>
             <focalWidth>300.000000</focalWidth>

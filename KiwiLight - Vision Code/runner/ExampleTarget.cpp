@@ -121,6 +121,8 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
     Target potentialTarg = Target(0, imageContours, 0, 0, 0, 0);
     int centerX = potentialTarg.Center().x;
     int centerY = potentialTarg.Center().y;
+    
+    std::cout << "target width: " << potentialTarg.Bounds().width << std::endl;
 
     for(int i=0; i<imageContours.size(); i++) {
         Contour object = imageContours[i];
@@ -131,7 +133,9 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
 
         int distToCenterY = centerY - object.Center().y;
         double widthsToCenterY = (double) distToCenterY / (double) objectWidth;
-
+        
+        std::cout << "contour width: " << object.Width() << std::endl;
+        
         for(int k=0; k<targetContours.size(); k++) {
             //measure distance in pixels, convert to widths, and compare to exampleContours.
             bool distXValid = (widthsToCenterX > targetContours[k].DistX().LowerBound() &&
@@ -139,21 +143,28 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
 
             bool distYValid = (widthsToCenterY > targetContours[k].DistY().LowerBound() &&
                                widthsToCenterY < targetContours[k].DistY().UpperBound() );
-                               
-            //std::cout << "xlb: " << targetContours[k].DistX().LowerBound() << std::endl;
-            //std::cout << "xub: " << targetContours[k].DistX().UpperBound() << std::endl;
-            //std::cout << "x value: " << widthsToCenterX << std::endl;
-            //std::cout << "x valid: " << distXValid << std::endl;
-            //std::cout << std::endl;
+            
+            std::cout << "xlb: " << targetContours[k].DistX().LowerBound() << std::endl;
+            std::cout << "xub: " << targetContours[k].DistX().UpperBound() << std::endl;
+            std::cout << "x value: " << widthsToCenterX << std::endl;
+            std::cout << "x valid: " << distXValid << std::endl;
+            std::cout << "ylb: " << targetContours[k].DistY().LowerBound() << std::endl;
+            std::cout << "yub: " << targetContours[k].DistY().UpperBound() << std::endl;
+            std::cout << "y value: " << widthsToCenterY << std::endl;
+            std::cout << "y valid: " << distYValid << std::endl;
                                
             if(distXValid && distYValid && targetContours[k].IsContour(imageContours[i])) {
+                std::cout << "contour valid and good incremented." << std::endl;
                 totalGood++;
             }
+            
+            std::cout << std::endl;
         }
 
         // std::cout << std::endl;
     }
-
+    
+    std::cout << "TOTAL GOOD CONTOURS: " << totalGood << std::endl;
     return (this->contours.size() == totalGood);
 }
 
