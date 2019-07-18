@@ -525,6 +525,7 @@ namespace KiwiLight {
         LabeledSlider colorError;
 
         LabeledSlider thresholdValue,
+                      erosionFactor,
                       dilationFactor;
 
         NumberBox ContourID;

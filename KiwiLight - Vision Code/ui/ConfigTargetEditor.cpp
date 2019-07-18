@@ -115,6 +115,11 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName, Runner runner) {
                         this->thresholdValue.SetValue((double) realThreshold);
                         preprocessorPanel.Pack_start(this->thresholdValue.GetWidget(), false, false, 0);
 
+                    this->erosionFactor = LabeledSlider("Erosion:", 1.0, 50.0, 0.5, 0.0);
+                        int realErosion = std::stoi(preprocessorTag.GetTagsByName("erosion")[0].Content());
+                        this->erosionFactor.SetValue(realErosion);
+                        preprocessorPanel.Pack_start(this->erosionFactor.GetWidget(), false, false, 0);
+
                     this->dilationFactor = LabeledSlider("Dilation:", 1.0, 50.0, 0.5, 0.0);
                         double realDilation = std::stod(preprocessorTag.GetTagsByName("dilation")[0].Content());
                         this->dilationFactor.SetValue(realDilation);
@@ -127,6 +132,7 @@ ConfigTargetEditor::ConfigTargetEditor(std::string fileName, Runner runner) {
 
                     Panel postprocessorPanel = Panel(false, 3);
                         Label postprocessorPanelHeader = Label("Postprocessor");
+                            postprocessorPanelHeader.SetName("subHeader");
                             postprocessorPanel.Pack_start(postprocessorPanelHeader.GetWidget(), false, false, 0);
 
                         Label contourHeader = Label("Contours");
@@ -290,6 +296,7 @@ void ConfigTargetEditor::Update() {
     this->runner.SetPreprocessorProperty(PreProcessorProperty::IS_FULL, preprocessorIsFull);
     this->runner.SetPreprocessorProperty(PreProcessorProperty::THRESHOLD, this->thresholdValue.GetValue());
     this->runner.SetPreprocessorProperty(PreProcessorProperty::THRESH_VALUE, 255);
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::EROSION, this->erosionFactor.GetValue());
     this->runner.SetPreprocessorProperty(PreProcessorProperty::DILATION, this->dilationFactor.GetValue());
     this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_HUE, this->colorH.GetValue());
     this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_SATURATION, this->colorS.GetValue());

@@ -75,6 +75,7 @@ void ConfigEditor::Update() {
             this->runner.SetPreprocessorProperty(PreProcessorProperty::IS_FULL, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::IS_FULL));
             this->runner.SetPreprocessorProperty(PreProcessorProperty::THRESHOLD, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::THRESHOLD));
             this->runner.SetPreprocessorProperty(PreProcessorProperty::THRESH_VALUE, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::THRESH_VALUE));
+            this->runner.SetPreprocessorProperty(PreProcessorProperty::EROSION, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::EROSION));
             this->runner.SetPreprocessorProperty(PreProcessorProperty::DILATION, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::DILATION));
             this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_HUE, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_HUE));
             this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_SATURATION, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_SATURATION));
@@ -133,9 +134,10 @@ void ConfigEditor::Update() {
         Color targetColor = Color(colorH, colorS, colorV, colorError, colorError, colorError);
 
         double threshold = this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::THRESHOLD);
+        double erosion = this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::EROSION);
         double dilation = this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::DILATION);
 
-        PreProcessor learnerPreprocessor = PreProcessor(FullPreProcessor, targetColor, threshold, dilation, true);
+        PreProcessor learnerPreprocessor = PreProcessor(FullPreProcessor, targetColor, threshold, erosion, dilation, true);
         ConfigEditor::learner = ConfigLearner(learnerPreprocessor, this->runner.GetVideoStream());
         ConfigEditor::learner.SetConstantResize(newSize);
         this->editorMode = EditorMode::USE_LEARNER;
@@ -357,6 +359,9 @@ void ConfigEditor::Save() {
                 XMLTag thresh = XMLTag("threshold", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::THRESHOLD)));
                     preprocessorTag.AddTag(thresh);
 
+                XMLTag erosionTag = XMLTag("erosion", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::EROSION)));
+                    preprocessorTag.AddTag(erosionTag);
+                
                 XMLTag dilationTag = XMLTag("dilation", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::DILATION)));
                     preprocessorTag.AddTag(dilationTag);
 

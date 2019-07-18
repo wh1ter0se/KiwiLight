@@ -37,6 +37,7 @@ namespace KiwiLight {
         THRESHOLD,
         THRESH_VALUE,
         DILATION,
+        EROSION,
         COLOR_HUE,
         COLOR_SATURATION,
         COLOR_VALUE,
@@ -245,7 +246,7 @@ namespace KiwiLight {
         public:
         PreProcessor() {};
         PreProcessor(ConfigurationSettingsList settings, bool FullPreprocessor, bool debug);
-        PreProcessor(bool FullPreprocessor, Color targetColor, int threshold, int dilation, bool debugging);
+        PreProcessor(bool FullPreprocessor, Color targetColor, int threshold, int erosion, int dilation, bool debugging);
         void SetProperty(PreProcessorProperty prop, double value);
         double GetProperty(PreProcessorProperty prop);
         cv::Mat ProcessImage(cv::Mat img);
@@ -262,7 +263,8 @@ namespace KiwiLight {
         int threshtype;
 
         //dilation values for expanding, blurring, or dilating
-        int dilate;
+        int dilate,
+            erode;
         
         //what the camera looks for
         Color targetColor;

@@ -30,6 +30,7 @@
     </constantResize>
     <preprocessor type="full">
         <threshold>8</threshold>
+        <erosion>1</erosion>
         <dilation>1</dilation>
         <targetColor error="20.000000">
             <h>86</h>

@@ -28,6 +28,7 @@
     </constantResize>
     <preprocessor type="partial">
         <threshold>75</threshold>
+        <erosion>1</erosion>
         <dilation>5</dilation>
         <targetColor error="20.000000">
             <h>0</h>

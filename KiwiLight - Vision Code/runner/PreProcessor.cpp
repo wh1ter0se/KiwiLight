@@ -38,13 +38,14 @@ PreProcessor::PreProcessor(ConfigurationSettingsList settings, bool fullPreproce
 }
 
 
-PreProcessor::PreProcessor(bool fullPreprocessor, Color targetColor, int threshold, int dilation, bool debug) {
+PreProcessor::PreProcessor(bool fullPreprocessor, Color targetColor, int threshold, int erosion, int dilation, bool debug) {
     this->isFullPreprocessor = fullPreprocessor;
     this->debugging = debug;
     this->targetColor = targetColor;
     this->threshold = threshold;
     this->threshValue = 255;
     this->threshtype = 0;
+    this->erode = erosion;
     this->dilate = dilation;
 }
 
@@ -58,10 +59,10 @@ cv::Mat PreProcessor::ProcessImage(cv::Mat img) {
     if(this->isFullPreprocessor) {
         cv::threshold(img, img, this->threshold, this->threshValue, this->threshtype);
         cv::Mat dilateKernel = cv::getStructuringElement(cv::MORPH_RECT, 
-                                                cv::Size(this->dilate,this->dilate));
+                                                cv::Size(this->dilate, this->dilate));
                                                 
         cv::Mat erodeKernel = cv::getStructuringElement(cv::MORPH_RECT,
-                                                        cv::Size(3,3));
+                                                        cv::Size(this->erode, this->erode));
         
         cv::erode(img, img, erodeKernel);
         cv::dilate(img, img, dilateKernel);
@@ -85,6 +86,9 @@ void PreProcessor::SetProperty(PreProcessorProperty prop, double value) {
             break;
         case PreProcessorProperty::THRESH_VALUE:
             this->threshValue = value;
+            break;
+        case PreProcessorProperty::EROSION:
+            this->erode = value;
             break;
         case PreProcessorProperty::DILATION:
             this->dilate = value;
@@ -130,6 +134,9 @@ double PreProcessor::GetProperty(PreProcessorProperty prop) {
             break;
         case PreProcessorProperty::THRESH_VALUE:
             finalValue = this->threshValue;
+            break;
+        case PreProcessorProperty::EROSION:
+            finalValue = this->erode;
             break;
         case PreProcessorProperty::DILATION:
             finalValue = this->dilate;

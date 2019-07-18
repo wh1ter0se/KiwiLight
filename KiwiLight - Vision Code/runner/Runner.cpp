@@ -411,6 +411,7 @@ void Runner::parseDocument(XMLDocument doc) {
             bool preprocessorTypeIsFull = (preprocess.GetAttributesByName("type")[0].Value() == "full" ? true : false);
             
             int preprocessorThreshold = std::stoi(preprocess.GetTagsByName("threshold")[0].Content());
+            int preprocessorErosion = std::stoi(preprocess.GetTagsByName("erosion")[0].Content());
             int preprocessorDilation = std::stoi(preprocess.GetTagsByName("dilation")[0].Content());
             XMLTag color = preprocess.GetTagsByName("targetColor")[0];
                 int error = std::stoi(color.GetAttributesByName("error")[0].Value());
@@ -469,7 +470,7 @@ void Runner::parseDocument(XMLDocument doc) {
             }
 
     //init the preprocessor and postprocessor here
-    this->preprocessor = PreProcessor(preprocessorTypeIsFull, preprocessorColor, preprocessorThreshold, preprocessorDilation, this->debug);
+    this->preprocessor = PreProcessor(preprocessorTypeIsFull, preprocessorColor, preprocessorThreshold, preprocessorErosion, preprocessorDilation, this->debug);
     this->postprocessor = PostProcessor(this->postProcessorTargets, this->debug);
     this->udp = UDP(udpAddr, udpPort);
 }
