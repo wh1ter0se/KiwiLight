@@ -227,6 +227,9 @@ std::string Runner::Iterate() {
         std::vector<Contour> contoursFromFrame = this->postprocessor.GetContoursFromLastFrame();
         std::vector<Contour> validContours = this->postprocessor.GetValidContoursForTarget(contoursFromFrame);
         
+        Target targ = Target(0, validContours, 0, 0, 0, 0);
+        rectangle(out, targ.Bounds(), Scalar(0, 0, 255), 3);
+        
         for(int i=0; i<validContours.size(); i++) {
             cv::circle(out, validContours[i].Center(), 3, Scalar(0,255,0), 4);
         }

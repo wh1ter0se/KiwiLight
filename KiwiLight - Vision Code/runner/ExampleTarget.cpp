@@ -32,68 +32,64 @@ std::vector<Target> ExampleTarget::GetTargets(std::vector<Contour> objects) {
     int numTargetContours = this->contours.size();
     int numImageContours = validContours.size();
 
-    if(numImageContours >= numTargetContours) {
+    if(numTargetContours == 1) {
+        for(int i=0; i<numImageContours; i++) {
+            std::vector<Contour> potentialTarget = std::vector<Contour>();
+            potentialTarget.push_back(validContours[i]);
+            if(isTarget(potentialTarget)) {
+                Target newTarg = Target(this->id, potentialTarget, this->knownHeight, this->focalHeight, this->distErrorCorrect, this->calibratedDistance);
+                foundTargets.push_back(newTarg);
+            }
+        }
+    } 
+    else {
+        int places[(const int) numTargetContours] = {};
+        for(int i=0; i<numTargetContours; i++) {
+            places[i] = 0;
+        }
 
-        if(numTargetContours == 1) {
-            for(int i=0; i<numImageContours; i++) {
-                std::vector<Contour> potentialTarget = std::vector<Contour>();
-                potentialTarget.push_back(validContours[i]);
-                if(isTarget(potentialTarget)) {
-                    Target newTarg = Target(this->id, potentialTarget, this->knownHeight, this->focalHeight, this->distErrorCorrect, this->calibratedDistance);
-                    foundTargets.push_back(newTarg);
+        std::vector< std::vector<int> > originalCombos;
+
+        //while new combos are possible, generate and test combos of targets
+        while(!ArrayMaxed(places, numTargetContours, numImageContours)) {
+            if(!ContainsDuplicates(places, numTargetContours)) {
+                if(!CombonationAlreadyTested(places, originalCombos, numTargetContours)) {
+                    //add to original combos and then test;
+
+                    //we create new vector to protect it from being changed in the vector
+                    std::vector<int> newOriginalCombo;
+
+                    for(int i=0; i<numTargetContours; i++) {
+                        newOriginalCombo.push_back(places[i]);
+                    }
+                    originalCombos.push_back(newOriginalCombo);
+
+                    //the testing part
+                    std::vector<Contour> potentialTarget = std::vector<Contour>();
+                    for(int i=0; i<numTargetContours; i++) {
+                        int index = places[i];
+                        potentialTarget.push_back(validContours[index]);
+                    }
+
+                    //test new target
+                    if(isTarget(potentialTarget)) {
+                        Target newTarget = Target(this->id, potentialTarget, this->knownHeight, this->focalHeight, this->distErrorCorrect, this->calibratedDistance);
+                        foundTargets.push_back(newTarget);
+                    }
                 }
             }
-        } 
-        else {
-            int places[(const int) numTargetContours] = {};
+
+            //calculate the next combo of contours
             for(int i=0; i<numTargetContours; i++) {
-                places[i] = 0;
-            }
+                places[i]++;
 
-            std::vector< std::vector<int> > originalCombos;
-
-            //while new combos are possible, generate and test combos of targets
-            while(!ArrayMaxed(places, numTargetContours, numImageContours)) {
-                if(!ContainsDuplicates(places, numTargetContours)) {
-                    if(!CombonationAlreadyTested(places, originalCombos, numTargetContours)) {
-                        //add to original combos and then test;
-
-                        //we create new vector to protect it from being changed in the vector
-                        std::vector<int> newOriginalCombo;
-
-                        for(int i=0; i<numTargetContours; i++) {
-                            newOriginalCombo.push_back(places[i]);
-                        }
-                        originalCombos.push_back(newOriginalCombo);
-
-                        //the testing part
-
-                        std::vector<Contour> potentialTarget = std::vector<Contour>();
-                        for(int i=0; i<numTargetContours; i++) {
-                            int index = places[i];
-                            potentialTarget.push_back(objects[index]);
-                        }
-
-                        //test new target
-                        if(isTarget(potentialTarget)) {
-                            Target newTarget = Target(this->id, potentialTarget, this->knownHeight, this->focalHeight, this->distErrorCorrect, this->calibratedDistance);
-                            foundTargets.push_back(newTarget);
-                        }
-                    }
+                if(i > 0) {
+                    places[i-1] = 0;
                 }
 
-                //calculate the next combo of contours
-                for(int i=0; i<numTargetContours; i++) {
-                    places[i]++;
-
-                    if(i > 0) {
-                        places[i-1] = 0;
-                    }
-
-                    if(places[i] < numImageContours) {
-                        break;
-                    }  
-                }
+                if(places[i] < numImageContours) {
+                    break;
+                }  
             }
         }
     }
@@ -122,20 +118,16 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
     int centerX = potentialTarg.Center().x;
     int centerY = potentialTarg.Center().y;
     
-    std::cout << "target width: " << potentialTarg.Bounds().width << std::endl;
+    int objectWidth = potentialTarg.Bounds().width;
 
     for(int i=0; i<imageContours.size(); i++) {
         Contour object = imageContours[i];
-        int objectWidth = object.Width();
         //determine how many widths to the center for the object and compare to our targets
         int distToCenterX = centerX - object.Center().x;
         double widthsToCenterX = distToCenterX / (double) objectWidth;
 
         int distToCenterY = centerY - object.Center().y;
         double widthsToCenterY = (double) distToCenterY / (double) objectWidth;
-        
-        std::cout << "contour width: " << object.Width() << std::endl;
-        
         for(int k=0; k<targetContours.size(); k++) {
             //measure distance in pixels, convert to widths, and compare to exampleContours.
             bool distXValid = (widthsToCenterX > targetContours[k].DistX().LowerBound() &&
@@ -143,28 +135,14 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
 
             bool distYValid = (widthsToCenterY > targetContours[k].DistY().LowerBound() &&
                                widthsToCenterY < targetContours[k].DistY().UpperBound() );
-            
-            std::cout << "xlb: " << targetContours[k].DistX().LowerBound() << std::endl;
-            std::cout << "xub: " << targetContours[k].DistX().UpperBound() << std::endl;
-            std::cout << "x value: " << widthsToCenterX << std::endl;
-            std::cout << "x valid: " << distXValid << std::endl;
-            std::cout << "ylb: " << targetContours[k].DistY().LowerBound() << std::endl;
-            std::cout << "yub: " << targetContours[k].DistY().UpperBound() << std::endl;
-            std::cout << "y value: " << widthsToCenterY << std::endl;
-            std::cout << "y valid: " << distYValid << std::endl;
                                
             if(distXValid && distYValid && targetContours[k].IsContour(imageContours[i])) {
-                std::cout << "contour valid and good incremented." << std::endl;
                 totalGood++;
             }
-            
-            std::cout << std::endl;
         }
 
-        // std::cout << std::endl;
     }
     
-    std::cout << "TOTAL GOOD CONTOURS: " << totalGood << std::endl;
     return (this->contours.size() == totalGood);
 }
 

@@ -79,12 +79,12 @@ Distance CameraFrame::GetContourDistance(Contour contour) {
 
     //find the amount of contour widths to the center of the target and return the distance
 
-    double contourWidth = contour.Width();
+    double targWidth = this->seenTarget.Bounds().width;
     double xDifference = targetCenter.x - contour.Center().x;
     double yDifference = targetCenter.y - contour.Center().y;
 
-    xDifference /= contourWidth;
-    yDifference /= contourWidth;
+    xDifference /= targWidth;
+    yDifference /= targWidth;
 
     return Distance(xDifference, yDifference);
 }
