@@ -84,9 +84,6 @@ void PreProcessor::SetProperty(PreProcessorProperty prop, double value) {
         case PreProcessorProperty::THRESHOLD:
             this->threshold = value;
             break;
-        case PreProcessorProperty::THRESH_VALUE:
-            this->threshValue = value;
-            break;
         case PreProcessorProperty::EROSION:
             this->erode = value;
             break;
@@ -131,9 +128,6 @@ double PreProcessor::GetProperty(PreProcessorProperty prop) {
             break;
         case PreProcessorProperty::THRESHOLD:
             finalValue = this->threshold;
-            break;
-        case PreProcessorProperty::THRESH_VALUE:
-            finalValue = this->threshValue;
             break;
         case PreProcessorProperty::EROSION:
             finalValue = this->erode;

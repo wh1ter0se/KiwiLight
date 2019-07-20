@@ -68,7 +68,7 @@ void Update() {
                 imgFrame.Update(outputImage);
                 cameraStatusLabel.SetText("");
             } catch(cv::Exception ex) {
-                std::cout << "cv exception in update()" << std::endl;
+                // std::cout << "cv exception in update()" << std::endl;
             }
         } else {
             cameraOpen = false;

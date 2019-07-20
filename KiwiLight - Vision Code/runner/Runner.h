@@ -35,7 +35,6 @@ namespace KiwiLight {
     enum PreProcessorProperty {
         IS_FULL,
         THRESHOLD,
-        THRESH_VALUE,
         DILATION,
         EROSION,
         COLOR_HUE,
