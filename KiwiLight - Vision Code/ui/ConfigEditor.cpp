@@ -73,6 +73,10 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
             this->tabs.AddTab("Postprocessor", postprocessorSettingsPanel.GetWidget());
             this->tabs.AddTab("Runner", runnerSettingsPanel.GetWidget());
             this->content.Pack_start(this->tabs.GetWidget(), true, true, 0);
+
+            this->outputImage = Image(ImageColorspace::RGB);
+                this->content.Pack_start(this->outputImage.GetWidget(), false, false, 0);
+
         this->window.SetPane(this->content);
     
     this->window.SetCSS("ui/Style.css");
@@ -83,12 +87,22 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
  * Updates the editor and checks for button presses, etc.
  */
 void ConfigEditor::Update() {
-    
+    this->runner.Iterate();
+        Mat original = this->runner.GetOriginalImage();
+        original.convertTo(original, CV_8UC3);
+        Mat displayable;
+
+        vconcat(original, this->out, displayable);
+
+        this->outputImage.Update(displayable);
 }
 
-
+/**
+ * Updates the internal runner to in turn update the output images.
+ */
 void ConfigEditor::UpdateImageOnly() {
-    
+    this->runner.Iterate();
+    this->out = this->runner.GetOutputImage();
 }
 
 /**

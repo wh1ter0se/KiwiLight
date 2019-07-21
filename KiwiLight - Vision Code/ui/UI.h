@@ -518,6 +518,15 @@ namespace KiwiLight {
         void SetName(std::string name);
 
         private:
+        LabeledSlider offsetX,
+                      offsetY,
+                      imageWidth,
+                      imageHeight,
+                      targetTrueWidth,
+                      targetPercievedWidth,
+                      targetCalibratedDistance,
+                      targetErrorCorrection;
+
         GtkWidget *runnereditor;
     };
 
@@ -582,6 +591,7 @@ namespace KiwiLight {
         RunnerEditor runnerSettings;
 
         cv::Mat out;
+        Image outputImage;
 
         Window window;
         Panel content;

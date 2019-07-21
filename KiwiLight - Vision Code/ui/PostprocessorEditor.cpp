@@ -29,7 +29,7 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
                 distXPanel.Pack_start(this->distX.GetWidget(), false, false, 0);
 
             double realDistXErr = postprocessor.GetTargetContourProperty(0, TargetProperty::DIST_X).Error();
-            this->distXErr = LabeledSlider("Range", 0.0, 10.0, 0.5, realDistXErr);
+            this->distXErr = LabeledSlider("Range", 0.0, 10.0, 0.05, realDistXErr);
                 distXPanel.Pack_start(this->distXErr.GetWidget(), true, true, 0);
 
             editor.Pack_start(distXPanel.GetWidget(), true, true, 0);
@@ -39,7 +39,7 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
                 distYPanel.Pack_start(distYPanelHeader.GetWidget(), true, true, 0);
 
             double realDistY = postprocessor.GetTargetContourProperty(0, TargetProperty::DIST_Y).Value();
-            this->distY = NumberBox(-10.0, 10.0, realDistY);
+            this->distY = NumberBox(-10.0, 10.0, 0.05, realDistY);
                 distYPanel.Pack_start(this->distY.GetWidget(), false, false, 0);
 
             double realDistYErr = postprocessor.GetTargetContourProperty(0, TargetProperty::DIST_Y).Error();
