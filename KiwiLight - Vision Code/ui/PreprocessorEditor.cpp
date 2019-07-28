@@ -9,6 +9,7 @@ using namespace KiwiLight;
 
 
 PreprocessorEditor::PreprocessorEditor(PreProcessor preprocessor) {
+    this->lastIsFull = preprocessor.GetProperty(PreProcessorProperty::IS_FULL) == 1.0;
     Panel editor = Panel(false, 0);
 
         Panel preprocessorTypePanel = Panel(false, 0);
@@ -78,7 +79,32 @@ PreprocessorEditor::PreprocessorEditor(PreProcessor preprocessor) {
  * Updates the UI of the editor.
  */
 void PreprocessorEditor::Update() {
+    //set checkboxes to appropriate states based on which mode is selected.
+    if(this->isFull.GetState() && this->isPartial.GetState()) {
+        //both checkboxes checked, toggle intended
+        bool intendedStateIsFull = !this->lastIsFull;
 
+        if(intendedStateIsFull) {
+            this->isFull.SetState(true);
+            this->isPartial.SetState(false);
+        } else {
+            this->isFull.SetState(false);
+            this->isPartial.SetState(true);
+        }
+
+        this->lastIsFull = intendedStateIsFull;
+    }
+
+    if(!this->isFull.GetState() && !this->isPartial.GetState()) {
+        //if no checkboxes are checked just revert back to whatever the last state was
+        if(this->lastIsFull) {
+            this->isFull.SetState(true);
+            this->isPartial.SetState(false);
+        } else {
+            this->isFull.SetState(false);
+            this->isPartial.SetState(true);
+        }
+    }
 }
 
 /**

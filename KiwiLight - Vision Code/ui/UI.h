@@ -469,6 +469,7 @@ namespace KiwiLight {
         void SetName(std::string name);
 
         private:
+        bool lastIsFull;
         CheckBox isFull,
                  isPartial;
         
@@ -523,6 +524,9 @@ namespace KiwiLight {
         public:
         RunnerEditor() {};
         RunnerEditor(Runner runner);
+        void Update();
+        double GetProperty(RunnerProperty prop);
+        void SetProperty(RunnerProperty prop, double value);
         GtkWidget *GetWidget() { return this->runnereditor; };
         void SetName(std::string name);
 

@@ -79,7 +79,7 @@ cv::Mat PreProcessor::ProcessImage(cv::Mat img) {
 void PreProcessor::SetProperty(PreProcessorProperty prop, double value) {
     switch(prop) {
         case PreProcessorProperty::IS_FULL:
-            this->isFullPreprocessor = (value == 0 ? true : false);
+            this->isFullPreprocessor = (value == 1 ? true : false);
             break;
         case PreProcessorProperty::THRESHOLD:
             this->threshold = value;
@@ -124,7 +124,7 @@ double PreProcessor::GetProperty(PreProcessorProperty prop) {
 
     switch(prop) {
         case PreProcessorProperty::IS_FULL:
-            finalValue = (this->isFullPreprocessor ? 0 : 1);
+            finalValue = (this->isFullPreprocessor ? 1 : 0);
             break;
         case PreProcessorProperty::THRESHOLD:
             finalValue = this->threshold;

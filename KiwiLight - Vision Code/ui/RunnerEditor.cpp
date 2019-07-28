@@ -84,6 +84,69 @@ RunnerEditor::RunnerEditor(Runner runner) {
     this->runnereditor = editor.GetWidget();
 }
 
+/**
+ * Updates the editor and performs important stuff
+ */
+void RunnerEditor::Update() {
+
+}
+
+/**
+ * Returns the value of the property associated with prop.
+ */
+double RunnerEditor::GetProperty(RunnerProperty prop) {
+    switch(prop) {
+        case RunnerProperty::OFFSET_X:
+            return this->offsetX.GetValue();
+        case RunnerProperty::OFFSET_Y:
+            return this->offsetY.GetValue();
+        case RunnerProperty::IMAGE_WIDTH:
+            return this->imageWidth.GetValue();
+        case RunnerProperty::IMAGE_HEIGHT:
+            return this->imageHeight.GetValue();
+        case RunnerProperty::TRUE_WIDTH:
+            return this->targetTrueWidth.GetValue();
+        case RunnerProperty::PERCEIVED_WIDTH:
+            return this->targetPercievedWidth.GetValue();
+        case RunnerProperty::CALIBRATED_DISTANCE:
+            return this->targetCalibratedDistance.GetValue();
+        case RunnerProperty::ERROR_CORRECTION:
+            return this->targetErrorCorrection.GetValue();
+    }
+}
+
+/**
+ * Sets the value of prop to value.
+ */
+void RunnerEditor::SetProperty(RunnerProperty prop, double value) {
+    switch(prop) {
+        case RunnerProperty::OFFSET_X:
+            this->offsetX.SetValue(value);
+            break;
+        case RunnerProperty::OFFSET_Y:
+            this->offsetY.SetValue(value);
+            break;
+        case RunnerProperty::IMAGE_WIDTH:
+            this->imageWidth.SetValue(value);
+            break;
+        case RunnerProperty::IMAGE_HEIGHT:
+            this->imageHeight.SetValue(value);
+            break;
+        case RunnerProperty::TRUE_WIDTH:
+            this->targetTrueWidth.SetValue(value);
+            break;
+        case RunnerProperty::PERCEIVED_WIDTH:
+            this->targetCalibratedDistance.SetValue(value);
+            break;
+        case RunnerProperty::CALIBRATED_DISTANCE:
+            this->targetCalibratedDistance.SetValue(value);
+            break;
+        case RunnerProperty::ERROR_CORRECTION:
+            this->targetErrorCorrection.SetValue(value);
+            break;
+    }
+}
+
 
 void RunnerEditor::SetName(std::string name) {
     gtk_widget_set_name(this->runnereditor, name.c_str());
