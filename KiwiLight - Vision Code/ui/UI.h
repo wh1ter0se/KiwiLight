@@ -462,6 +462,9 @@ namespace KiwiLight {
         public:
         PreprocessorEditor() {};
         PreprocessorEditor(PreProcessor preprocessor);
+        void Update();
+        double GetProperty(PreProcessorProperty prop);
+        void SetProperty(PreProcessorProperty prop, double value);
         GtkWidget *GetWidget() { return this->preprocessoreditor; };
         void SetName(std::string name);
 
@@ -488,6 +491,10 @@ namespace KiwiLight {
         public:
         PostprocessorEditor() {};
         PostprocessorEditor(PostProcessor postprocessor);
+        void Update();
+        int GetNumContours();
+        SettingPair GetProperty(int contour, TargetProperty prop);
+        void SetProperty(int contour, TargetProperty prop, SettingPair value);
         GtkWidget *GetWidget() { return this->postprocessoreditor; };
         void SetName(std::string name);
 
@@ -505,6 +512,8 @@ namespace KiwiLight {
                       solidity,
                       solidityErr,
                       minimumArea;
+
+        Runner storageRunner;
 
         GtkWidget *postprocessoreditor;
     };

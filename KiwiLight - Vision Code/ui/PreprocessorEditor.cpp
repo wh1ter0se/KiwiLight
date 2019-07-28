@@ -74,7 +74,72 @@ PreprocessorEditor::PreprocessorEditor(PreProcessor preprocessor) {
     this->preprocessoreditor = editor.GetWidget();
 }
 
+/**
+ * Updates the UI of the editor.
+ */
+void PreprocessorEditor::Update() {
 
+}
+
+/**
+ * Returns the value of the editor property
+ */
+double PreprocessorEditor::GetProperty(PreProcessorProperty prop) {
+    switch(prop) {
+        case PreProcessorProperty::IS_FULL:
+            return (this->isFull.GetState() ? 1.0 : 0.0);
+        case PreProcessorProperty::THRESHOLD:
+            return this->threshold.GetValue();
+        case PreProcessorProperty::EROSION:
+            return this->erosion.GetValue();
+        case PreProcessorProperty::DILATION:
+            return this->dilation.GetValue();
+        case PreProcessorProperty::COLOR_HUE:
+            return this->colorH.GetValue();
+        case PreProcessorProperty::COLOR_SATURATION:
+            return this->colorS.GetValue();
+        case PreProcessorProperty::COLOR_VALUE:
+            return this->colorV.GetValue();
+        case PreProcessorProperty::COLOR_ERROR:
+            return this->colorError.GetValue();
+    }
+}
+
+/**
+ * Sets the editor property to the value "value"
+ */
+void PreprocessorEditor::SetProperty(PreProcessorProperty prop, double value) {
+    switch(prop) {
+        case PreProcessorProperty::IS_FULL:
+            this->isFull.SetState(value == 1.0);
+            break;
+        case PreProcessorProperty::THRESHOLD:
+            this->threshold.SetValue(value);
+            break;
+        case PreProcessorProperty::EROSION:
+            this->erosion.SetValue(value);
+            break;
+        case PreProcessorProperty::DILATION:
+            this->dilation.SetValue(value);
+            break;
+        case PreProcessorProperty::COLOR_HUE:
+            this->colorH.SetValue(value);
+            break;
+        case PreProcessorProperty::COLOR_SATURATION:
+            this->colorS.SetValue(value);
+            break;
+        case PreProcessorProperty::COLOR_VALUE:
+            this->colorV.SetValue(value);
+            break;
+        case PreProcessorProperty::COLOR_ERROR:
+            this->colorError.SetValue(value);
+            break;
+    }
+}
+
+/**
+ * Sets the name of the editor.
+ */
 void PreprocessorEditor::SetName(std::string name) {
     gtk_widget_set_name(this->preprocessoreditor, name.c_str());
 }
