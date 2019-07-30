@@ -287,14 +287,16 @@ namespace KiwiLight {
 
     class Image : public Widget {
         public:
-        Image() {};
+        Image() { this->declared = false; };
         Image(std::string fileName);
         Image(ImageColorspace colorspace);
+        bool Declared() { return this->declared; };
         void Update(cv::Mat newImage);
         GtkWidget *GetWidget() { return this->image; };
         void SetName(std::string name);
 
         private:
+        bool declared;
         bool declaredAsStaticImage;
         GtkWidget *image;
         ImageColorspace colorspace;
@@ -431,6 +433,39 @@ namespace KiwiLight {
     };
 
     /**
+     * Panel where configuration can be viewed
+     */
+    class ConfigPanel : public Widget {
+        public:
+        ConfigPanel() {};
+        ConfigPanel(std::string configFilePath) : ConfigPanel(XMLDocument(configFilePath), true) {};
+        ConfigPanel(std::string configFilePath, bool withButtons) : ConfigPanel(XMLDocument(configFilePath), withButtons) {};
+        ConfigPanel(XMLDocument doc, bool withButtons);
+        void SetUDPEnabled(bool enabled);
+        void LoadConfig(std::string fileName);
+        void LoadConfig(XMLDocument file);
+        void Clear();
+        std::string GetConfig() { return this->configFile; };
+        GtkWidget *GetWidget() { return this->configPanel; };
+        void SetName(std::string name);
+
+        private:
+        Panel panel;
+        Panel informationPanel;
+        Panel buttonPanel;
+        Label header,
+              fileLabel,
+              PreProcessorLabel,
+              TargetLabel,
+              UDPAddressLabel,
+              UDPPortLabel;
+        Button editConfig;
+        Button toggleUDP;
+        std::string configFile;
+        GtkWidget *configPanel;
+    };
+
+    /**
      * A window where camera settings can be modified.
      */
     class Settings : public Widget {
@@ -524,13 +559,15 @@ namespace KiwiLight {
         public:
         RunnerEditor() {};
         RunnerEditor(Runner runner);
-        void Update();
+        void Update(int targetDistance);
         double GetProperty(RunnerProperty prop);
         void SetProperty(RunnerProperty prop, double value);
         GtkWidget *GetWidget() { return this->runnereditor; };
         void SetName(std::string name);
 
         private:
+        Label distanceLabel;
+
         LabeledSlider offsetX,
                       offsetY,
                       imageWidth,
@@ -598,6 +635,7 @@ namespace KiwiLight {
         std::string confName;
 
         TabView tabs;
+        ConfigPanel configOverview;
         Settings cameraSettings;
         PreprocessorEditor preprocessorSettings;
         PostprocessorEditor postprocessorSettings;

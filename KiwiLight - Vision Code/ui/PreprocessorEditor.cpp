@@ -17,7 +17,7 @@ PreprocessorEditor::PreprocessorEditor(PreProcessor preprocessor) {
             bool processorIsFullBool = (processorIsFullDouble == 1.0 ? true : false);
 
             Label preprocessorTypePanelHeader = Label("Type");
-                preprocessorTypePanelHeader.SetName("gray");
+                preprocessorTypePanelHeader.SetName("subHeader");
                 preprocessorTypePanel.Pack_start(preprocessorTypePanelHeader.GetWidget(), true, true, 0);
 
             Panel preprocessorPanelContents = Panel(true, 0);
@@ -33,7 +33,7 @@ PreprocessorEditor::PreprocessorEditor(PreProcessor preprocessor) {
 
         Panel targetColorPanel = Panel(false, 0);
             Label targetColorPanelHeader = Label("Target Color (HSV)");
-                targetColorPanelHeader.SetName("gray");
+                targetColorPanelHeader.SetName("subHeader");
                 targetColorPanel.Pack_start(targetColorPanelHeader.GetWidget(), true, true, 0);
 
             Panel targetColorPanelContents = Panel(true, 0);
@@ -50,11 +50,15 @@ PreprocessorEditor::PreprocessorEditor(PreProcessor preprocessor) {
                     targetColorPanelContents.Pack_start(this->colorV.GetWidget(), true, true, 0);
 
                 this->colorPreview = Image(ImageColorspace::RGB);
-                    targetColorPanelContents.Pack_start(this->colorPreview.GetWidget(), true, true, 0);
+                    targetColorPanelContents.Pack_start(this->colorPreview.GetWidget(), false, false, 0);
 
                 targetColorPanel.Pack_start(targetColorPanelContents.GetWidget(), true, true, 0);
 
             editor.Pack_start(targetColorPanel.GetWidget(), true, true, 0);
+
+        Label imageProcLabel = Label("Image Processing");
+            imageProcLabel.SetName("subHeader");
+            editor.Pack_start(imageProcLabel.GetWidget(), true, true, 0);
 
         double realColorError = preprocessor.GetProperty(PreProcessorProperty::COLOR_ERROR);
         this->colorError = LabeledSlider("Color Range", 0.0, 255.0, 1.0, realColorError);
@@ -105,6 +109,15 @@ void PreprocessorEditor::Update() {
             this->isPartial.SetState(true);
         }
     }
+
+    //update the color in the box to the desired color
+    int hue        = (int) this->colorH.GetValue();
+    int saturation = (int) this->colorS.GetValue();
+    int value      = (int) this->colorV.GetValue();
+
+    Mat previewImage = Mat(Size(30, 30), CV_8UC3, Scalar(hue, saturation, value));
+    cvtColor(previewImage, previewImage, COLOR_HSV2BGR_FULL);
+    this->colorPreview.Update(previewImage);
 }
 
 /**

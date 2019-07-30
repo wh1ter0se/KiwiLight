@@ -21,7 +21,7 @@ RunnerEditor::RunnerEditor(Runner runner) {
 
         Panel offsetPanel = Panel(false, 0);
             Label offsetPanelHeader = Label("Camera offset (inches)");
-                offsetPanelHeader.SetName("gray");
+                offsetPanelHeader.SetName("subHeader");
                 offsetPanel.Pack_start(offsetPanelHeader.GetWidget(), true, true, 0);
 
             Panel offsetPanelContents = Panel(true, 0);
@@ -38,7 +38,7 @@ RunnerEditor::RunnerEditor(Runner runner) {
 
         Panel resizePanel = Panel(false, 0);
             Label resizePanelHeader = Label("Image Resize (pixels)");
-                resizePanelHeader.SetName("gray");
+                resizePanelHeader.SetName("subHeader");
                 resizePanel.Pack_start(resizePanelHeader.GetWidget(), true, true, 0);
 
             Panel resizePanelContents = Panel(true, 0);
@@ -55,8 +55,12 @@ RunnerEditor::RunnerEditor(Runner runner) {
 
         Panel distancePanel = Panel(false, 0);
             Label distancePanelHeader = Label("Distance Constants");
-                distancePanelHeader.SetName("gray");
+                distancePanelHeader.SetName("subHeader");
                 distancePanel.Pack_start(distancePanelHeader.GetWidget(), true, true, 0);
+
+            this->distanceLabel = Label("Calculated Distance: (no target!)");
+                this->distanceLabel.SetName("gray");
+                distancePanel.Pack_start(this->distanceLabel.GetWidget(), true, true, 0);
             
             Panel imageConstantsPanel = Panel(true, 0);
                 double realTargetWidth = runner.GetRunnerProperty(RunnerProperty::TRUE_WIDTH);
@@ -87,8 +91,9 @@ RunnerEditor::RunnerEditor(Runner runner) {
 /**
  * Updates the editor and performs important stuff
  */
-void RunnerEditor::Update() {
-
+void RunnerEditor::Update(int targetDistance) {
+    std::string distanceValueString = (targetDistance < 0 ? "(no target!)" : std::to_string(targetDistance));
+    this->distanceLabel.SetText("Target Distance: " + distanceValueString);
 }
 
 /**

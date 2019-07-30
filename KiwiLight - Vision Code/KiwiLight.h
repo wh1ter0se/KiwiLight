@@ -18,38 +18,6 @@ using namespace cv;
 
 namespace KiwiLight {
 
-    /**
-     * Panel where configuration can be viewed
-     */
-    class ConfigPanel : public Widget {
-        public:
-        ConfigPanel() {};
-        ConfigPanel(std::string configFilePath);
-        void SetUDPEnabled(bool enabled);
-        void LoadConfig(std::string fileName);
-        void Clear();
-        std::string GetConfig() { return this->configFile; };
-        GtkWidget *GetWidget() { return this->configPanel; };
-        void SetName(std::string name);
-
-        private:
-        Panel panel;
-        Panel informationPanel;
-        Panel buttonPanel;
-        Label header,
-              fileLabel,
-              PreProcessorLabel,
-              PostProcessorLabel,
-              TargetLabel,
-              UDPAddressLabel,
-              UDPPortLabel;
-        Button editConfig;
-        Button toggleUDP;
-        std::string configFile;
-        GtkWidget *configPanel;
-    };
-
-
     enum UIMode {
         UI_STREAM,
         UI_RUNNER,

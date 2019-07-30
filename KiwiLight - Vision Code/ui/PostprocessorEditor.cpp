@@ -33,8 +33,13 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
             
             editor.Pack_start(contourChooserPanel.GetWidget(), true, true, 0);
 
+        //distance editor
+        Label distanceFromCenterHeader = Label("Distance from Center");
+            distanceFromCenterHeader.SetName("subHeader");
+            editor.Pack_start(distanceFromCenterHeader.GetWidget(), true, true, 0);
+
         Panel distXPanel = Panel(true, 0);
-            Label distXPanelHeader = Label("HD:");
+            Label distXPanelHeader = Label("Horizontal:");
                 distXPanel.Pack_start(distXPanelHeader.GetWidget(), true, true, 0);
 
             double realDistX = postprocessor.GetTargetContourProperty(0, TargetProperty::DIST_X).Value();
@@ -48,7 +53,7 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
             editor.Pack_start(distXPanel.GetWidget(), true, true, 0);
 
         Panel distYPanel = Panel(true, 0);
-            Label distYPanelHeader = Label("VD:");
+            Label distYPanelHeader = Label("Vertical:");
                 distYPanel.Pack_start(distYPanelHeader.GetWidget(), true, true, 0);
 
             double realDistY = postprocessor.GetTargetContourProperty(0, TargetProperty::DIST_Y).Value();
@@ -60,6 +65,10 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
                 distYPanel.Pack_start(this->distYErr.GetWidget(), true, true, 0);
 
             editor.Pack_start(distYPanel.GetWidget(), true, true, 0);
+
+        Label angleHeader = Label("Contour Shape");
+            angleHeader.SetName("subHeader");
+            editor.Pack_start(angleHeader.GetWidget(), true, true, 0);
 
         Panel anglePanel = Panel(true, 0);
             double realAngle = postprocessor.GetTargetContourProperty(0, TargetProperty::ANGLE).Value();

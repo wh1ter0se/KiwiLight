@@ -35,6 +35,10 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
 
     this->window = Window(GTK_WINDOW_TOPLEVEL, false);
         this->content = Panel(true, 0);
+            Panel overviewPanel = Panel(false, 0);
+
+                this->configOverview = ConfigPanel(this->currentDoc, false);
+                    overviewPanel.Pack_start(this->configOverview.GetWidget(), true ,true, 0);
 
             Panel cameraSettingsPanel = Panel(false, 0);
                 Label cameraSettingsHeader = Label("Camera Settings");
@@ -42,7 +46,7 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
                     cameraSettingsPanel.Pack_start(cameraSettingsHeader.GetWidget(), true, true, 0);
 
                 this->cameraSettings = Settings(0, cap);
-                    cameraSettingsPanel.Pack_start(this->cameraSettings.GetWidget(), true, true, 0);
+                    cameraSettingsPanel.Pack_start(this->cameraSettings.GetWidget(), true, false, 0);
 
             Panel preprocessorSettingsPanel = Panel(false, 0);
                 Label preprocessorSettingsPanelHeader = Label("Preprocessor");
@@ -68,7 +72,8 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
                 this->runnerSettings = RunnerEditor(this->runner);
                     runnerSettingsPanel.Pack_start(this->runnerSettings.GetWidget(), true, true, 0);
 
-            this->tabs = TabView("Camera", cameraSettingsPanel.GetWidget());
+            this->tabs = TabView("Overview", overviewPanel.GetWidget());
+            this->tabs.AddTab("Camera", cameraSettingsPanel.GetWidget());
             this->tabs.AddTab("Preprocessor", preprocessorSettingsPanel.GetWidget());
             this->tabs.AddTab("Postprocessor", postprocessorSettingsPanel.GetWidget());
             this->tabs.AddTab("Runner", runnerSettingsPanel.GetWidget());
@@ -101,7 +106,7 @@ void ConfigEditor::Update() {
 
     this->preprocessorSettings.Update();
     this->postprocessorSettings.Update();
-    this->runnerSettings.Update();
+    this->runnerSettings.Update(this->runner.GetClosestTargetToCenter().Distance());
 
     //apply the preprocessor settings
     this->runner.SetPreprocessorProperty(PreProcessorProperty::IS_FULL, this->preprocessorSettings.GetProperty(PreProcessorProperty::IS_FULL));

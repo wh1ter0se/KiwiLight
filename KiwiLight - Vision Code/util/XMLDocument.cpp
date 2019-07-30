@@ -11,6 +11,7 @@ using namespace KiwiLight;
  * Creates a blank XML document.
  */
 XMLDocument::XMLDocument() {
+    this->fileName = "";
     this->hasContents = false;
 }
 
@@ -18,6 +19,7 @@ XMLDocument::XMLDocument() {
  * Creates an XML document starting with the given tags.
  */
 XMLDocument::XMLDocument(std::vector<XMLTag> tags) {
+    this->fileName = "";
     this->children = tags;
 
     if(tags.size() > 0) {
@@ -31,6 +33,7 @@ XMLDocument::XMLDocument(std::vector<XMLTag> tags) {
  * Creates a new XML document using the formatted file passed.
  */
 XMLDocument::XMLDocument(std::string fileName) {
+    this->fileName = fileName;
     std::fstream log = std::fstream(fileName);
     std::vector<std::string> fileLines = std::vector<std::string>();
 
