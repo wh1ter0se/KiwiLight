@@ -11,14 +11,8 @@ extern void EditSelected(); //from Main.cpp
 extern void ToggleUDP(); //from Main.cpp
 
 
-ConfigPanel::ConfigPanel(XMLDocument file, bool withButtons) {
+ConfigPanel::ConfigPanel(XMLDocument file, bool withButtons, bool withDynamicName) {
     this->panel = Panel(false, 5);
-        // this->header.SetText("Configuration: " + name);
-        // this->fileLabel.SetText("File: " + file.FileName());
-        // this->PreProcessorLabel.SetText("Preprocessor: " + preProcessorType);
-        // this->TargetLabel.SetText("Targets: " + numTargets);
-        // this->UDPAddressLabel.SetText("UDP Address: " + udpAddress);
-        // this->UDPPortLabel.SetText("UDP Port: " + udpPort);
 
         this->configFile = "(none)";
         std::string configName = "(none)";
@@ -38,32 +32,85 @@ ConfigPanel::ConfigPanel(XMLDocument file, bool withButtons) {
 
             XMLTag postprocessorTag = confTag.GetTagsByName("postprocessor")[0];
             XMLTag targetTag = postprocessorTag.GetTagsByName("target")[0];
-            numContours = targetTag.GetTagsByName("contour").size();
+            numContours = std::to_string(targetTag.GetTagsByName("contour").size());
 
             XMLTag udpTag = postprocessorTag.GetTagsByName("UDP")[0];
             udpAddr = udpTag.GetTagsByName("address")[0].Content();
             udpPort = udpTag.GetTagsByName("port")[0].Content();
         }
 
-        this->header = Label("Configuration: " + configName);
-            this->header.SetName("header");
-            this->panel.Pack_start(this->header.GetWidget(), false, false, 0);
+        this->configNameString = configName;
 
-        this->fileLabel = Label("File: " + this->configFile);
-            this->panel.Pack_start(this->fileLabel.GetWidget(), false, false, 0);
+        if(withDynamicName) {
+            //dynamic name mode selected; the name of the config will be able to be changed in the panel.
+            this->dynamicName = true;
+            
+            Panel headerPanel = Panel(true, 0);
+                this->header = Label("Configuration: ");
+                    this->header.SetName("header");
+                    headerPanel.Pack_start(this->header.GetWidget(), false, false, 0);
 
-        this->PreProcessorLabel = Label("Preprocessor: " + preprocessorType);
-            this->panel.Pack_start(this->PreProcessorLabel.GetWidget(), false, false, 0);
+                this->configName = TextBox(configName);
+                    headerPanel.Pack_start(this->configName.GetWidget(), false, false, 0);
 
-        this->TargetLabel = Label("Contours: " + numContours);
-            this->panel.Pack_start(this->TargetLabel.GetWidget(), false, false, 0);
+                this->panel.Pack_start(headerPanel.GetWidget(), false, false, 0);
+        } else {
+            this->dynamicName = false;
+            this->header = Label("Configuration: " + configName);
+                this->header.SetName("header");
+                this->panel.Pack_start(this->header.GetWidget(), false, false, 0);
+        }
 
-        this->UDPAddressLabel = Label("UDP Address: " + udpAddr);
-            this->panel.Pack_start(this->UDPAddressLabel.GetWidget(), false, false, 0);
+        Panel filePanel = Panel(true, 0);
+            Label filePanelHeader = Label("File: ");
+                filePanelHeader.SetName("gray");
+                filePanel.Pack_start(filePanelHeader.GetWidget(), false, false, 0);
+            
+            this->fileLabel = Label(this->configFile);
+                filePanel.Pack_start(this->fileLabel.GetWidget(), false, false, 0);
 
-        this->UDPPortLabel = Label("UDP Port: " + udpPort);
-            this->panel.Pack_start(this->UDPPortLabel.GetWidget(), false, false, 0);
+            this->panel.Pack_start(filePanel.GetWidget(), false, false, 0);
+
+        Panel preprocessorPanel = Panel(true, 0);
+            Label preprocessorPanelHeader = Label("Preprocessor: ");
+                preprocessorPanelHeader.SetName("gray");
+                preprocessorPanel.Pack_start(preprocessorPanelHeader.GetWidget(), false, false, 0);
+
+            this->PreProcessorLabel = Label(preprocessorType);
+                preprocessorPanel.Pack_start(this->PreProcessorLabel.GetWidget(), false, false, 0);
+
+            this->panel.Pack_start(preprocessorPanel.GetWidget(), false, false, 0);
+
+        Panel targetPanel = Panel(true, 0);
+            Label targetPanelHeader = Label("Contours: ");
+                targetPanelHeader.SetName("gray");
+                targetPanel.Pack_start(targetPanelHeader.GetWidget(), false, false, 0);
+
+            this->TargetLabel = Label(numContours);
+                targetPanel.Pack_start(this->TargetLabel.GetWidget(), false, false, 0);
+
+            this->panel.Pack_start(targetPanel.GetWidget(), false, false, 0);
+
+        Panel udpAddrPanel = Panel(true, 0);
+            Label udpAddrPanelHeader = Label("UDP Address: ");
+                udpAddrPanelHeader.SetName("gray");
+                udpAddrPanel.Pack_start(udpAddrPanelHeader.GetWidget(), false, false, 0);
+
+            this->UDPAddressLabel = Label(udpAddr);
+                udpAddrPanel.Pack_start(this->UDPAddressLabel.GetWidget(), false, false, 0);
+
+            this->panel.Pack_start(udpAddrPanel.GetWidget(), false, false, 0);
+
+        Panel udpPortPanel = Panel(true, 0);
+            Label udpPortPanelHeader = Label("UDP Port: ");
+                udpPortPanelHeader.SetName("gray");
+                udpPortPanel.Pack_start(udpPortPanelHeader.GetWidget(), false, false, 0);
+
+            this->UDPPortLabel = Label(udpPort);
+                udpPortPanel.Pack_start(this->UDPPortLabel.GetWidget(), false, false, 0);
         
+            this->panel.Pack_start(udpPortPanel.GetWidget(), false, false, 0);
+
         if(withButtons) {
             Separator sep = Separator(true);
                 this->panel.Pack_start(sep.GetWidget(), false, false, 5);
@@ -108,7 +155,7 @@ void ConfigPanel::LoadConfig(XMLDocument file) {
         std::string name = config.GetAttributesByName("name")[0].Value();
         std::string preProcessorType = config.GetTagsByName("preprocessor")[0].GetAttributesByName("type")[0].Value();
         std::string postProcessorType = "full";
-        std::string numTargets = std::to_string(config.GetTagsByName("postprocessor")[0].GetTagsByName("target").size());
+        std::string numContours = std::to_string(config.GetTagsByName("postprocessor")[0].GetTagsByName("target")[0].GetTagsByName("contour").size());
 
         XMLTag UDPTag = config.GetTagsByName("postprocessor")[0].GetTagsByName("UDP")[0];
             std::string udpAddress = UDPTag.GetTagsByName("address")[0].Content();
@@ -118,9 +165,11 @@ void ConfigPanel::LoadConfig(XMLDocument file) {
     this->header.SetText("Configuration: " + name);
     this->fileLabel.SetText("File: " + file.FileName());
     this->PreProcessorLabel.SetText("Preprocessor: " + preProcessorType);
-    this->TargetLabel.SetText("Targets: " + numTargets);
+    this->TargetLabel.SetText("Contours: " + numContours);
     this->UDPAddressLabel.SetText("UDP Address: " + udpAddress);
     this->UDPPortLabel.SetText("UDP Port: " + udpPort);
+
+    this->configNameString = name;
 }
 
 
@@ -131,6 +180,22 @@ void ConfigPanel::Clear() {
     this->TargetLabel.SetText("Targets: (none)");
     this->UDPAddressLabel.SetText("UDP Address: (none)");
     this->UDPPortLabel.SetText("UDP Port: (none)");
+}
+
+
+void ConfigPanel::SetConfigurationName(std::string newName) {
+    if(this->dynamicName) {
+        this->configName.SetText(newName);
+    }
+}
+
+
+std::string ConfigPanel::GetConfigurationName() {
+    if(this->dynamicName) {
+        return this->configName.GetText();
+    }
+
+    return this->configNameString;
 }
 
 

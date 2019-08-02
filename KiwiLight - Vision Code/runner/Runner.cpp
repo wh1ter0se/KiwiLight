@@ -368,6 +368,12 @@ void Runner::SetRunnerProperty(RunnerProperty prop, double value) {
         case RunnerProperty::OFFSET_Y:
             this->centerOffsetY = value;
             break;
+        case RunnerProperty::IMAGE_WIDTH:
+            this->constantResize.width = (int) value;
+            break;
+        case RunnerProperty::IMAGE_HEIGHT:
+            this->constantResize.height = (int) value;
+            break;
         default:
             this->postprocessor.SetRunnerProperty(prop, value);
             break;
@@ -381,6 +387,10 @@ double Runner::GetRunnerProperty(RunnerProperty prop) {
             return this->centerOffsetX;
         case RunnerProperty::OFFSET_Y:
             return this->centerOffsetY;
+        case RunnerProperty::IMAGE_WIDTH:
+            return this->constantResize.width;
+        case RunnerProperty::IMAGE_HEIGHT:
+            return this->constantResize.height;
     }
 
     return this->postprocessor.GetRunnerProperty(prop);

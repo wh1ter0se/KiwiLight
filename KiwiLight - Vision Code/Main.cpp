@@ -99,16 +99,23 @@ void Update() {
         pauseStreamer = false;
     }
 
+    if(Flags::GetFlag("CloseEditor")) {
+        pauseStreamer = true;
+        Flags::LowerFlag("CloseEditor");
+        runner = Runner(configEditor.GetFileName(), true, configEditor.GetVideoCapture());
+        uiMode = UIMode::UI_RUNNER;
+        pauseStreamer = false;
+        configEditor.Close();
+    }
+
     if(Flags::GetFlag("SaveAndCloseEditor")) {
         //pause streamer so it doesnt cause problems
         pauseStreamer = true;
         Flags::LowerFlag("SaveAndCloseEditor");
+        runner = Runner(configEditor.GetFileName(), true, configEditor.GetVideoCapture());
+        uiMode = UIMode::UI_RUNNER;
         configEditor.Save();
         configEditor.Close();
-
-        runner = Runner(configEditor.GetFileName(), true, configEditor.GetVideoCapture());
-
-        uiMode = UIMode::UI_RUNNER;
         pauseStreamer = false;
     }
 }

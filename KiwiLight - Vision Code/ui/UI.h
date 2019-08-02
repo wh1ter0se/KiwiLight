@@ -438,13 +438,15 @@ namespace KiwiLight {
     class ConfigPanel : public Widget {
         public:
         ConfigPanel() {};
-        ConfigPanel(std::string configFilePath) : ConfigPanel(XMLDocument(configFilePath), true) {};
-        ConfigPanel(std::string configFilePath, bool withButtons) : ConfigPanel(XMLDocument(configFilePath), withButtons) {};
-        ConfigPanel(XMLDocument doc, bool withButtons);
+        ConfigPanel(std::string configFilePath) : ConfigPanel(XMLDocument(configFilePath), true, false) {};
+        ConfigPanel(std::string configFilePath, bool withButtons) : ConfigPanel(XMLDocument(configFilePath), withButtons, false) {};
+        ConfigPanel(XMLDocument doc, bool withButtons, bool withDynamicName);
         void SetUDPEnabled(bool enabled);
         void LoadConfig(std::string fileName);
         void LoadConfig(XMLDocument file);
         void Clear();
+        void SetConfigurationName(std::string newName);
+        std::string GetConfigurationName();
         std::string GetConfig() { return this->configFile; };
         GtkWidget *GetWidget() { return this->configPanel; };
         void SetName(std::string name);
@@ -461,7 +463,12 @@ namespace KiwiLight {
               UDPPortLabel;
         Button editConfig;
         Button toggleUDP;
-        std::string configFile;
+
+        bool dynamicName; //when true textbox below will be defined
+        TextBox configName;
+
+        std::string configFile,
+                    configNameString;
         GtkWidget *configPanel;
     };
 
@@ -562,11 +569,18 @@ namespace KiwiLight {
         void Update(int targetDistance);
         double GetProperty(RunnerProperty prop);
         void SetProperty(RunnerProperty prop, double value);
+        std::string GetUDPAddr();
+        int GetUDPPort();
+        void SetUDPAddr(std::string newAddr);
+        void SetUDPPort(int newPort);
         GtkWidget *GetWidget() { return this->runnereditor; };
         void SetName(std::string name);
 
         private:
         Label distanceLabel;
+
+        TextBox udpAddress;
+        NumberBox udpPort;
 
         LabeledSlider offsetX,
                       offsetY,
@@ -599,11 +613,13 @@ namespace KiwiLight {
 
         private:
         //static variables for learning target information in a separate thread
+        static void LearnButtonPressed();
         static void LearnTarget();
         static ConfigLearner learner;
         static ExampleTarget learnerResult;
         static int learnerMinArea;
-        bool monitorLearner;
+        static bool monitorLearner;
+        static bool learnerActivated;
 
         //static variables for learning target distance in a separate thread
         static void LearnDistance();
@@ -618,6 +634,8 @@ namespace KiwiLight {
         static TargetTroubleshooter troubleshooter;
         static TroubleshootingData troubleData[];
         bool monitorTroubleshooter;
+
+        void UpdateImage();
 
         ConfirmationDialog learnerMonitorWindow;
         Label learnerMonitorLabel;
@@ -641,7 +659,8 @@ namespace KiwiLight {
         PostprocessorEditor postprocessorSettings;
         RunnerEditor runnerSettings;
 
-        cv::Mat out;
+        cv::Mat out,
+                original;
         Image outputImage;
 
         Window window;

@@ -11,11 +11,11 @@ using namespace KiwiLight;
 static const int NUMBER_OF_FRAMES_TO_LEARN = 20;
 
 
-TargetDistanceLearner::TargetDistanceLearner(PreProcessor preprocessor, PostProcessor postprocessor, VideoCapture cap, Size constantSz) {
-    this->preprocessor = preprocessor;
-    this->postprocessor = postprocessor;
-    this->cap = cap;
-    this->constantResize = constantSz;
+TargetDistanceLearner::TargetDistanceLearner(Runner runner) {
+    this->preprocessor = runner.GetPreProcessor();
+    this->postprocessor = runner.GetPostProcessor();
+    this->cap = runner.GetVideoStream();
+    this->constantResize = runner.GetConstantSize();
     this->outString = "Collecting and processing images (0%)";
 }
 

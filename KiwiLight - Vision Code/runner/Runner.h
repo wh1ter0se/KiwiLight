@@ -340,6 +340,7 @@ namespace KiwiLight {
         ExampleTarget GetExampleTargetByID(int id);
         void SetUDPEnabled(bool enabled);
         bool GetUDPEnabled();
+        UDP GetUDP() { return this->udp; };
         void SetExampleTarget(int targetID, ExampleTarget target);
         void SetPreprocessorProperty(PreProcessorProperty prop, double value);
         double GetPreprocessorProperty(PreProcessorProperty prop);
@@ -410,7 +411,7 @@ namespace KiwiLight {
     class TargetDistanceLearner {
         public:
         TargetDistanceLearner() {};
-        TargetDistanceLearner(PreProcessor preprocessor, PostProcessor postprocessor, VideoCapture cap, Size constantSz);
+        TargetDistanceLearner(Runner runner);
         double LearnFocalWidth(double trueWidth, double trueDistance);
         double LearnErrorCorrect(double trueWidth, double trueDistance, double calibratedDistance, double focalWidth);
         std::string GetOutputString() { return this->outString; };

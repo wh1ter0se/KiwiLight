@@ -7,6 +7,9 @@
 
 using namespace KiwiLight;
 
+static void ReconnectUDP() {
+    std::cout << "Reconnect UDP" << std::endl;
+}
 
 RunnerEditor::RunnerEditor(Runner runner) {
     Panel editor = Panel(false, 0);
@@ -18,6 +21,33 @@ RunnerEditor::RunnerEditor(Runner runner) {
         // PERCEIVED_WIDTH,
         // CALIBRATED_DISTANCE,
         // ERROR_CORRECTION
+
+        Panel udpPanel = Panel(true, 0);
+            Panel udpInputPanel = Panel(false, 0);
+                Panel udpAddressPanel = Panel(true, 0);
+                    Label udpAddressPanelHeader = Label("IPv4 Address: ");
+                        udpAddressPanel.Pack_start(udpAddressPanelHeader.GetWidget(), true, true, 0);
+
+                    std::string realUDPAddress = runner.GetUDP().GetAddress();
+                    this->udpAddress = TextBox(realUDPAddress);
+                        udpAddressPanel.Pack_start(this->udpAddress.GetWidget(), true, true, 0);
+
+                    udpInputPanel.Pack_start(udpAddressPanel.GetWidget(), true, true, 0);
+
+                Panel udpPortPanel = Panel(true, 0);
+                    Label udpPortPanelHeader = Label("Port: ");
+                        udpPortPanel.Pack_start(udpPortPanelHeader.GetWidget(), true, true, 0);
+
+                    int realUDPPort = runner.GetUDP().GetPort();
+                    this->udpPort = NumberBox(0.0, 9999.0, 1.0, (double) realUDPPort);
+                        udpPortPanel.Pack_start(this->udpPort.GetWidget(), true, true, 0);
+                    udpInputPanel.Pack_start(udpPortPanel.GetWidget(), true, true, 0);
+                udpPanel.Pack_start(udpInputPanel.GetWidget(), true, true, 0);
+            Button reconnectUDP = Button("Reconnect", ReconnectUDP);
+                udpPanel.Pack_start(reconnectUDP.GetWidget(), true, true, 0);
+
+            editor.Pack_start(udpPanel.GetWidget(), true, true, 0);
+                    
 
         Panel offsetPanel = Panel(false, 0);
             Label offsetPanelHeader = Label("Camera offset (inches)");
@@ -150,6 +180,26 @@ void RunnerEditor::SetProperty(RunnerProperty prop, double value) {
             this->targetErrorCorrection.SetValue(value);
             break;
     }
+}
+
+
+std::string RunnerEditor::GetUDPAddr() {
+    return this->udpAddress.GetText();
+}
+
+
+int RunnerEditor::GetUDPPort() {
+    return (int) this->udpPort.GetValue();
+}
+
+
+void RunnerEditor::SetUDPAddr(std::string newAddr) {
+    this->udpAddress.SetText(newAddr);
+}
+
+
+void RunnerEditor::SetUDPPort(int newPort) {
+    this->udpPort.SetValue((double) newPort);
 }
 
 
