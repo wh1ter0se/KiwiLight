@@ -8,26 +8,23 @@
 using namespace cv;
 using namespace KiwiLight;
 
-ConfigLearner ConfigEditor::learner = ConfigLearner();
-ExampleTarget ConfigEditor::learnerResult = ExampleTarget();
-int ConfigEditor::learnerMinArea = 0;
-bool ConfigEditor::monitorLearner = false;
-bool ConfigEditor::learnerActivated = false;
 
-TargetDistanceLearner ConfigEditor::distLearner = TargetDistanceLearner();
-double ConfigEditor::distResult = 0;
-double ConfigEditor::targetTrueDistance = 0;
-double ConfigEditor::targetTrueWidth = 0;
+static void LearnTargetButtonPressed() {
+    Flags::RaiseFlag("StartLearner");
 
-TargetTroubleshooter ConfigEditor::troubleshooter = TargetTroubleshooter();
-TroubleshootingData ConfigEditor::troubleData[0];
+    ConfirmationDialog confirmLearn = ConfirmationDialog("Move the target to the center of the image and press OK.");
+    bool shouldLearn = confirmLearn.ShowAndGetResponse();
+    if(shouldLearn) {
+        Flags::RaiseFlag("LearnTarget");
+    }
+}
 
 static void LearnDistanceButtonPressed() {
-
+    std::cout << "learn distance" << std::endl;
 }
 
 static void TroubleshootTargetButtonPressed() {
-
+    std::cout << "troubleshoot" << std::endl;
 }
 
 static void JustCloseButtonPressed() {
@@ -42,18 +39,16 @@ static void SaveAndCloseButtonPressed() {
  * Creates a window to edit the bassed file.
  */
 ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
-    this->monitorDistanceLearner = false;
-    this->monitorTroubleshooter = false;
+    this->monitorLearner = false;
+    this->learnerActivated = false;
     this->runner = Runner(fileName, true, cap);
     this->currentDoc = XMLDocument(fileName);
     this->fileName = fileName;
     this->out = Mat(Size(50, 50), CV_8UC3);
     this->confName = this->currentDoc.GetTagsByName("configuration")[0].GetAttributesByName("name")[0].Value();
 
-    ConfigEditor::learner = ConfigLearner(this->runner.GetPreProcessor(), this->runner.GetVideoStream());
-    ConfigEditor::distLearner = TargetDistanceLearner(this->runner);
-    ConfigEditor::troubleshooter = TargetTroubleshooter(this->runner.GetVideoStream(), this->runner.GetPreProcessor(), this->runner.GetExampleTargetByID(0));
-
+    this->learner = ConfigLearner(this->runner.GetPreProcessor(), this->runner.GetVideoStream());
+   
     this->window = Window(GTK_WINDOW_TOPLEVEL, false);
         this->content = Panel(true, 0);
             Panel overviewPanel = Panel(false, 5);
@@ -61,7 +56,7 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
                     overviewPanel.Pack_start(this->configOverview.GetWidget(), true ,true, 5);
 
                 Panel learnerPanel = Panel(true, 0);
-                    Button learnTargetButton = Button("Learn Target", ConfigEditor::LearnButtonPressed);
+                    Button learnTargetButton = Button("Learn Target", LearnTargetButtonPressed);
                         learnerPanel.Pack_start(learnTargetButton.GetWidget(), true, true, 0);
 
                     Button learnDistanceButton = Button("Learn Distance", LearnDistanceButtonPressed);
@@ -135,7 +130,16 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
  * Updates the editor and checks for button presses, etc.
  */
 void ConfigEditor::Update() {
-    if(!monitorLearner) {
+    Mat displayable;
+
+    try {
+        vconcat(this->original, this->out, displayable);
+        this->outputImage.Update(displayable);
+    } catch(cv::Exception ex) {
+        std::cout << "cv exception in ce" << std::endl;
+    }
+
+    if(!this->monitorLearner) {
         this->preprocessorSettings.Update();
         this->postprocessorSettings.Update();
         this->runnerSettings.Update(this->runner.GetClosestTargetToCenter().Distance());
@@ -170,38 +174,17 @@ void ConfigEditor::Update() {
         this->runner.SetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE, this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE));
         this->runner.SetRunnerProperty(RunnerProperty::ERROR_CORRECTION, this->runnerSettings.GetProperty(RunnerProperty::ERROR_CORRECTION));
     }
-
-    if(ConfigEditor::monitorLearner) {
-        //update the monitor window
-        ConfigEditor::learnerMonitorLabel.SetText(ConfigEditor::learner.GetOutputString());
-    }
-
+    
+    //starts the learner and sets the mode to learner
     if(Flags::GetFlag("StartLearner")) {
-        Flags::LowerFlag("StartLearner");
-
-        ConfigEditor::learner = ConfigLearner(this->runner.GetPreProcessor(), this->runner.GetVideoStream());
-        ConfigEditor::learnerActivated = true;
-
+        this->learner = ConfigLearner(this->runner.GetPreProcessor(), this->runner.GetVideoStream());
+        this->learnerActivated = true;
     }
 
-    if(Flags::GetFlag("StopConfigLearner")) {
-        Flags::LowerFlag("StopConfigLearner");
-
-        ConfigEditor::monitorLearner = false;
-        ConfigEditor::learnerActivated = false;
-
-        //apply the settings to the runner
-        ExampleTarget newTarg = ConfigEditor::learnerResult;
-
-        std::vector<ExampleContour> newContours = newTarg.Contours();
-        for(int i=0; i<newContours.size(); i++) {
-            this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_X, newContours[i].DistX());
-            this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_Y, newContours[i].DistY());
-            this->postprocessorSettings.SetProperty(i, TargetProperty::ANGLE, newContours[i].Angle());
-            this->postprocessorSettings.SetProperty(i, TargetProperty::SOLIDITY, newContours[i].Solidity());
-            this->postprocessorSettings.SetProperty(i, TargetProperty::ASPECT_RATIO, newContours[i].AspectRatio());
-            this->postprocessorSettings.SetProperty(i, TargetProperty::MINIMUM_AREA, SettingPair(newContours[i].MinimumArea(), 0));
-        }
+    //actually runs the learner to learn the target
+    if(Flags::GetFlag("LearnTarget")) {
+        int minArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
+        ExampleTarget newTarget = this->learner.LearnTarget(minArea);
     }
 }
 
@@ -209,16 +192,19 @@ void ConfigEditor::Update() {
  * Updates the internal runner to in turn update the output images.
  */
 void ConfigEditor::UpdateImageOnly() {
-    if(ConfigEditor::learnerActivated) {
-        //learner mode
-        int minArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
-        ConfigEditor::learner.Update(minArea);
-        this->out = ConfigEditor::learner.GetOutputImage();
-        this->original = ConfigEditor::learner.GetOriginalImage();
-    } else {
-        this->runner.Iterate();
-        this->out = this->runner.GetOutputImage();
-        this->original = this->runner.GetOriginalImage();
+    try {
+        if(this->learnerActivated) {
+            //learner mode
+            int minArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
+            this->learner.Update(minArea);
+            this->out = this->learner.GetOutputImage();
+            this->original = this->learner.GetOriginalImage();
+        } else {
+            this->runner.Iterate();
+            this->out = this->runner.GetOutputImage();
+            this->original = this->runner.GetOriginalImage();
+        }
+    } catch(cv::Exception ex) {
     }
 }
 
@@ -470,39 +456,6 @@ void ConfigEditor::ResetRunnerResolution() {
 void ConfigEditor::SetName(std::string name) {
     gtk_widget_set_name(this->configeditor, name.c_str());
 }
-
-/**
- * Called when the "learn target" button is pressed.
- */
-void ConfigEditor::LearnButtonPressed() {
-    //raise a flag to start on update because the runner is not static
-    Flags::RaiseFlag("StartLearner");
-
-    ConfirmationDialog learnConfirmation = ConfirmationDialog("Position the target in the center of the picture and press OK.");
-    bool shouldLearn = learnConfirmation.ShowAndGetResponse();
-    if(shouldLearn) {
-        g_thread_new("Learning Thread", GThreadFunc(LearnTarget), NULL);
-    }
-}
-
-void ConfigEditor::LearnTarget() {
-    ConfigEditor::learnerResult = ConfigEditor::learner.LearnTarget(ConfigEditor::learnerMinArea);
-    Flags::RaiseFlag("StopConfigLearner");
-    g_thread_exit(0);
-}
-
-void ConfigEditor::LearnDistance() {
-    ConfigEditor::distResult = ConfigEditor::distLearner.LearnFocalWidth(ConfigEditor::targetTrueWidth, targetTrueDistance);
-    Flags::RaiseFlag("DistanceLearnerDone");
-    g_thread_exit(0);
-}
-
-void ConfigEditor::TroubleshootTarget() {
-    ConfigEditor::troubleshooter.Troubleshoot(ConfigEditor::troubleData);
-    Flags::RaiseFlag("TargetTroubleshooterDone");
-    g_thread_exit(0);
-}
-
 
 void ConfigEditor::UpdateImage() {
     this->runner.Iterate();

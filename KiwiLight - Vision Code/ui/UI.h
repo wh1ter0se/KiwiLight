@@ -612,39 +612,14 @@ namespace KiwiLight {
         void SetName(std::string name);
 
         private:
-        //static variables for learning target information in a separate thread
-        static void LearnButtonPressed();
-        static void LearnTarget();
-        static ConfigLearner learner;
-        static ExampleTarget learnerResult;
-        static int learnerMinArea;
-        static bool monitorLearner;
-        static bool learnerActivated;
-
-        //static variables for learning target distance in a separate thread
-        static void LearnDistance();
-        static TargetDistanceLearner distLearner;
-        static double targetTrueDistance;
-        static double targetTrueWidth;
-        static double distResult;
-        bool monitorDistanceLearner;
-
-        //static variables for troubleshooting targets in a separate thread
-        static void TroubleshootTarget();
-        static TargetTroubleshooter troubleshooter;
-        static TroubleshootingData troubleData[];
-        bool monitorTroubleshooter;
-
         void UpdateImage();
 
-        ConfirmationDialog learnerMonitorWindow;
-        Label learnerMonitorLabel;
-
-        ConfirmationDialog distLearnerMonitorWindow;
-        Label distMonitorLabel;
-
-        ConfirmationDialog targetTroubleshooterMonitorWindow;
-        Label troubleshooterLabel;
+        ConfigLearner learner;
+        bool monitorLearner;
+        bool learnerActivated;
+        
+        ConfirmationDialog serviceMonitor;
+        Label serviceLabel;
 
         //runtime things
         Runner runner;

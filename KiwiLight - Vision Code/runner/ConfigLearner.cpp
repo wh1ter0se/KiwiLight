@@ -29,11 +29,9 @@ ConfigLearner::ConfigLearner(PreProcessor preprocessor, cv::VideoCapture stream)
 ExampleTarget ConfigLearner::LearnTarget(int minArea) {
     //define vector where the camera frames will be stored
     this->outString = "Collecting and processing images (0%)";
-    std::cout << "Learning Target" << std::endl;
     std::vector<CameraFrame> frames = std::vector<CameraFrame>();
 
     //capture the images that will be used to learn the target
-    std::cout << "min area: " << minArea << std::endl;
     for(int i=0; i<NUMBER_OF_FRAMES_TO_LEARN; i++) {
         Mat img;
         bool success = false;
@@ -60,7 +58,6 @@ ExampleTarget ConfigLearner::LearnTarget(int minArea) {
     this->outString = "Preparing to analyze contour data (95%)";
 
     int framesCaptured = frames.size();
-    std::cout << "Captured " << framesCaptured << "/" << NUMBER_OF_FRAMES_TO_LEARN << " frames successfully." << std::endl;
 
     //create a sorted list of the number of contours in each image (it is double because DataUtils sorts doubles)
     std::vector<double> numberContoursList;
@@ -80,14 +77,9 @@ ExampleTarget ConfigLearner::LearnTarget(int minArea) {
         }
     }
 
-    std::cout << "Normal number of contours is " << (int) regularNumberOfContours << ". Discarded " << (NUMBER_OF_FRAMES_TO_LEARN - frames.size()) << " Invalid frames." << std::endl;
-
     //go through groupedContours to get and format data.
     std::vector<ExampleContour> finishedContours;
     for(int i=0; i<regularNumberOfContours; i++) {
-
-        std::cout << "Gathering data for contour " << i << "..." << std::endl;
-
         std::vector<double> horizontalDistances = std::vector<double>();
         std::vector<double> verticalDistances   = std::vector<double>();
         std::vector<double> angles              = std::vector<double>();
@@ -107,52 +99,12 @@ ExampleTarget ConfigLearner::LearnTarget(int minArea) {
             aspectRatios.push_back(contourToAnalyze.AspectRatio());
         }
 
-
-        std::cout << "ACTUAL VECTORS" << std::endl;
-        std::cout << "horizontal distances : " << DataUtils::VectorToString(horizontalDistances) << std::endl;
-        std::cout << "vertical distances   : " << DataUtils::VectorToString(verticalDistances) << std::endl;
-        std::cout << "angles               : " << DataUtils::VectorToString(angles) << std::endl;
-        std::cout << "solidities           : " << DataUtils::VectorToString(solidities) << std::endl;
-        std::cout << "aspect ratios        : " << DataUtils::VectorToString(aspectRatios) << std::endl;
-        std::cout << std::endl;
-
-        std::cout << "CURRENT AVERAGES BEFORE SORT" << std::endl;
-        std::cout << "horizontal distances : " << DataUtils::Average(horizontalDistances) << std::endl;
-        std::cout << "vertical distances   : " << DataUtils::Average(verticalDistances) << std::endl;
-        std::cout << "angles               : " << DataUtils::Average(angles) << std::endl;
-        std::cout << "solidities           : " << DataUtils::Average(solidities) << std::endl;
-        std::cout << "aspect ratios        : " << DataUtils::Average(aspectRatios) << std::endl;
-
-        // std::cout << "CURRENT VECTORS BEFORE SORT" << std::endl;
-        // std::cout << "horizontal distances : " << DataUtils::VectorToString(horizontalDistances) << std::endl;
-        // std::cout << "vertical distances   : " << DataUtils::VectorToString(verticalDistances) << std::endl;
-        // std::cout << "angles               : " << DataUtils::VectorToString(angles) << std::endl;
-        // std::cout << "solidities           : " << DataUtils::VectorToString(solidities) << std::endl;
-        // std::cout << "aspect ratios        : " << DataUtils::VectorToString(aspectRatios) << std::endl;
-
-        //sort the data and remove outliers
-        std::cout << "Sorting data for contour " << i << "..." << std::endl;
-
         horizontalDistances = DataUtils::SortLeastGreatestDouble(horizontalDistances);
         verticalDistances   = DataUtils::SortLeastGreatestDouble(verticalDistances);
         angles              = DataUtils::SortLeastGreatestDouble(angles);
         solidities          = DataUtils::SortLeastGreatestDouble(solidities);
         aspectRatios        = DataUtils::SortLeastGreatestDouble(aspectRatios);
 
-        // std::cout << "CURRENT AVERAGES BEFORE REMOVAL" << std::endl;
-        // std::cout << "horizontal distances : " << DataUtils::Average(horizontalDistances) << std::endl;
-        // std::cout << "vertical distances   : " << DataUtils::Average(verticalDistances) << std::endl;
-        // std::cout << "angles               : " << DataUtils::Average(angles) << std::endl;
-        // std::cout << "solidities           : " << DataUtils::Average(solidities) << std::endl;
-        // std::cout << "aspect ratios        : " << DataUtils::Average(aspectRatios) << std::endl;
-
-        // std::cout << "CURRENT VECTORS BEFORE REMOVAL" << std::endl;
-        // std::cout << "horizontal distances : " << DataUtils::VectorToString(horizontalDistances) << std::endl;
-        // std::cout << "vertical distances   : " << DataUtils::VectorToString(verticalDistances) << std::endl;
-        // std::cout << "angles               : " << DataUtils::VectorToString(angles) << std::endl;
-        // std::cout << "solidities           : " << DataUtils::VectorToString(solidities) << std::endl;
-        // std::cout << "aspect ratios        : " << DataUtils::VectorToString(aspectRatios) << std::endl;
-        
         //record the sizes of each array so we can see how many outliers are removed
         std::vector<double> dataSizes;
         dataSizes.push_back((double) horizontalDistances.size());
@@ -160,8 +112,6 @@ ExampleTarget ConfigLearner::LearnTarget(int minArea) {
         dataSizes.push_back((double) angles.size());
         dataSizes.push_back((double) solidities.size());
         dataSizes.push_back((double) aspectRatios.size());
-
-        std::cout << "Removing outliers for contour " << i << "..." << std::endl;
 
         //remove outliers
         horizontalDistances = DataUtils::RemoveOutliers(horizontalDistances, 0.5);
@@ -182,24 +132,6 @@ ExampleTarget ConfigLearner::LearnTarget(int minArea) {
 
         double totalRemoved = originalTotal - removedTotal;
         double avgRemoved = totalRemoved / newDataSizes.size();
-
-        // std::cout << "CURRENT AVERAGES AFTER REMOVAL" << std::endl;
-        // std::cout << "horizontal distances : " << DataUtils::Average(horizontalDistances) << std::endl;
-        // std::cout << "vertical distances   : " << DataUtils::Average(verticalDistances) << std::endl;
-        // std::cout << "angles               : " << DataUtils::Average(angles) << std::endl;
-        // std::cout << "solidities           : " << DataUtils::Average(solidities) << std::endl;
-        // std::cout << "aspect ratios        : " << DataUtils::Average(aspectRatios) << std::endl;
-
-        // std::cout << "CURRENT VECTORS AFTER REMOVAL" << std::endl;
-        // std::cout << "horizontal distances : " << DataUtils::VectorToString(horizontalDistances) << std::endl;
-        // std::cout << "vertical distances   : " << DataUtils::VectorToString(verticalDistances) << std::endl;
-        // std::cout << "angles               : " << DataUtils::VectorToString(angles) << std::endl;
-        // std::cout << "solidities           : " << DataUtils::VectorToString(solidities) << std::endl;
-        // std::cout << "aspect ratios        : " << DataUtils::VectorToString(aspectRatios) << std::endl;
-
-        std::cout << "Removed " << totalRemoved << " outliers in total with an average of " << avgRemoved << " outliers per statistic." << std::endl;
-
-        std::cout << "Averaging data for contour " << i << "..." << std::endl;
 
         double averageHorizontalDistance = DataUtils::Average(horizontalDistances);
         double averageVerticaldistance   = DataUtils::Average(verticalDistances);
@@ -231,7 +163,15 @@ ExampleTarget ConfigLearner::LearnTarget(int minArea) {
  */
 void ConfigLearner::Update(int minArea) {
     Mat img;
-    bool success = this->stream.read(img);
+    bool success = false;
+    if(RunnerSettings::USE_CAMERA) {
+        success = this->stream.read(img);
+    } else {
+        success = true;
+        img = imread(RunnerSettings::IMAGE_TO_USE);
+        // img = Mat(this->constantResize, CV_8UC3, Scalar(0, 0, 0));
+    }
+
     if(success) {
         resize(img, img, this->constantResize);
         img.copyTo(this->original);
