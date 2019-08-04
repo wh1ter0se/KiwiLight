@@ -83,6 +83,7 @@ namespace KiwiLight {
         Window() {};
         Window(GtkWindowType type);
         Window(GtkWindowType type, bool terminateOnClose);
+        static void SetOnAppClosed(void(*onAppClosed)());
         void SetPane(Panel pane);
         void Show();
         void SetSize(int w, int h);
@@ -95,7 +96,10 @@ namespace KiwiLight {
         
         private:
         GtkWidget *window;
+        static void(*onAppClosed)();
         static void(*timeoutMethod)();
+        static gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer pointer);
+        static void Destroy();
         static gboolean timeoutCallMethod();
     };
 
@@ -231,7 +235,7 @@ namespace KiwiLight {
         ConfirmationDialog() {};
         ConfirmationDialog(std::string message);
         void SetBody(Panel pnl);
-        bool Show();
+        bool ShowButDontClose();
         void ShowWithoutRunning();
         bool ShowAndGetResponse();
         void Destroy();
@@ -614,11 +618,18 @@ namespace KiwiLight {
         private:
         void UpdateImage();
 
+        //universal config learnign utility
         ConfigLearner learner;
-        bool monitorLearner;
         bool learnerActivated;
+
+        //universal focal width learning utility
+        TargetDistanceLearner distanceLearner;
+        bool distanceLearnerRunning;
+
+        TargetDistanceLearner distLearner;
+        TargetTroubleshooter troubleshooter;
         
-        ConfirmationDialog serviceMonitor;
+        Label serviceMonitor;
         Label serviceLabel;
 
         //runtime things

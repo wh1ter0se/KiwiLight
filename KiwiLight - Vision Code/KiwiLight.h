@@ -22,7 +22,6 @@ namespace KiwiLight {
         UI_STREAM,
         UI_RUNNER,
         UI_EDITOR,
-        UI_CONFIG_RUNNING,
         UI_QUTTING
     };
 

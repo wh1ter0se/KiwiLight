@@ -26,7 +26,7 @@ void ConfirmationDialog::SetBody(Panel pnl) {
 }
 
 
-bool ConfirmationDialog::Show() {
+bool ConfirmationDialog::ShowButDontClose() {
     gtk_widget_show_all(this->dialog);
     gint response = gtk_dialog_run(GTK_DIALOG(this->dialog));
     return response == GTK_RESPONSE_ACCEPT;

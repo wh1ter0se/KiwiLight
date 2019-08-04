@@ -58,11 +58,6 @@ void Update() {
     if(!displayingImage) {
         displayingImage = true;
 
-        //since config running is not addressed in the streamer, do it here
-        if(uiMode == UIMode::UI_CONFIG_RUNNING) {
-            outputImage = runner.GetOutputImage();
-        }
-
         if(imageCaptureSuccess) {
             try {
                 imgFrame.Update(outputImage);
@@ -149,7 +144,7 @@ void SaveConfig() {
  * Based on the value of UIMode, Updates the output image in a separate thread
  */
 void RunStream() {
-    while(uiMode != UIMode::UI_CONFIG_RUNNING && uiMode != UIMode::UI_QUTTING) {
+    while(uiMode != UIMode::UI_QUTTING) {
         if(!pauseStreamer) {
             switch(uiMode) {
                 case UIMode::UI_STREAM:
@@ -164,12 +159,6 @@ void RunStream() {
                     imageCaptureSuccess = true;
                     runner.Iterate();
                     outputImage = runner.GetOutputImage();
-                    break;
-                case UIMode::UI_CONFIG_RUNNING:
-                case UIMode::UI_QUTTING:
-                    cam.~VideoCapture();
-                    Flags::RaiseFlag("StreamerQuit");
-                    g_thread_exit(0);
                     break;
             }
         }
@@ -285,8 +274,7 @@ void HELPME() {
 
 
 void Quit() {
-    uiMode == UIMode::UI_QUTTING;
-
+    uiMode = UIMode::UI_QUTTING;
     while(!Flags::GetFlag("StreamerQuit")) {
         //haha do nothing
     }
@@ -408,6 +396,7 @@ int main(int argc, char *argv[]) {
         streamerThread = g_thread_new("streamer", GThreadFunc(RunStream), NULL);
 
         //set events and show Window
+        win.SetOnAppClosed(Quit);
         win.SetInterval(75, Update);
         win.Show();
         win.Main(); //MAIN LOOP

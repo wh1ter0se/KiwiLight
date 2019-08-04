@@ -6,19 +6,19 @@
     <settings>
     </settings>
 </camera>
-<configuration name="yeet yeet">
+<configuration name="a a a">
     <cameraOffset>
         <horizontal>0</horizontal>
         <vertical>0</vertical>
     </cameraOffset>
     <constantResize>
-        <width>252</width>
-        <height>128</height>
+        <width>200</width>
+        <height>145</height>
     </constantResize>
-    <preprocessor type="full">
+    <preprocessor type="partial">
         <threshold>75</threshold>
         <erosion>3</erosion>
-        <dilation>5</dilation>
+        <dilation>25</dilation>
         <targetColor error="20">
             <h>0</h>
             <s>0</s>
@@ -28,11 +28,35 @@
     <postprocessor>
         <target id="0">
             <contour id="0">
-                <x error="0.350000">0.000000</x>
-                <y error="0.350000">0.000000</y>
-                <angle error="12.000000">0.000000</angle>
-                <solidity error="0.350000">0.900000</solidity>
-                <aspectRatio error="0.350000">1.000000</aspectRatio>
+                <x error="0.250000">-0.450867</x>
+                <y error="0.250000">-0.011561</y>
+                <angle error="10.000000">-17.000000</angle>
+                <solidity error="0.250000">0.481481</solidity>
+                <aspectRatio error="0.250000">0.500000</aspectRatio>
+                <minimumArea>500</minimumArea>
+            </contour>
+            <contour id="1">
+                <x error="0.250000">-0.150289</x>
+                <y error="0.250000">-0.005780</y>
+                <angle error="10.000000">-77.000000</angle>
+                <solidity error="0.250000">0.547059</solidity>
+                <aspectRatio error="0.250000">0.441176</aspectRatio>
+                <minimumArea>500</minimumArea>
+            </contour>
+            <contour id="2">
+                <x error="0.250000">0.144509</x>
+                <y error="0.250000">0.000000</y>
+                <angle error="10.000000">-14.000000</angle>
+                <solidity error="0.250000">0.510924</solidity>
+                <aspectRatio error="0.250000">0.485714</aspectRatio>
+                <minimumArea>500</minimumArea>
+            </contour>
+            <contour id="3">
+                <x error="0.250000">0.445087</x>
+                <y error="0.250000">0.011561</y>
+                <angle error="10.000000">-68.000000</angle>
+                <solidity error="0.250000">0.458204</solidity>
+                <aspectRatio error="0.250000">0.558824</aspectRatio>
                 <minimumArea>500</minimumArea>
             </contour>
             <knownWidth>12.000000</knownWidth>

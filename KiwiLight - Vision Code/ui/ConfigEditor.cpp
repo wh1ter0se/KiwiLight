@@ -8,23 +8,24 @@
 using namespace cv;
 using namespace KiwiLight;
 
+static int LEARNER_FRAMES = 50;
 
 static void LearnTargetButtonPressed() {
     Flags::RaiseFlag("StartLearner");
-
-    ConfirmationDialog confirmLearn = ConfirmationDialog("Move the target to the center of the image and press OK.");
-    bool shouldLearn = confirmLearn.ShowAndGetResponse();
+    ConfirmationDialog confirmation = ConfirmationDialog (
+        std::string("Position the target in the center of the image and press OK.\n") +
+        std::string("It should be highlighted with a blue box."));
+    
+    bool shouldLearn = confirmation.ShowAndGetResponse();
     if(shouldLearn) {
-        Flags::RaiseFlag("LearnTarget");
+        Flags::RaiseFlag("StartLearning");
+    } else {
+        Flags::RaiseFlag("StopLearner");
     }
 }
 
 static void LearnDistanceButtonPressed() {
-    std::cout << "learn distance" << std::endl;
-}
-
-static void TroubleshootTargetButtonPressed() {
-    std::cout << "troubleshoot" << std::endl;
+    Flags::RaiseFlag("LearnDistance");
 }
 
 static void JustCloseButtonPressed() {
@@ -39,15 +40,12 @@ static void SaveAndCloseButtonPressed() {
  * Creates a window to edit the bassed file.
  */
 ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
-    this->monitorLearner = false;
     this->learnerActivated = false;
     this->runner = Runner(fileName, true, cap);
     this->currentDoc = XMLDocument(fileName);
     this->fileName = fileName;
     this->out = Mat(Size(50, 50), CV_8UC3);
     this->confName = this->currentDoc.GetTagsByName("configuration")[0].GetAttributesByName("name")[0].Value();
-
-    this->learner = ConfigLearner(this->runner.GetPreProcessor(), this->runner.GetVideoStream());
    
     this->window = Window(GTK_WINDOW_TOPLEVEL, false);
         this->content = Panel(true, 0);
@@ -61,9 +59,6 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
 
                     Button learnDistanceButton = Button("Learn Distance", LearnDistanceButtonPressed);
                         learnerPanel.Pack_start(learnDistanceButton.GetWidget(), true, true, 0);
-
-                    Button troubleshootButton = Button("Troubleshoot Target", TroubleshootTargetButtonPressed);
-                        learnerPanel.Pack_start(troubleshootButton.GetWidget(), true, true, 0);
 
                     overviewPanel.Pack_start(learnerPanel.GetWidget(), true, true, 0);
 
@@ -115,8 +110,17 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
             this->tabs.AddTab("Runner", runnerSettingsPanel.GetWidget());
             this->content.Pack_start(this->tabs.GetWidget(), true, true, 0);
 
-            this->outputImage = Image(ImageColorspace::RGB);
-                this->content.Pack_start(this->outputImage.GetWidget(), false, false, 0);
+            Panel imageAndServicePanel = Panel(false, 0);
+                this->outputImage = Image(ImageColorspace::RGB);
+                    imageAndServicePanel.Pack_start(this->outputImage.GetWidget(), false, false, 0);
+
+                this->serviceMonitor = Label("No Service Running.");
+                    imageAndServicePanel.Pack_start(this->serviceMonitor.GetWidget(), false, false, 0);
+
+                this->serviceLabel = Label("");
+                    imageAndServicePanel.Pack_start(this->serviceLabel.GetWidget(), false, false, 0);
+                
+                this->content.Pack_start(imageAndServicePanel.GetWidget(), false, false, 0);
 
         this->window.SetPane(this->content);
     
@@ -139,72 +143,169 @@ void ConfigEditor::Update() {
         std::cout << "cv exception in ce" << std::endl;
     }
 
-    if(!this->monitorLearner) {
-        this->preprocessorSettings.Update();
-        this->postprocessorSettings.Update();
-        this->runnerSettings.Update(this->runner.GetClosestTargetToCenter().Distance());
+    this->preprocessorSettings.Update();
+    this->postprocessorSettings.Update();
+    this->runnerSettings.Update(this->runner.GetClosestTargetToCenter().Distance());
 
-        //apply the preprocessor settings
-        this->runner.SetPreprocessorProperty(PreProcessorProperty::IS_FULL, this->preprocessorSettings.GetProperty(PreProcessorProperty::IS_FULL));
-        this->runner.SetPreprocessorProperty(PreProcessorProperty::THRESHOLD, this->preprocessorSettings.GetProperty(PreProcessorProperty::THRESHOLD));
-        this->runner.SetPreprocessorProperty(PreProcessorProperty::EROSION, this->preprocessorSettings.GetProperty(PreProcessorProperty::EROSION));
-        this->runner.SetPreprocessorProperty(PreProcessorProperty::DILATION, this->preprocessorSettings.GetProperty(PreProcessorProperty::DILATION));
-        this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_HUE, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_HUE));
-        this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_SATURATION, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_SATURATION));
-        this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_VALUE, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_VALUE));
-        this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_ERROR, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_ERROR));
+    //apply the preprocessor settings
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::IS_FULL, this->preprocessorSettings.GetProperty(PreProcessorProperty::IS_FULL));
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::THRESHOLD, this->preprocessorSettings.GetProperty(PreProcessorProperty::THRESHOLD));
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::EROSION, this->preprocessorSettings.GetProperty(PreProcessorProperty::EROSION));
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::DILATION, this->preprocessorSettings.GetProperty(PreProcessorProperty::DILATION));
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_HUE, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_HUE));
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_SATURATION, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_SATURATION));
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_VALUE, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_VALUE));
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_ERROR, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_ERROR));
 
-        //apply all contour settings to the runner
-        for(int i=0; i<this->postprocessorSettings.GetNumContours(); i++) {
-            this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_X, this->postprocessorSettings.GetProperty(i, TargetProperty::DIST_X));
-            this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_Y, this->postprocessorSettings.GetProperty(i, TargetProperty::DIST_Y));
-            this->runner.SetPostProcessorContourProperty(i, TargetProperty::ANGLE, this->postprocessorSettings.GetProperty(i, TargetProperty::ANGLE));
-            this->runner.SetPostProcessorContourProperty(i, TargetProperty::ASPECT_RATIO, this->postprocessorSettings.GetProperty(i, TargetProperty::ASPECT_RATIO));
-            this->runner.SetPostProcessorContourProperty(i, TargetProperty::SOLIDITY, this->postprocessorSettings.GetProperty(i, TargetProperty::SOLIDITY));
-            this->runner.SetPostProcessorContourProperty(i, TargetProperty::MINIMUM_AREA, this->postprocessorSettings.GetProperty(i, TargetProperty::MINIMUM_AREA));
-        }
-
-        //apply runner properties
-        this->runner.SetRunnerProperty(RunnerProperty::OFFSET_X, this->runnerSettings.GetProperty(RunnerProperty::OFFSET_X));
-        this->runner.SetRunnerProperty(RunnerProperty::OFFSET_Y, this->runnerSettings.GetProperty(RunnerProperty::OFFSET_Y));
-        this->runner.SetRunnerProperty(RunnerProperty::IMAGE_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::IMAGE_WIDTH));
-        this->runner.SetRunnerProperty(RunnerProperty::IMAGE_HEIGHT, this->runnerSettings.GetProperty(RunnerProperty::IMAGE_HEIGHT));
-        this->runner.SetRunnerProperty(RunnerProperty::TRUE_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::TRUE_WIDTH));
-        this->runner.SetRunnerProperty(RunnerProperty::PERCEIVED_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::PERCEIVED_WIDTH));
-        this->runner.SetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE, this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE));
-        this->runner.SetRunnerProperty(RunnerProperty::ERROR_CORRECTION, this->runnerSettings.GetProperty(RunnerProperty::ERROR_CORRECTION));
+    //apply all contour settings to the runner
+    for(int i=0; i<this->postprocessorSettings.GetNumContours(); i++) {
+        this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_X, this->postprocessorSettings.GetProperty(i, TargetProperty::DIST_X));
+        this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_Y, this->postprocessorSettings.GetProperty(i, TargetProperty::DIST_Y));
+        this->runner.SetPostProcessorContourProperty(i, TargetProperty::ANGLE, this->postprocessorSettings.GetProperty(i, TargetProperty::ANGLE));
+        this->runner.SetPostProcessorContourProperty(i, TargetProperty::ASPECT_RATIO, this->postprocessorSettings.GetProperty(i, TargetProperty::ASPECT_RATIO));
+        this->runner.SetPostProcessorContourProperty(i, TargetProperty::SOLIDITY, this->postprocessorSettings.GetProperty(i, TargetProperty::SOLIDITY));
+        this->runner.SetPostProcessorContourProperty(i, TargetProperty::MINIMUM_AREA, this->postprocessorSettings.GetProperty(i, TargetProperty::MINIMUM_AREA));
     }
-    
-    //starts the learner and sets the mode to learner
+
+    //apply runner properties
+    this->runner.SetRunnerProperty(RunnerProperty::OFFSET_X, this->runnerSettings.GetProperty(RunnerProperty::OFFSET_X));
+    this->runner.SetRunnerProperty(RunnerProperty::OFFSET_Y, this->runnerSettings.GetProperty(RunnerProperty::OFFSET_Y));
+    this->runner.SetRunnerProperty(RunnerProperty::IMAGE_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::IMAGE_WIDTH));
+    this->runner.SetRunnerProperty(RunnerProperty::IMAGE_HEIGHT, this->runnerSettings.GetProperty(RunnerProperty::IMAGE_HEIGHT));
+    this->runner.SetRunnerProperty(RunnerProperty::TRUE_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::TRUE_WIDTH));
+    this->runner.SetRunnerProperty(RunnerProperty::PERCEIVED_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::PERCEIVED_WIDTH));
+    this->runner.SetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE, this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE));
+    this->runner.SetRunnerProperty(RunnerProperty::ERROR_CORRECTION, this->runnerSettings.GetProperty(RunnerProperty::ERROR_CORRECTION));
+
     if(Flags::GetFlag("StartLearner")) {
-        this->learner = ConfigLearner(this->runner.GetPreProcessor(), this->runner.GetVideoStream());
+        Flags::LowerFlag("StartLearner");
+        
+        //reinstantiate the learner to apply the preprocessor settings
+        this->learner = ConfigLearner(this->runner.GetPreProcessor());
         this->learnerActivated = true;
     }
 
-    //actually runs the learner to learn the target
-    if(Flags::GetFlag("LearnTarget")) {
-        int minArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
-        ExampleTarget newTarget = this->learner.LearnTarget(minArea);
+    if(Flags::GetFlag("StartLearning")) {
+        Flags::LowerFlag("StartLearning");
+        this->serviceMonitor.SetText("Learning Target");
+        this->serviceLabel.SetText("Capturing Frames");
+        this->learner.StartLearning();
+    }
+
+    if(Flags::GetFlag("StopLearner")) {
+        Flags::LowerFlag("StopLearner");
+        this->learnerActivated = false;
+    }
+
+    if(Flags::GetFlag("LearnDistance")) {
+        Flags::LowerFlag("LearnDistance");
+        ConfirmationDialog informationDialog = ConfirmationDialog("Learn Distance");
+        Panel dialogPanel = Panel(false, 0);
+            Panel trueWidthPanel = Panel(true, 0);
+                Label trueWidthPanelHeader = Label("Target Width: ");
+                    trueWidthPanel.Pack_start(trueWidthPanelHeader.GetWidget(), false, false, 0);
+
+                double realTrueWidth = this->runnerSettings.GetProperty(RunnerProperty::TRUE_WIDTH);
+                NumberBox trueWidthPanelValue = NumberBox(0.0, 120.0, 0.1, realTrueWidth);
+                    trueWidthPanel.Pack_start(trueWidthPanelValue.GetWidget(), false, false, 0);
+
+                dialogPanel.Pack_start(trueWidthPanel.GetWidget(), false, false, 0);
+
+            Panel distancePanel = Panel(true, 0);
+                Label distancePanelHeader = Label("Distance From Camera: ");
+                    distancePanel.Pack_start(distancePanelHeader.GetWidget(), false, false, 0);
+
+                double realDistance = this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE);
+                NumberBox distanceValue = NumberBox(6.0, 240.0, 0.1, realDistance);
+                    distancePanel.Pack_start(distanceValue.GetWidget(), false, false, 0);
+
+                dialogPanel.Pack_start(distancePanel.GetWidget(), false, false, 0);
+            informationDialog.SetBody(dialogPanel);
+
+        bool shouldLearn = informationDialog.ShowButDontClose();
+        double targetTrueWidth = trueWidthPanelValue.GetValue();
+        double targetDistance = distanceValue.GetValue();
+        informationDialog.Destroy();
+        if(shouldLearn) {
+            this->runnerSettings.SetProperty(RunnerProperty::TRUE_WIDTH, targetTrueWidth);
+            this->runnerSettings.SetProperty(RunnerProperty::CALIBRATED_DISTANCE, targetDistance);
+
+            this->distanceLearner = TargetDistanceLearner(this->runner.GetPreProcessor(), this->runner.GetPostProcessor());
+            this->distanceLearnerRunning = true;
+
+            this->serviceMonitor.SetText("Learning Distance Constants");
+            this->serviceLabel.SetText("Capturing Frames");
+        }
     }
 }
+
 
 /**
  * Updates the internal runner to in turn update the output images.
  */
 void ConfigEditor::UpdateImageOnly() {
-    try {
-        if(this->learnerActivated) {
-            //learner mode
-            int minArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
-            this->learner.Update(minArea);
-            this->out = this->learner.GetOutputImage();
-            this->original = this->learner.GetOriginalImage();
-        } else {
-            this->runner.Iterate();
-            this->out = this->runner.GetOutputImage();
-            this->original = this->runner.GetOriginalImage();
+    this->runner.Iterate();
+    this->out = this->runner.GetOutputImage();
+    this->original = this->runner.GetOriginalImage();
+
+    if(this->learnerActivated) {
+        int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
+        this->learner.FeedImage(this->original, minimumArea);
+        this->out = this->learner.GetOutputImageFromLastFeed();
+
+        if(this->learner.GetLearning()) {
+            std::string progressString = "Capturing Frames (" +
+                                      std::to_string(this->learner.GetFramesLearned()) +
+                                      "/" +
+                                      std::to_string(LEARNER_FRAMES) + 
+                                      ")";
+            
+            this->serviceLabel.SetText(progressString);
+
+            if(this->learner.GetFramesLearned() >= LEARNER_FRAMES) {
+                int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
+                ExampleTarget newTarget = this->learner.StopLearning(minimumArea);
+
+                std::vector<ExampleContour> newContours = newTarget.Contours();
+                for(int i=0; i<newContours.size(); i++) {
+                    this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_X, newContours[i].DistX());
+                    this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_Y, newContours[i].DistY());
+                    this->postprocessorSettings.SetProperty(i, TargetProperty::ANGLE, newContours[i].Angle());
+                    this->postprocessorSettings.SetProperty(i, TargetProperty::SOLIDITY, newContours[i].Solidity());
+                    this->postprocessorSettings.SetProperty(i, TargetProperty::ASPECT_RATIO, newContours[i].AspectRatio());
+                    this->postprocessorSettings.SetProperty(i, TargetProperty::MINIMUM_AREA, SettingPair(newContours[i].MinimumArea(), 0));
+                }
+
+                this->serviceMonitor.SetText("No Service Running.");
+                this->serviceLabel.SetText("");
+                this->learnerActivated = false;
+            }
         }
-    } catch(cv::Exception ex) {
+    }
+
+
+    if(this->distanceLearnerRunning) {
+        this->distLearner.FeedTarget(this->runner.GetClosestTargetToCenter());
+
+        std::string distProgressString = "Capturing Frames (" +
+                                         std::to_string(this->distanceLearner.GetFramesLearned()) +
+                                         "/" +
+                                         std::to_string(LEARNER_FRAMES) +
+                                         ")";
+        
+        this->serviceLabel.SetText(distProgressString);
+
+        if(this->distLearner.GetFramesLearned() >= LEARNER_FRAMES) {
+            double trueDistance = this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE);
+            double trueWidth = this->runnerSettings.GetProperty(RunnerProperty::TRUE_WIDTH);
+            double newFocalWidth = this->distLearner.GetFocalWidth(trueDistance, trueWidth);
+            this->runnerSettings.SetProperty(RunnerProperty::PERCEIVED_WIDTH, newFocalWidth);
+
+            //reset the labels
+            this->serviceMonitor.SetText("No Service Running.");
+            this->serviceLabel.SetText("");
+            this->distanceLearnerRunning = false;
+        }
     }
 }
 

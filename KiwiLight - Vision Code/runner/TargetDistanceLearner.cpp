@@ -8,61 +8,42 @@
 using namespace cv;
 using namespace KiwiLight;
 
-static const int NUMBER_OF_FRAMES_TO_LEARN = 20;
 
-
-TargetDistanceLearner::TargetDistanceLearner(Runner runner) {
-    this->preprocessor = runner.GetPreProcessor();
-    this->postprocessor = runner.GetPostProcessor();
-    this->cap = runner.GetVideoStream();
-    this->constantResize = runner.GetConstantSize();
-    this->outString = "Collecting and processing images (0%)";
+TargetDistanceLearner::TargetDistanceLearner(PreProcessor preprocessor, PostProcessor postprocessor) {
+    this->preprocessor = preprocessor;
+    this->postprocessor = postprocessor;
 }
 
 
-double TargetDistanceLearner::LearnFocalWidth(double trueWidth, double trueDistance) {
-    //capture the number of frames we will use to learn
-    std::vector<Target> targetsToUse;
-    std::vector<double> targetWidths;
-
-    std::cout << "Learning focal width..." << std::endl;
-
-    for(int i=0; i<NUMBER_OF_FRAMES_TO_LEARN; i++) {
-        Mat img;
-        bool success = this->cap.read(img);
-
-        if(success) {
-            resize(img, img, this->constantResize);
-            img = this->preprocessor.ProcessImage(img);
-            std::vector<Target> frameTargs = this->postprocessor.ProcessImage(img);
-
-            if(frameTargs.size() == 1) {
-                //we only want one so we know which target to focus on
-                Target newTarg = frameTargs[0];
-                targetWidths.push_back(newTarg.Bounds().width);
-                targetsToUse.push_back(newTarg);
-            }
-
-            double percentComplete = ((double) i / (double) NUMBER_OF_FRAMES_TO_LEARN) * 90;
-            this->outString = "Collecting and processing images (" + std::to_string((int) percentComplete) + "%)";
-        }
+void TargetDistanceLearner::FeedImage(Mat image) {
+    Mat img(image);
+    img = this->preprocessor.ProcessImage(img);
+    std::vector<Target> frameTargs = this->postprocessor.ProcessImage(img);
+    if(frameTargs.size() == 1) {
+        Target targ = frameTargs[0];
+        this->targetWidths.push_back((double) targ.Bounds().width);
     }
+}
 
-    this->outString = "Sorting data and calculating constants (90%)";
 
-    std::cout << "Successfully captured " << targetsToUse.size() << "/" << NUMBER_OF_FRAMES_TO_LEARN << " Targets." << std::endl;
+void TargetDistanceLearner::FeedTarget(Target targ) {
+    this->targetWidths.push_back((double) targ.Bounds().width);
+}
 
+
+double TargetDistanceLearner::GetFocalWidth(double trueDistance, double trueWidth) {
     int sizeBeforeRemove = targetWidths.size();
-    targetWidths = DataUtils::SortLeastGreatestDouble(targetWidths);
-    targetWidths = DataUtils::RemoveOutliers(targetWidths, 30);
-
-    std::cout << "Removed " << (sizeBeforeRemove - targetWidths.size()) << " outliers." << std::endl;
+    this->targetWidths = DataUtils::SortLeastGreatestDouble(this->targetWidths);
+    this->targetWidths = DataUtils::RemoveOutliers(this->targetWidths, 30);
 
     double avgWidth = DataUtils::Average(targetWidths);
     
-    std::cout << "avg width: " << avgWidth << std::endl;
-
     double focalWidth = avgWidth * trueDistance / trueWidth;
-    std::cout << "Focal width: " << focalWidth << std::endl;
+    this->targetWidths = std::vector<double>(); //reset the vector so it can learn again
     return focalWidth;
+}
+
+
+int TargetDistanceLearner::GetFramesLearned() {
+    return this->targetWidths.size();
 }

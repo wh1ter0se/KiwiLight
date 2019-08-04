@@ -385,24 +385,23 @@ namespace KiwiLight {
     class ConfigLearner {
         public:
         ConfigLearner() {};
-        ConfigLearner(PreProcessor preprocessor, VideoCapture stream);
-        ExampleTarget LearnTarget(int minArea);
-        void Update(int minArea);
-        void Stop();
-        void SetConstantResize(Size sz);
-        std::string GetOutputString() { return this->outString; }; //this is here because I run this in a separate thread and want to show progress
-        cv::Mat GetOriginalImage() { return this->original; };
-        cv::Mat GetOutputImage() { return this->out; };
+        ConfigLearner(PreProcessor preprocessor);
+        void StartLearning();
+        void FeedImage(Mat img, int minimumContourArea);
+        ExampleTarget StopLearning(int minimumContourArea);
+        bool GetLearning() { return this->currentlyLearning; };
+        int GetFramesLearned();
+        Mat GetOutputImageFromLastFeed() { return this->out; };
+        Mat GetOriginalImageFromLastFeed() { return this->original; };
 
         private:
-        VideoCapture stream;
-        Size constantResize;
-        cv::Mat original,
-                out;
         PreProcessor preprocessor;
 
-        int framesCollected;
-        std::string outString;
+        bool currentlyLearning;
+        std::vector<CameraFrame> currentFrames;
+
+        Mat out,
+            original;
     };
 
     /**
@@ -411,19 +410,16 @@ namespace KiwiLight {
     class TargetDistanceLearner {
         public:
         TargetDistanceLearner() {};
-        TargetDistanceLearner(Runner runner);
-        double LearnFocalWidth(double trueWidth, double trueDistance);
-        double LearnErrorCorrect(double trueWidth, double trueDistance, double calibratedDistance, double focalWidth);
-        std::string GetOutputString() { return this->outString; };
+        TargetDistanceLearner(PreProcessor preprocessor, PostProcessor postprocessor);
+        void FeedImage(Mat img);
+        void FeedTarget(Target targ);
+        int GetFramesLearned();
+        double GetFocalWidth(double trueDistance, double trueWidth);
 
         private:
-        Size constantResize;
         PreProcessor preprocessor;
         PostProcessor postprocessor;
-        VideoCapture cap;
-
-        int framesCollected;
-        std::string outString;
+        std::vector<double> targetWidths;
     };
 
 

@@ -171,7 +171,7 @@ void RunnerEditor::SetProperty(RunnerProperty prop, double value) {
             this->targetTrueWidth.SetValue(value);
             break;
         case RunnerProperty::PERCEIVED_WIDTH:
-            this->targetCalibratedDistance.SetValue(value);
+            this->targetPercievedWidth.SetValue(value);
             break;
         case RunnerProperty::CALIBRATED_DISTANCE:
             this->targetCalibratedDistance.SetValue(value);

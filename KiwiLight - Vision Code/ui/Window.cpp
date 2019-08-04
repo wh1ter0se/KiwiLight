@@ -8,15 +8,21 @@
 
 using namespace KiwiLight;
 
-static gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer pointer) {
+void(*Window::onAppClosed)() = 0;
+void(*Window::timeoutMethod)() = 0;
+
+gboolean Window::delete_event(GtkWidget *widget, GdkEvent *event, gpointer pointer) {
+    Window::onAppClosed();
     return FALSE;
 }
 
-static void Destroy() {
+void Window::Destroy() {
     gtk_main_quit();
 }
 
-void(*Window::timeoutMethod)() = 0;
+void Window::SetOnAppClosed(void(*onAppClosed)()) {
+    Window::onAppClosed = onAppClosed;
+}
 
 /**
  * Creates a new window.
@@ -30,14 +36,12 @@ Window::Window(GtkWindowType type) {
 
 
 Window::Window(GtkWindowType type, bool terminateOnClose) {
+    this->window = gtk_window_new(type);
+    gtk_container_set_border_width(GTK_CONTAINER(this->window), 0);
+
     if(terminateOnClose) {
-        this->window = gtk_window_new(type);
         g_signal_connect(this->window, "delete-event", G_CALLBACK(delete_event), NULL);
         g_signal_connect(this->window, "destroy", G_CALLBACK(Destroy), NULL);
-        gtk_container_set_border_width(GTK_CONTAINER(this->window), 0);
-    } else {
-        this->window = gtk_window_new(type);
-        gtk_container_set_border_width(GTK_CONTAINER(this->window), 0);
     }
 }
 
