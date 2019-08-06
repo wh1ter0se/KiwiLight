@@ -25,7 +25,7 @@
         <vertical>0</vertical>
     </cameraOffset>
     <constantResize>
-        <width>200</width>
+        <width>250</width>
         <height>145</height>
     </constantResize>
     <preprocessor type="full">
@@ -33,8 +33,8 @@
         <erosion>3</erosion>
         <dilation>5</dilation>
         <targetColor error="20">
-            <h>0</h>
-            <s>0</s>
+            <h>80</h>
+            <s>255</s>
             <v>255</v>
         </targetColor>
     </preprocessor>

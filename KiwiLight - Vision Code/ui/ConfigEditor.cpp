@@ -8,299 +8,314 @@
 using namespace cv;
 using namespace KiwiLight;
 
-ConfigLearner ConfigEditor::learner = ConfigLearner();
-ExampleTarget ConfigEditor::learnerResult = ExampleTarget();
-int ConfigEditor::learnerMinArea = 0;
+static int LEARNER_FRAMES = 50;
 
-TargetDistanceLearner ConfigEditor::distLearner = TargetDistanceLearner();
-double ConfigEditor::distResult = 0;
-double ConfigEditor::targetTrueDistance = 0;
-double ConfigEditor::targetTrueWidth = 0;
+static void LearnTargetButtonPressed() {
+    Flags::RaiseFlag("StartLearner");
+    ConfirmationDialog confirmation = ConfirmationDialog (
+        std::string("Position the target in the center of the image and press OK.\n") +
+        std::string("It should be highlighted with a blue box."));
+    
+    bool shouldLearn = confirmation.ShowAndGetResponse();
+    if(shouldLearn) {
+        Flags::RaiseFlag("StartLearning");
+    } else {
+        Flags::RaiseFlag("StopLearner");
+    }
+}
 
-TargetTroubleshooter ConfigEditor::troubleshooter = TargetTroubleshooter();
-TroubleshootingData ConfigEditor::troubleData[0];
+static void LearnDistanceButtonPressed() {
+    Flags::RaiseFlag("LearnDistance");
+}
+
+static void JustCloseButtonPressed() {
+    Flags::RaiseFlag("CloseEditor");
+}
+
+static void SaveAndCloseButtonPressed() {
+    Flags::RaiseFlag("SaveAndCloseEditor");
+}
 
 /**
  * Creates a window to edit the bassed file.
  */
 ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
-    this->monitorLearner = false;
-    this->monitorDistanceLearner = false;
-    this->monitorTroubleshooter = false;
+    this->learnerActivated = false;
+    this->distanceLearnerRunning = false;
     this->runner = Runner(fileName, true, cap);
-    this->editorMode = EditorMode::USE_RUNNER;
     this->currentDoc = XMLDocument(fileName);
     this->fileName = fileName;
+    this->out = Mat(Size(50, 50), CV_8UC3);
     this->confName = this->currentDoc.GetTagsByName("configuration")[0].GetAttributesByName("name")[0].Value();
+   
     this->window = Window(GTK_WINDOW_TOPLEVEL, false);
-        this->content = Panel(true, 5);
-                Panel settingsContent = Panel(false, 0);
-                    Label settingsHeader = Label("Camera Settings");
-                        settingsHeader.SetName("header");
-                        settingsContent.Pack_start(settingsHeader.GetWidget(), false, false, 0);
-                    this->cameraSettings = Settings(this->runner.GetCameraIndex(), cap);
-                        settingsContent.Pack_start(this->cameraSettings.GetWidget(), false, false, 0);
-                    this->content.Pack_start(settingsContent.GetWidget(), true, true, 0);
-                Panel targetContent = Panel(false, 0);
-                    Label targetHeader = Label("Targeting");
-                        targetHeader.SetName("header");
-                        targetContent.Pack_start(targetHeader.GetWidget(), false, false, 0);
-                        this->targetEditor = ConfigTargetEditor(fileName, this->runner);
-                            targetContent.Pack_start(this->targetEditor.GetWidget(), true, true, 0);
-                    this->content.Pack_start(targetContent.GetWidget(), true, true, 0);
-                Panel runnerContent = Panel(false, 0);
-                    Label runnerHeader = Label("Runner");
-                        runnerHeader.SetName("header");
-                        runnerContent.Pack_start(runnerHeader.GetWidget(), false, false, 0);
-                    this->runnerEditor = ConfigRunnerEditor(fileName);
-                        runnerContent.Pack_start(this->runnerEditor.GetWidget(), false, false, 0);
-                    this->content.Pack_start(runnerContent.GetWidget(), true, true, 0);
-            this->window.SetPane(this->content);
+        this->content = Panel(true, 0);
+            Panel overviewPanel = Panel(false, 5);
+                this->configOverview = ConfigPanel(this->currentDoc, false, true);
+                    overviewPanel.Pack_start(this->configOverview.GetWidget(), true ,true, 5);
 
+                Panel learnerPanel = Panel(true, 0);
+                    Button learnTargetButton = Button("Learn Target", LearnTargetButtonPressed);
+                        learnerPanel.Pack_start(learnTargetButton.GetWidget(), true, true, 0);
+
+                    Button learnDistanceButton = Button("Learn Distance", LearnDistanceButtonPressed);
+                        learnerPanel.Pack_start(learnDistanceButton.GetWidget(), true, true, 0);
+
+                    overviewPanel.Pack_start(learnerPanel.GetWidget(), true, true, 0);
+
+                Panel exitPanel = Panel(true, 0);
+                    Button justCloseButton = Button("Close", JustCloseButtonPressed);
+                        exitPanel.Pack_start(justCloseButton.GetWidget(), true, true, 0);
+
+                    Button saveAndCloseButton = Button("Save And Close", SaveAndCloseButtonPressed);
+                        exitPanel.Pack_start(saveAndCloseButton.GetWidget(), true, true, 0);
+
+                    overviewPanel.Pack_start(exitPanel.GetWidget(), true, true, 0);
+
+            Panel cameraSettingsPanel = Panel(false, 5);
+                Label cameraSettingsHeader = Label("Camera Settings");
+                    cameraSettingsHeader.SetName("header");
+                    cameraSettingsPanel.Pack_start(cameraSettingsHeader.GetWidget(), true, true, 0);
+
+                this->cameraSettings = Settings(0, cap);
+                    cameraSettingsPanel.Pack_start(this->cameraSettings.GetWidget(), true, false, 0);
+
+            Panel preprocessorSettingsPanel = Panel(false, 5);
+                Label preprocessorSettingsPanelHeader = Label("Preprocessor");
+                    preprocessorSettingsPanelHeader.SetName("header");
+                    preprocessorSettingsPanel.Pack_start(preprocessorSettingsPanelHeader.GetWidget(), true, true, 0);
+                
+                this->preprocessorSettings = PreprocessorEditor(this->runner.GetPreProcessor());
+                    preprocessorSettingsPanel.Pack_start(this->preprocessorSettings.GetWidget(), true, true, 0);
+
+            Panel postprocessorSettingsPanel = Panel(false, 5);
+                Label postprocessorSettingsPanelHeader = Label("Postprocessor");
+                    postprocessorSettingsPanelHeader.SetName("header");
+                    postprocessorSettingsPanel.Pack_start(postprocessorSettingsPanelHeader.GetWidget(), true, true, 0);
+                
+                this->postprocessorSettings = PostprocessorEditor(this->runner.GetPostProcessor());
+                    postprocessorSettingsPanel.Pack_start(this->postprocessorSettings.GetWidget(), true, true, 0);
+
+            Panel runnerSettingsPanel = Panel(false, 5);
+                Label runnerSettingsPanelHeader = Label("Runner");
+                    runnerSettingsPanelHeader.SetName("header");
+                    runnerSettingsPanel.Pack_start(runnerSettingsPanelHeader.GetWidget(), true, true, 0);
+
+                this->runnerSettings = RunnerEditor(this->runner);
+                    runnerSettingsPanel.Pack_start(this->runnerSettings.GetWidget(), true, true, 0);
+
+            this->tabs = TabView("Overview", overviewPanel.GetWidget());
+            this->tabs.AddTab("Camera", cameraSettingsPanel.GetWidget());
+            this->tabs.AddTab("Preprocessor", preprocessorSettingsPanel.GetWidget());
+            this->tabs.AddTab("Postprocessor", postprocessorSettingsPanel.GetWidget());
+            this->tabs.AddTab("Runner", runnerSettingsPanel.GetWidget());
+            this->content.Pack_start(this->tabs.GetWidget(), true, true, 0);
+
+            Panel imageAndServicePanel = Panel(false, 0);
+                this->outputImage = Image(ImageColorspace::RGB);
+                    imageAndServicePanel.Pack_start(this->outputImage.GetWidget(), false, false, 0);
+
+                this->serviceMonitor = Label("No Service Running.");
+                    imageAndServicePanel.Pack_start(this->serviceMonitor.GetWidget(), false, false, 0);
+
+                this->serviceLabel = Label("");
+                    imageAndServicePanel.Pack_start(this->serviceLabel.GetWidget(), false, false, 0);
+                
+                this->content.Pack_start(imageAndServicePanel.GetWidget(), false, false, 0);
+
+        this->window.SetPane(this->content);
+    
+    this->window.SetCSS("ui/Style.css");
     this->window.Show();
-    this->configeditor = this->window.GetWidget();
-    this->Update();
 
+    this->configeditor = this->window.GetWidget();
 }
 
 /**
  * Updates the editor and checks for button presses, etc.
  */
 void ConfigEditor::Update() {
-    if(!monitorLearner && !monitorDistanceLearner && !monitorTroubleshooter) {
+    Mat displayable;
 
-        //update the trinity for its functionality
-        if(this->editorMode == EditorMode::USE_RUNNER) {
-            //set all runner preprocessor settings to the values in the target editor
-            this->runner.SetPreprocessorProperty(PreProcessorProperty::IS_FULL, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::IS_FULL));
-            this->runner.SetPreprocessorProperty(PreProcessorProperty::THRESHOLD, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::THRESHOLD));
-            this->runner.SetPreprocessorProperty(PreProcessorProperty::THRESH_VALUE, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::THRESH_VALUE));
-            this->runner.SetPreprocessorProperty(PreProcessorProperty::EROSION, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::EROSION));
-            this->runner.SetPreprocessorProperty(PreProcessorProperty::DILATION, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::DILATION));
-            this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_HUE, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_HUE));
-            this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_SATURATION, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_SATURATION));
-            this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_VALUE, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_VALUE));
-            this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_ERROR, this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_ERROR));
+    try {
+        vconcat(this->original, this->out, displayable);
+        this->outputImage.Update(displayable);
+    } catch(cv::Exception ex) {
+        std::cout << "cv exception in ce" << std::endl;
+    }
+    
+    this->cameraSettings.Update();
+    this->preprocessorSettings.Update();
+    this->postprocessorSettings.Update();
+    this->runnerSettings.Update(this->runner.GetClosestTargetToCenter().Distance());
 
-            //set all runner targeting settings to the ones in the target editor
-            for(int i=0; i<this->targetEditor.NumContours(); i++) {
-                this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_X, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::DIST_X));
-                this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_Y, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::DIST_Y));
-                this->runner.SetPostProcessorContourProperty(i, TargetProperty::ANGLE, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::ANGLE));
-                this->runner.SetPostProcessorContourProperty(i, TargetProperty::ASPECT_RATIO, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::ASPECT_RATIO));
-                this->runner.SetPostProcessorContourProperty(i, TargetProperty::SOLIDITY, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::SOLIDITY));
-                this->runner.SetPostProcessorContourProperty(i, TargetProperty::MINIMUM_AREA, this->targetEditor.GetTargetPropertyValue(i, TargetProperty::MINIMUM_AREA));
-            }
-            
-            this->runner.SetRunnerProperty(RunnerProperty::OFFSET_X, this->runnerEditor.GetProperty(RunnerProperty::OFFSET_X));
-            this->runner.SetRunnerProperty(RunnerProperty::OFFSET_Y, this->runnerEditor.GetProperty(RunnerProperty::OFFSET_Y));
-            this->runner.SetRunnerProperty(RunnerProperty::TRUE_WIDTH, this->runnerEditor.GetProperty(RunnerProperty::TRUE_WIDTH));
-            this->runner.SetRunnerProperty(RunnerProperty::PERCEIVED_WIDTH, this->runnerEditor.GetProperty(RunnerProperty::PERCEIVED_WIDTH));
-            this->runner.SetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE, this->runnerEditor.GetProperty(RunnerProperty::CALIBRATED_DISTANCE));
-            this->runner.SetRunnerProperty(RunnerProperty::ERROR_CORRECTION, this->runnerEditor.GetProperty(RunnerProperty::ERROR_CORRECTION));
+    //apply the preprocessor settings
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::IS_FULL, this->preprocessorSettings.GetProperty(PreProcessorProperty::IS_FULL));
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::THRESHOLD, this->preprocessorSettings.GetProperty(PreProcessorProperty::THRESHOLD));
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::EROSION, this->preprocessorSettings.GetProperty(PreProcessorProperty::EROSION));
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::DILATION, this->preprocessorSettings.GetProperty(PreProcessorProperty::DILATION));
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_HUE, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_HUE));
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_SATURATION, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_SATURATION));
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_VALUE, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_VALUE));
+    this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_ERROR, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_ERROR));
 
-            this->runnerEditor.Update(this->runner.GetOriginalImage(), this->out, this->runner.GetClosestTargetToCenter().Distance());
-        } else if(this->editorMode == EditorMode::USE_LEARNER) {
-            // this->runnerEditor.Update(this->learner.GetOriginalImage(), this->learner.GetOutputImage(), -1);
-            double minimumArea = this->targetEditor.GetTargetPropertyValue(0, TargetProperty::MINIMUM_AREA).Value();
-            this->learner.Update(minimumArea); //use minimumArea in above line instead of constant 500
-            this->out = this->learner.GetOutputImage();
-            this->runnerEditor.Update(this->learner.GetOriginalImage(), this->learner.GetOutputImage(), -1);
-        }
+    //apply all contour settings to the runner
+    for(int i=0; i<this->postprocessorSettings.GetNumContours(); i++) {
+        this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_X, this->postprocessorSettings.GetProperty(i, TargetProperty::DIST_X));
+        this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_Y, this->postprocessorSettings.GetProperty(i, TargetProperty::DIST_Y));
+        this->runner.SetPostProcessorContourProperty(i, TargetProperty::ANGLE, this->postprocessorSettings.GetProperty(i, TargetProperty::ANGLE));
+        this->runner.SetPostProcessorContourProperty(i, TargetProperty::ASPECT_RATIO, this->postprocessorSettings.GetProperty(i, TargetProperty::ASPECT_RATIO));
+        this->runner.SetPostProcessorContourProperty(i, TargetProperty::SOLIDITY, this->postprocessorSettings.GetProperty(i, TargetProperty::SOLIDITY));
+        this->runner.SetPostProcessorContourProperty(i, TargetProperty::MINIMUM_AREA, this->postprocessorSettings.GetProperty(i, TargetProperty::MINIMUM_AREA));
     }
 
-    this->cameraSettings.Update();
-    this->targetEditor.Update();
+    //apply runner properties
+    this->runner.SetRunnerProperty(RunnerProperty::OFFSET_X, this->runnerSettings.GetProperty(RunnerProperty::OFFSET_X));
+    this->runner.SetRunnerProperty(RunnerProperty::OFFSET_Y, this->runnerSettings.GetProperty(RunnerProperty::OFFSET_Y));
+    this->runner.SetRunnerProperty(RunnerProperty::IMAGE_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::IMAGE_WIDTH));
+    this->runner.SetRunnerProperty(RunnerProperty::IMAGE_HEIGHT, this->runnerSettings.GetProperty(RunnerProperty::IMAGE_HEIGHT));
+    this->runner.SetRunnerProperty(RunnerProperty::TRUE_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::TRUE_WIDTH));
+    this->runner.SetRunnerProperty(RunnerProperty::PERCEIVED_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::PERCEIVED_WIDTH));
+    this->runner.SetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE, this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE));
+    this->runner.SetRunnerProperty(RunnerProperty::ERROR_CORRECTION, this->runnerSettings.GetProperty(RunnerProperty::ERROR_CORRECTION));
 
-    //update image resize settings in runner
-    int newSizeX = (int) this->runnerEditor.GetProperty(RunnerProperty::IMAGE_WIDTH);
-    int newSizeY = (int) this->runnerEditor.GetProperty(RunnerProperty::IMAGE_HEIGHT);
-    Size newSize = Size(newSizeX, newSizeY);
-    this->runner.SetImageResize(newSize);
-
-    //update image distance info in runner
-
-    // //check for flag signals
     if(Flags::GetFlag("StartLearner")) {
         Flags::LowerFlag("StartLearner");
         
-        //create a new learner and then switch to learner mode
-        bool FullPreProcessor = this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::IS_FULL) == 0.0;
-
-        int colorH = (int) this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_HUE);
-        int colorS = (int) this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_SATURATION);
-        int colorV = (int) this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_VALUE);
-        int colorError = (int) this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::COLOR_ERROR);
-        Color targetColor = Color(colorH, colorS, colorV, colorError, colorError, colorError);
-
-        double threshold = this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::THRESHOLD);
-        double erosion = this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::EROSION);
-        double dilation = this->targetEditor.GetPreProcessorProperty(PreProcessorProperty::DILATION);
-
-        PreProcessor learnerPreprocessor = PreProcessor(FullPreProcessor, targetColor, threshold, erosion, dilation, true);
-        ConfigEditor::learner = ConfigLearner(learnerPreprocessor, this->runner.GetVideoStream());
-        ConfigEditor::learner.SetConstantResize(newSize);
-        this->editorMode = EditorMode::USE_LEARNER;
+        //reinstantiate the learner to apply the preprocessor settings
+        this->learner = ConfigLearner(this->runner.GetPreProcessor());
+        this->learnerActivated = true;
     }
 
-    if(Flags::GetFlag("StopLearnerAndLearn")) {
-        Flags::LowerFlag("StopLearnerAndLearn");
-        ConfigEditor::learnerMinArea = (int) this->targetEditor.GetTargetPropertyValue(0, TargetProperty::MINIMUM_AREA).Value();
-        g_thread_new("Learner", GThreadFunc(ConfigEditor::LearnTarget), NULL);
-        this->monitorLearner = true;
-        
-        this->learnerMonitorWindow = ConfirmationDialog("Learning the target...");
-            Panel learnerMonitorPanel = Panel(false, 0);
-                this->learnerMonitorLabel = Label("Collecting and processing images (0%)");
-                    learnerMonitorPanel.Pack_start(this->learnerMonitorLabel.GetWidget(), false, false, 0);
-
-                this->learnerMonitorWindow.SetBody(learnerMonitorPanel);
-
-        //run the dialog without blocking the UI
-        this->learnerMonitorWindow.ShowWithoutRunning();
-    }
-
-    if(Flags::GetFlag("ConfigLearnerDone")) {
-        Flags::LowerFlag("ConfigLearnerDone");
-        ExampleTarget newTarg = ConfigEditor::learnerResult;
-
-        std::vector<ExampleContour> newContours = newTarg.Contours();
-        for(int i=0; i<newContours.size(); i++) {
-            this->targetEditor.SetTargetPropertyValue(i, TargetProperty::DIST_X, newContours[i].DistX());
-            this->targetEditor.SetTargetPropertyValue(i, TargetProperty::DIST_Y, newContours[i].DistY());
-            this->targetEditor.SetTargetPropertyValue(i, TargetProperty::ANGLE, newContours[i].Angle());
-            this->targetEditor.SetTargetPropertyValue(i, TargetProperty::SOLIDITY, newContours[i].Solidity());
-            this->targetEditor.SetTargetPropertyValue(i, TargetProperty::ASPECT_RATIO, newContours[i].AspectRatio());
-            this->targetEditor.SetTargetPropertyValue(i, TargetProperty::MINIMUM_AREA, SettingPair(newContours[i].MinimumArea(), 0));
-
-            std::cout << "contour " << i << " dist X      : " << newContours[i].DistX().Value() << std::endl;
-            std::cout << "contour " << i << " dist Y      : " << newContours[i].DistY().Value() << std::endl;
-            std::cout << "contour " << i << " angle       : " << newContours[i].Angle().Value() << std::endl;
-            std::cout << "contour " << i << " solidity    : " << newContours[i].Solidity().Value() << std::endl;
-            std::cout << "contour " << i << " aspect ratio: " << newContours[i].AspectRatio().Value() << std::endl;
-            std::cout << std::endl;
-        }
-
-        this->monitorLearner = false;
-        this->learnerMonitorWindow.Destroy();
-        this->editorMode = EditorMode::USE_RUNNER;
-    }
-
-    //only runs when the learner is actively learning the target to update the output window
-    if(this->monitorLearner) {
-        this->learnerMonitorLabel.SetText(ConfigEditor::learner.GetOutputString());
+    if(Flags::GetFlag("StartLearning")) {
+        Flags::LowerFlag("StartLearning");
+        this->serviceMonitor.SetText("Learning Target");
+        this->serviceLabel.SetText("Capturing Frames");
+        this->learner.StartLearning();
     }
 
     if(Flags::GetFlag("StopLearner")) {
         Flags::LowerFlag("StopLearner");
-        this->editorMode = EditorMode::USE_RUNNER;
+        this->learnerActivated = false;
     }
 
-    if(Flags::GetFlag("LearnDistanceConstants")) {
-        Flags::LowerFlag("LearnDistanceConstants");
+    if(Flags::GetFlag("LearnDistance")) {
+        Flags::LowerFlag("LearnDistance");
+        ConfirmationDialog informationDialog = ConfirmationDialog("Learn Distance");
+        Panel dialogPanel = Panel(false, 0);
+            Panel trueWidthPanel = Panel(true, 0);
+                Label trueWidthPanelHeader = Label("Target Width: ");
+                    trueWidthPanel.Pack_start(trueWidthPanelHeader.GetWidget(), false, false, 0);
 
-        ConfigEditor::distLearner = TargetDistanceLearner(this->runner.GetPreProcessor(), this->runner.GetPostProcessor(), this->runner.GetVideoStream(), this->runner.GetConstantSize());
+                double realTrueWidth = this->runnerSettings.GetProperty(RunnerProperty::TRUE_WIDTH);
+                NumberBox trueWidthPanelValue = NumberBox(0.0, 120.0, 0.1, realTrueWidth);
+                    trueWidthPanel.Pack_start(trueWidthPanelValue.GetWidget(), false, false, 0);
 
-        //build a confirmation dialog with some numberboxes 
-        ConfirmationDialog firstDistanceDialog = ConfirmationDialog("Before figuring out the distance constants, I'll need a little information first.");
-            Panel dialogPanel = Panel(false, 0);
-                Panel trueWidthPanel = Panel(true, 0);
-                    Label trueWidthLabel = Label("Width of target in inches: ");
-                        trueWidthPanel.Pack_start(trueWidthLabel.GetWidget(), false, false, 0);
+                dialogPanel.Pack_start(trueWidthPanel.GetWidget(), false, false, 0);
 
-                    NumberBox trueWidthNumber = NumberBox(0.1, 120.0, 0.01, 12.0);
-                        trueWidthPanel.Pack_start(trueWidthNumber.GetWidget(), false, false, 0);
+            Panel distancePanel = Panel(true, 0);
+                Label distancePanelHeader = Label("Distance From Camera: ");
+                    distancePanel.Pack_start(distancePanelHeader.GetWidget(), false, false, 0);
 
-                    dialogPanel.Pack_start(trueWidthPanel.GetWidget(), false, false, 0);
+                double realDistance = this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE);
+                NumberBox distanceValue = NumberBox(6.0, 240.0, 0.1, realDistance);
+                    distancePanel.Pack_start(distanceValue.GetWidget(), false, false, 0);
 
-                Panel trueDistancePanel = Panel(true, 0);
-                    Label trueDistanceLabel = Label("Distance from camera to target: ");
-                        trueDistancePanel.Pack_start(trueDistanceLabel.GetWidget(), false, false, 0);
+                dialogPanel.Pack_start(distancePanel.GetWidget(), false, false, 0);
+            informationDialog.SetBody(dialogPanel);
 
-                    NumberBox trueDistanceNumber = NumberBox(6.0, 120.0, 0.01, 12.0);
-                        trueDistancePanel.Pack_start(trueDistanceNumber.GetWidget(), false, false, 0);
+        bool shouldLearn = informationDialog.ShowButDontClose();
+        double targetTrueWidth = trueWidthPanelValue.GetValue();
+        double targetDistance = distanceValue.GetValue();
+        informationDialog.Destroy();
+        if(shouldLearn) {
+            this->runnerSettings.SetProperty(RunnerProperty::TRUE_WIDTH, targetTrueWidth);
+            this->runnerSettings.SetProperty(RunnerProperty::CALIBRATED_DISTANCE, targetDistance);
 
-                    dialogPanel.Pack_start(trueDistancePanel.GetWidget(), false, false, 0);
+            this->distanceLearner = TargetDistanceLearner(this->runner.GetPreProcessor(), this->runner.GetPostProcessor());
+            this->distanceLearnerRunning = true;
 
-                firstDistanceDialog.SetBody(dialogPanel);
-
-        bool shouldContinue = firstDistanceDialog.Show();
-        if(shouldContinue) {
-            ConfigEditor::targetTrueWidth = trueWidthNumber.GetValue();
-            ConfigEditor::targetTrueDistance = trueDistanceNumber.GetValue();
-            firstDistanceDialog.Destroy();
-
-            this->runnerEditor.SetProperty(RunnerProperty::TRUE_WIDTH, ConfigEditor::targetTrueWidth);
-            this->runnerEditor.SetProperty(RunnerProperty::CALIBRATED_DISTANCE, ConfigEditor::targetTrueDistance);
-
-            //create the body for the monitor window
-            this->distLearnerMonitorWindow = ConfirmationDialog("Learning Distance Constants");
-                Panel monitorBody = Panel(false, 0);
-                    this->distMonitorLabel = Label("Collecting and processing images (0%)");
-                        monitorBody.Pack_start(this->distMonitorLabel.GetWidget(), false, false, 0);
-
-                    this->distLearnerMonitorWindow.SetBody(monitorBody);
-
-                this->distLearnerMonitorWindow.ShowWithoutRunning();
-
-            g_thread_new("Dist Learner", GThreadFunc(ConfigEditor::LearnDistance), NULL);
-            this->monitorDistanceLearner = true;
+            this->serviceMonitor.SetText("Learning Distance Constants");
+            this->serviceLabel.SetText("Capturing Frames");
         }
     }
 
-    if(Flags::GetFlag("DistanceLearnerDone")) {
-        Flags::LowerFlag("DistanceLearnerDone");
-        this->distLearnerMonitorWindow.Destroy();
-        this->runnerEditor.SetProperty(RunnerProperty::PERCEIVED_WIDTH, ConfigEditor::distResult);
-        this->monitorDistanceLearner = false;
-    }
-
-    if(this->monitorDistanceLearner) {
-        this->distMonitorLabel.SetText(ConfigEditor::distLearner.GetOutputString());
-    }
-
-
     if(Flags::GetFlag("UDPReconnect")) {
         Flags::LowerFlag("UDPReconnect");
-        std::string newUDPAddr = this->runnerEditor.GetUDPAddress();
-        int newUDPPort = this->runnerEditor.GetUDPPort();
+        std::string newUDPAddr = this->runnerSettings.GetUDPAddr();
+        int newUDPPort = this->runnerSettings.GetUDPPort();
         this->runner.ReconnectUDP(newUDPAddr, newUDPPort);
-    }
-
-    if(Flags::GetFlag("TroubleshootTarget")) {
-        Flags::LowerFlag("TroubleshootTarget");
-
-        this->targetTroubleshooterMonitorWindow = ConfirmationDialog("Troubleshooting the target");
-            Panel monitorBody = Panel(false, 0);
-                this->troubleshooterLabel = Label("Collecting and processing images (0%)");
-                    monitorBody.Pack_start(this->troubleshooterLabel.GetWidget(), false, false, 0);
-
-                this->targetTroubleshooterMonitorWindow.SetBody(monitorBody);
-            this->targetTroubleshooterMonitorWindow.ShowWithoutRunning();
-
-        ConfigEditor::troubleshooter = TargetTroubleshooter(this->runner.GetVideoStream(), this->runner.GetPreProcessor(), this->runner.GetExampleTargetByID(0));
-        g_thread_new("Target Troubleshooter", GThreadFunc(ConfigEditor::TroubleshootTarget), NULL);
-        this->monitorTroubleshooter = true;
-    }
-
-    if(Flags::GetFlag("TargetTroubleshooterDone")) {
-        Flags::LowerFlag("TargetTroubleshooterDone");
-        this->monitorTroubleshooter = false;
-        ConfigEditor::targetTroubleshooterMonitorWindow.Destroy();
-
-        std::cout << "show window" << std::endl;
-    }
-
-    if(this->monitorTroubleshooter) {
-        this->troubleshooterLabel.SetText(ConfigEditor::troubleshooter.GetOutputString());
     }
 }
 
 
+/**
+ * Updates the internal runner to in turn update the output images.
+ */
 void ConfigEditor::UpdateImageOnly() {
-    if(this->editorMode == EditorMode::USE_RUNNER && !(this->monitorDistanceLearner || this->monitorLearner || this->monitorTroubleshooter)) {
-        this->runner.Iterate();
-        this->out = this->runner.GetOutputImage();
+    this->runner.Iterate();
+    this->out = this->runner.GetOutputImage();
+    this->original = this->runner.GetOriginalImage();
+
+    if(this->learnerActivated) {
+        int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
+        this->learner.FeedImage(this->original, minimumArea);
+        this->out = this->learner.GetOutputImageFromLastFeed();
+
+        if(this->learner.GetLearning()) {
+            std::string progressString = "Capturing Frames (" +
+                                      std::to_string(this->learner.GetFramesLearned()) +
+                                      "/" +
+                                      std::to_string(LEARNER_FRAMES) + 
+                                      ")";
+            
+            this->serviceLabel.SetText(progressString);
+
+            if(this->learner.GetFramesLearned() >= LEARNER_FRAMES) {
+                int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
+                ExampleTarget newTarget = this->learner.StopLearning(minimumArea);
+
+                std::vector<ExampleContour> newContours = newTarget.Contours();
+                std::cout << "got " << newContours.size() << " new contours." << std::endl;
+                for(int i=0; i<newContours.size(); i++) {
+                    this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_X, newContours[i].DistX());
+                    this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_Y, newContours[i].DistY());
+                    this->postprocessorSettings.SetProperty(i, TargetProperty::ANGLE, newContours[i].Angle());
+                    this->postprocessorSettings.SetProperty(i, TargetProperty::SOLIDITY, newContours[i].Solidity());
+                    this->postprocessorSettings.SetProperty(i, TargetProperty::ASPECT_RATIO, newContours[i].AspectRatio());
+                    this->postprocessorSettings.SetProperty(i, TargetProperty::MINIMUM_AREA, SettingPair(newContours[i].MinimumArea(), 0));
+                }
+
+                this->serviceMonitor.SetText("No Service Running.");
+                this->serviceLabel.SetText("");
+                this->learnerActivated = false;
+            }
+        }
+    }
+
+
+    if(this->distanceLearnerRunning) {
+        this->distLearner.FeedTarget(this->runner.GetClosestTargetToCenter());
+
+        std::string distProgressString = "Capturing Frames (" +
+                                         std::to_string(this->distanceLearner.GetFramesLearned()) +
+                                         "/" +
+                                         std::to_string(LEARNER_FRAMES) +
+                                         ")";
+        
+        this->serviceLabel.SetText(distProgressString);
+
+        if(this->distLearner.GetFramesLearned() >= LEARNER_FRAMES) {
+            double trueDistance = this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE);
+            double trueWidth = this->runnerSettings.GetProperty(RunnerProperty::TRUE_WIDTH);
+            double newFocalWidth = this->distLearner.GetFocalWidth(trueDistance, trueWidth);
+            this->runnerSettings.SetProperty(RunnerProperty::PERCEIVED_WIDTH, newFocalWidth);
+
+            //reset the labels
+            this->serviceMonitor.SetText("No Service Running.");
+            this->serviceLabel.SetText("");
+            this->distanceLearnerRunning = false;
+        }
     }
 }
 
@@ -308,169 +323,221 @@ void ConfigEditor::UpdateImageOnly() {
  * Causes the editor to save the config to file.
  */
 void ConfigEditor::Save() {
-    PopupTextBox namePopup = PopupTextBox("Enter Name", "Enter the name of the configuration.", this->confName);
-        std::string nameResult = namePopup.Show();
+    //assemble the file structure and write it into a file which the user may designate
+    XMLDocument doc = XMLDocument();
 
-    XMLDocument newDocument = XMLDocument();
-        XMLTag cameraTag = XMLTag("camera");
+        //<camera>
+        XMLTag camera = XMLTag("camera");
             XMLTagAttribute cameraIndex = XMLTagAttribute("index", std::to_string(this->runner.GetCameraIndex()));
-                cameraTag.AddAttribute(cameraIndex);
+                camera.AddAttribute(cameraIndex);
 
-            XMLTag camResolution = XMLTag("resolution");
-                XMLTag camResWidth = XMLTag("width", std::to_string(this->cameraSettings.GetWidth()));
-                    camResolution.AddTag(camResWidth);
+            /**
+             * <camera>
+             *  <resolution>
+             */
+            XMLTag resolution = XMLTag("resolution");
+                XMLTag resolutionWidth = XMLTag("width", std::to_string(this->cameraSettings.GetWidth()));
+                    resolution.AddTag(resolutionWidth);
 
-                XMLTag camResHeight = XMLTag("height", std::to_string(this->cameraSettings.GetHeight()));
-                    camResolution.AddTag(camResHeight);
+                XMLTag resolutionHeight = XMLTag("height", std::to_string(this->cameraSettings.GetHeight()));
+                    resolution.AddTag(resolutionHeight);
 
-                cameraTag.AddTag(camResolution);
+                camera.AddTag(resolution);
 
-            cameraTag.AddTag(this->cameraSettings.GetFinishedTag());
-            newDocument.AddTag(cameraTag);
-        
-        XMLTag configurationTag = XMLTag("configuration");
-            XMLTagAttribute confNameAttr = XMLTagAttribute("name", nameResult);
-            configurationTag.AddAttribute(confNameAttr);
-
-            XMLTag centerOffsetTag = XMLTag("cameraOffset");
-                XMLTag horizontalOffset = XMLTag("horizontal", std::to_string(this->runnerEditor.GetProperty(RunnerProperty::OFFSET_X)));
-                    centerOffsetTag.AddTag(horizontalOffset);
-
-                XMLTag verticalOffset = XMLTag("vertical", std::to_string(this->runnerEditor.GetProperty(RunnerProperty::OFFSET_Y)));
-                    centerOffsetTag.AddTag(verticalOffset);
-
-                configurationTag.AddTag(centerOffsetTag);
-
-            XMLTag constantResizeTag = XMLTag("constantResize");
-                XMLTag resizeWidth = XMLTag("width", std::to_string((int) this->runnerEditor.GetProperty(RunnerProperty::IMAGE_WIDTH)));
-                    constantResizeTag.AddTag(resizeWidth);
-
-                XMLTag resizeHeight = XMLTag("height", std::to_string((int) this->runnerEditor.GetProperty(RunnerProperty::IMAGE_HEIGHT)));
-                    constantResizeTag.AddTag(resizeHeight);
-
-                configurationTag.AddTag(constantResizeTag);
+            /**
+             * <camera>
+             *  <settings>
+             */
+            XMLTag settings = this->cameraSettings.GetFinishedTag();
+                camera.AddTag(settings);
             
-            XMLTag preprocessorTag = XMLTag("preprocessor");
-                double preprocessorTypeDouble = this->runner.GetPreprocessorProperty(PreProcessorProperty::IS_FULL);
-                std::string preprocessorTypeString = (preprocessorTypeDouble == 0.0 ? "full" : "partial");
-                XMLTagAttribute preprocessorTypeAttr = XMLTagAttribute("type", preprocessorTypeString);
-                preprocessorTag.AddAttribute(preprocessorTypeAttr);
+            doc.AddTag(camera);
 
-                XMLTag thresh = XMLTag("threshold", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::THRESHOLD)));
-                    preprocessorTag.AddTag(thresh);
+        /**
+         * <configuration>
+         */
+        XMLTag configuration = XMLTag("configuration");
+            XMLTagAttribute configurationName = XMLTagAttribute("name", this->configOverview.GetConfigurationName());
+                configuration.AddAttribute(configurationName);
 
-                XMLTag erosionTag = XMLTag("erosion", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::EROSION)));
-                    preprocessorTag.AddTag(erosionTag);
-                
-                XMLTag dilationTag = XMLTag("dilation", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::DILATION)));
-                    preprocessorTag.AddTag(dilationTag);
+            /**
+             * <configuration>
+             *  <cameraOffset>
+             */
+            XMLTag cameraOffset = XMLTag("cameraOffset");
+                XMLTag horizontalOffset = XMLTag("horizontal", std::to_string((int) this->runnerSettings.GetProperty(RunnerProperty::OFFSET_X)));
+                    cameraOffset.AddTag(horizontalOffset);
 
-                XMLTag colorTag = XMLTag("targetColor");
-                    XMLTagAttribute colorError = XMLTagAttribute("error", std::to_string(this->runner.GetPreprocessorProperty(PreProcessorProperty::COLOR_ERROR)));
-                        colorTag.AddAttribute(colorError);
+                XMLTag verticalOffset = XMLTag("vertical", std::to_string((int) this->runnerSettings.GetProperty(RunnerProperty::OFFSET_Y)));
+                    cameraOffset.AddTag(verticalOffset);
 
-                    XMLTag hueTag = XMLTag("h", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::COLOR_HUE)));
-                        colorTag.AddTag(hueTag);
+                configuration.AddTag(cameraOffset);
 
-                    XMLTag saturationTag = XMLTag("s", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::COLOR_SATURATION)));
-                        colorTag.AddTag(saturationTag);
+            /**
+             * <configuration>
+             *  <constantResize>
+             */
+            XMLTag constantResize = XMLTag("constantResize");
+                XMLTag resizeWidth = XMLTag("width", std::to_string((int) this->runnerSettings.GetProperty(RunnerProperty::IMAGE_WIDTH)));
+                    constantResize.AddTag(resizeWidth);
 
-                    XMLTag valueTag = XMLTag("v", std::to_string((int) this->runner.GetPreprocessorProperty(PreProcessorProperty::COLOR_VALUE)));
-                        colorTag.AddTag(valueTag);
+                XMLTag resizeHeight = XMLTag("height", std::to_string((int) this->runnerSettings.GetProperty(RunnerProperty::IMAGE_HEIGHT)));
+                    constantResize.AddTag(resizeHeight);
 
-                    preprocessorTag.AddTag(colorTag);
+                configuration.AddTag(constantResize);
 
-                configurationTag.AddTag(preprocessorTag);
+            /**
+             * <configuration>
+             *  <preprocessor>
+             */
+            XMLTag preprocessor = XMLTag("preprocessor");
+                XMLTagAttribute preprocessorType = XMLTagAttribute("type", (this->preprocessorSettings.GetProperty(PreProcessorProperty::IS_FULL) == 1.0 ? "full" : "partial"));
+                    preprocessor.AddAttribute(preprocessorType);
 
-            XMLTag postprocessorTag = XMLTag("postprocessor");
-                XMLTag targetTag = XMLTag("target");
-                    XMLTagAttribute targetIDAttr = XMLTagAttribute("id", "0");
-                    targetTag.AddAttribute(targetIDAttr);
+                //<threshold>
+                XMLTag threshold = XMLTag("threshold", std::to_string((int) this->preprocessorSettings.GetProperty(PreProcessorProperty::THRESHOLD)));
+                    preprocessor.AddTag(threshold);
 
-                    for(int i=0; i<this->targetEditor.NumContours(); i++) {
-                        XMLTag newContour = XMLTag("contour");
-                            XMLTagAttribute ContourIDAttr = XMLTagAttribute("id", std::to_string(i));
-                            newContour.AddAttribute(ContourIDAttr);
+                //<erosion>
+                XMLTag erosion = XMLTag("erosion", std::to_string((int) this->preprocessorSettings.GetProperty(PreProcessorProperty::EROSION)));
+                    preprocessor.AddTag(erosion);
 
-                            XMLTag contourX = XMLTag("x", std::to_string(this->runner.GetPostProcessorContourProperty(i, TargetProperty::DIST_X).Value()));
-                                XMLTagAttribute contourXErr = XMLTagAttribute("error", std::to_string(this->runner.GetPostProcessorContourProperty(i, TargetProperty::DIST_X).Error()));
-                                contourX.AddAttribute(contourXErr);
-                                newContour.AddTag(contourX);
+                //<dilation>
+                XMLTag dilation = XMLTag("dilation", std::to_string((int) this->preprocessorSettings.GetProperty(PreProcessorProperty::DILATION)));
+                    preprocessor.AddTag(dilation);
 
-                            XMLTag contourY = XMLTag("y", std::to_string(this->runner.GetPostProcessorContourProperty(i, TargetProperty::DIST_Y).Value()));
-                                XMLTagAttribute contourYErr = XMLTagAttribute("error", std::to_string(this->runner.GetPostProcessorContourProperty(i, TargetProperty::DIST_Y).Error()));
-                                contourY.AddAttribute(contourYErr);
-                                newContour.AddTag(contourY);
+                /**
+                 * <configuration>
+                 *  <preprocessor>
+                 *      <targetColor>
+                 */
+                XMLTag targetColor = XMLTag("targetColor");
+                    XMLTagAttribute targetColorError = XMLTagAttribute("error", std::to_string((int) this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_ERROR)));
+                        targetColor.AddAttribute(targetColorError);
 
-                            XMLTag contourAngle = XMLTag("angle", std::to_string(this->runner.GetPostProcessorContourProperty(i, TargetProperty::ANGLE).Value()));
-                                XMLTagAttribute contourAngleErr = XMLTagAttribute("error", std::to_string(this->runner.GetPostProcessorContourProperty(i, TargetProperty::ANGLE).Error()));
-                                contourAngle.AddAttribute(contourAngleErr);
-                                newContour.AddTag(contourAngle);
+                    //<h>
+                    XMLTag h = XMLTag("h", std::to_string((int) this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_HUE)));
+                        targetColor.AddTag(h);
 
-                            XMLTag contourSolidity = XMLTag("solidity", std::to_string(this->runner.GetPostProcessorContourProperty(i, TargetProperty::SOLIDITY).Value()));
-                                XMLTagAttribute contourSolidityErr = XMLTagAttribute("error", std::to_string(this->runner.GetPostProcessorContourProperty(i, TargetProperty::SOLIDITY).Error()));
-                                contourSolidity.AddAttribute(contourSolidityErr);
-                                newContour.AddTag(contourSolidity);
+                    //<s>
+                    XMLTag s = XMLTag("s", std::to_string((int) this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_SATURATION)));
+                        targetColor.AddTag(s);
 
-                            XMLTag contourAR = XMLTag("aspectRatio", std::to_string(this->runner.GetPostProcessorContourProperty(i, TargetProperty::ASPECT_RATIO).Value()));
-                                XMLTagAttribute contourARErr = XMLTagAttribute("error", std::to_string(this->runner.GetPostProcessorContourProperty(i, TargetProperty::ASPECT_RATIO).Error()));
-                                contourAR.AddAttribute(contourARErr);
-                                newContour.AddTag(contourAR);
+                    //<v>
+                    XMLTag v = XMLTag("v", std::to_string((int) this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_VALUE)));
+                        targetColor.AddTag(v);
 
-                            XMLTag contourMinArea = XMLTag("minimumArea", std::to_string(this->runner.GetPostProcessorContourProperty(i, TargetProperty::MINIMUM_AREA).Value()));
-                                newContour.AddTag(contourMinArea);
+                    preprocessor.AddTag(targetColor);
+                configuration.AddTag(preprocessor);
 
-                            targetTag.AddTag(newContour);
+            /**
+             * <configuration>
+             *  <postprocessor>
+             */
+            XMLTag postprocessor = XMLTag("postprocessor");
+                //<target>
+                XMLTag target = XMLTag("target");
+                    XMLTagAttribute targetID = XMLTagAttribute("id", "0"); //this remains constant for now until multiple target support is added.
+                        target.AddAttribute(targetID);
+
+                    for(int i=0; i<this->postprocessorSettings.GetNumContours(); i++) {
+                        /**
+                         * <configuration>
+                         *  <postprocessor>
+                         *      <target>
+                         *          <contour>
+                         */
+                        XMLTag contour = XMLTag("contour");
+                            XMLTagAttribute contourID = XMLTagAttribute("id", std::to_string(i));
+                                contour.AddAttribute(contourID);
+
+                            //<x>
+                            SettingPair distXValues = this->postprocessorSettings.GetProperty(i, TargetProperty::DIST_X);
+                            XMLTag x = XMLTag("x", std::to_string((double) distXValues.Value()));
+                                XMLTagAttribute xError = XMLTagAttribute("error", std::to_string((double) distXValues.Error()));
+                                    x.AddAttribute(xError);
+                                contour.AddTag(x);
+
+                            //<y>
+                            SettingPair distYValues = this->postprocessorSettings.GetProperty(i, TargetProperty::DIST_Y);
+                            XMLTag y = XMLTag("y", std::to_string((double) distYValues.Value()));
+                                XMLTagAttribute yError = XMLTagAttribute("error", std::to_string((double) distYValues.Error()));
+                                    y.AddAttribute(yError);
+                                contour.AddTag(y);
+                            
+                            //<angle>
+                            SettingPair angleValues = this->postprocessorSettings.GetProperty(i, TargetProperty::ANGLE);
+                            XMLTag angle = XMLTag("angle", std::to_string((double) angleValues.Value()));
+                                XMLTagAttribute angleError = XMLTagAttribute("error", std::to_string((double) angleValues.Error()));
+                                    angle.AddAttribute(angleError);
+                                contour.AddTag(angle);
+
+                            //<solidity>
+                            SettingPair solidityValues = this->postprocessorSettings.GetProperty(i, TargetProperty::SOLIDITY);
+                            XMLTag solidity = XMLTag("solidity", std::to_string((double) solidityValues.Value()));
+                                XMLTagAttribute solidityError = XMLTagAttribute("error", std::to_string((double) solidityValues.Error()));
+                                    solidity.AddAttribute(solidityError);
+                                contour.AddTag(solidity);
+                            
+                            //<aspectRatio>
+                            SettingPair aspectRatioValues = this->postprocessorSettings.GetProperty(i, TargetProperty::ASPECT_RATIO);
+                            XMLTag aspectRatio = XMLTag("aspectRatio", std::to_string((double) aspectRatioValues.Value()));
+                                XMLTagAttribute aspectRatioError = XMLTagAttribute("error", std::to_string((double) aspectRatioValues.Error()));
+                                    aspectRatio.AddAttribute(aspectRatioError);
+                                contour.AddTag(aspectRatio);
+                            
+                            //<minimumArea>
+                            SettingPair minimumAreaValues = this->postprocessorSettings.GetProperty(i, TargetProperty::MINIMUM_AREA);
+                            XMLTag minimumArea = XMLTag("minimumArea", std::to_string((int) minimumAreaValues.Value()));
+                                contour.AddTag(minimumArea);
+
+                            target.AddTag(contour);
                     }
 
-                    XMLTag targetKnownWidth = XMLTag("knownWidth", std::to_string(this->runner.GetRunnerProperty(RunnerProperty::TRUE_WIDTH)));
-                        targetTag.AddTag(targetKnownWidth);
+                    //<knownWidth>
+                    XMLTag knownWidth = XMLTag("knownWidth", std::to_string((double) this->runnerSettings.GetProperty(RunnerProperty::TRUE_WIDTH)));
+                        target.AddTag(knownWidth);
 
-                    XMLTag targetFocalWidth = XMLTag("focalWidth", std::to_string(this->runner.GetRunnerProperty(RunnerProperty::PERCEIVED_WIDTH)));
-                        targetTag.AddTag(targetFocalWidth);
+                    //<focalWidth>
+                    XMLTag focalWidth = XMLTag("focalWidth", std::to_string((double) this->runnerSettings.GetProperty(RunnerProperty::PERCEIVED_WIDTH)));
+                        target.AddTag(focalWidth);
 
-                    XMLTag targetCalibratedDistance = XMLTag("calibratedDistance", std::to_string(this->runner.GetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE)));
-                        targetTag.AddTag(targetCalibratedDistance);
+                    //<calibratedDistance>
+                    XMLTag calibratedDistance = XMLTag("calibratedDistance", std::to_string((double) this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE)));
+                        target.AddTag(calibratedDistance);
 
-                    XMLTag targetErrCorrect = XMLTag("distErrorCorrect", std::to_string(this->runner.GetRunnerProperty(RunnerProperty::ERROR_CORRECTION)));
-                        targetTag.AddTag(targetErrCorrect);
+                    //<distErrorCorrect>
+                    XMLTag distErrorCorrect = XMLTag("distErrorCorrect", std::to_string((double) this->runnerSettings.GetProperty(RunnerProperty::ERROR_CORRECTION)));
+                        target.AddTag(distErrorCorrect);
 
-                    postprocessorTag.AddTag(targetTag);
+                    postprocessor.AddTag(target);
+                
+                /**
+                 * <configuration>
+                 *  <postprocessor>
+                 *      <UDP>
+                 */
+                XMLTag UDP = XMLTag("UDP");
+                    //<address>
+                    XMLTag address = XMLTag("address", this->runnerSettings.GetUDPAddr());
+                        UDP.AddTag(address);
 
-                    XMLTag UDPTag = XMLTag("UDP");
-                        XMLTag udpAddrTag = XMLTag("address", this->runnerEditor.GetUDPAddress());
-                            UDPTag.AddTag(udpAddrTag);
+                    //<port>
+                    XMLTag port = XMLTag("port", std::to_string(this->runnerSettings.GetUDPPort()));
+                        UDP.AddTag(port);
 
-                        XMLTag udpPortTag = XMLTag("port", std::to_string(this->runnerEditor.GetUDPPort()));
-                            UDPTag.AddTag(udpPortTag);
-
-                        postprocessorTag.AddTag(UDPTag);
-
-                configurationTag.AddTag(postprocessorTag);
-            newDocument.AddTag(configurationTag);
-
-    //use accessor so we don't accidently modify the member value
-    std::string fileToWrite = this->GetFileName();
-    if(fileToWrite == "confs/generic.xml") {
-        fileToWrite = nameResult + ".xml";
-        //prompt the user for a file to write to with FileChooser
-        std::string defaultFile = "";
-        for(int i=0; i<fileToWrite.length(); i++) {
-            char nextChar = fileToWrite.at(i);
-            if(nextChar == ' ') {
-                defaultFile += "_";
-            } else {
-                defaultFile += nextChar;
-            }
-        }
-
-        FileChooser fileChooser = FileChooser(true, defaultFile);
-        fileToWrite = fileChooser.Show();
+                    postprocessor.AddTag(UDP);
+                configuration.AddTag(postprocessor);
+            doc.AddTag(configuration);
+    
+    //to prompt file name or not to promt file name
+    std::string fileToSave = this->fileName;
+    if(fileToSave == "confs/generic.xml") {
+        FileChooser chooser = FileChooser(true, "confs/generic.xml");
+        fileToSave = chooser.Show();
     }
 
-    if(fileToWrite != "") {
-        newDocument.WriteFile(fileToWrite);
-    }
+    doc.WriteFile(fileToSave);
 }
 
 
@@ -489,21 +556,6 @@ bool ConfigEditor::GetUDPEnabled() {
 }
 
 
-void ConfigEditor::StopCamera() {
-    this->runner.Stop();
-}
-
-
-void ConfigEditor::RestartCamera() {
-    this->runner.Start();
-
-    int camResX = this->cameraSettings.GetWidth();
-    int camResY = this->cameraSettings.GetHeight();
-    Size newRes = Size(camResX, camResY);
-    this->runner.SetResolution(newRes);
-}
-
-
 void ConfigEditor::ResetRunnerResolution() {
     int camResX = this->cameraSettings.GetWidth();
     int camResY = this->cameraSettings.GetHeight();
@@ -516,20 +568,14 @@ void ConfigEditor::SetName(std::string name) {
     gtk_widget_set_name(this->configeditor, name.c_str());
 }
 
-void ConfigEditor::LearnTarget() {
-    ConfigEditor::learnerResult = ConfigEditor::learner.LearnTarget(ConfigEditor::learnerMinArea);
-    Flags::RaiseFlag("ConfigLearnerDone");
-    g_thread_exit(0);
-}
+void ConfigEditor::UpdateImage() {
+    this->runner.Iterate();
+    Mat displayable;
 
-void ConfigEditor::LearnDistance() {
-    ConfigEditor::distResult = ConfigEditor::distLearner.LearnFocalWidth(ConfigEditor::targetTrueWidth, targetTrueDistance);
-    Flags::RaiseFlag("DistanceLearnerDone");
-    g_thread_exit(0);
-}
-
-void ConfigEditor::TroubleshootTarget() {
-    ConfigEditor::troubleshooter.Troubleshoot(ConfigEditor::troubleData);
-    Flags::RaiseFlag("TargetTroubleshooterDone");
-    g_thread_exit(0);
+    try {
+        vconcat(this->original, this->out, displayable);
+        this->outputImage.Update(displayable);
+    } catch(cv::Exception ex) {
+        std::cout << "cv exception in ce" << std::endl;
+    }
 }

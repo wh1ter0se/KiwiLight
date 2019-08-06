@@ -162,10 +162,12 @@ namespace KiwiLight {
         bool HasContents() { return this->hasContents; };
         void AddTag(XMLTag tag);
         std::vector<XMLTag> GetTagsByName(std::string name);
+        std::string FileName() { return this->fileName; };
         std::string ReturnString();
         void WriteFile(std::string filePath);
 
         private:
+        std::string fileName;
         bool hasContents;
         std::vector<XMLTag> children;
     };

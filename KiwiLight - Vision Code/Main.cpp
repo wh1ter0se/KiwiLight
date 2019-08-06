@@ -58,17 +58,12 @@ void Update() {
     if(!displayingImage) {
         displayingImage = true;
 
-        //since config running is not addressed in the streamer, do it here
-        if(uiMode == UIMode::UI_CONFIG_RUNNING) {
-            outputImage = runner.GetOutputImage();
-        }
-
         if(imageCaptureSuccess) {
             try {
                 imgFrame.Update(outputImage);
                 cameraStatusLabel.SetText("");
             } catch(cv::Exception ex) {
-                std::cout << "cv exception in update()" << std::endl;
+                // std::cout << "cv exception in update()" << std::endl;
             }
         } else {
             cameraOpen = false;
@@ -99,16 +94,23 @@ void Update() {
         pauseStreamer = false;
     }
 
+    if(Flags::GetFlag("CloseEditor")) {
+        pauseStreamer = true;
+        Flags::LowerFlag("CloseEditor");
+        runner = Runner(configEditor.GetFileName(), true, configEditor.GetVideoCapture());
+        uiMode = UIMode::UI_RUNNER;
+        pauseStreamer = false;
+        configEditor.Close();
+    }
+
     if(Flags::GetFlag("SaveAndCloseEditor")) {
         //pause streamer so it doesnt cause problems
         pauseStreamer = true;
         Flags::LowerFlag("SaveAndCloseEditor");
+        runner = Runner(configEditor.GetFileName(), true, configEditor.GetVideoCapture());
+        uiMode = UIMode::UI_RUNNER;
         configEditor.Save();
         configEditor.Close();
-
-        runner = Runner(configEditor.GetFileName(), true, configEditor.GetVideoCapture());
-
-        uiMode = UIMode::UI_RUNNER;
         pauseStreamer = false;
     }
 }
@@ -142,7 +144,7 @@ void SaveConfig() {
  * Based on the value of UIMode, Updates the output image in a separate thread
  */
 void RunStream() {
-    while(uiMode != UIMode::UI_CONFIG_RUNNING && uiMode != UIMode::UI_QUTTING) {
+    while(uiMode != UIMode::UI_QUTTING) {
         if(!pauseStreamer) {
             switch(uiMode) {
                 case UIMode::UI_STREAM:
@@ -157,12 +159,6 @@ void RunStream() {
                     imageCaptureSuccess = true;
                     runner.Iterate();
                     outputImage = runner.GetOutputImage();
-                    break;
-                case UIMode::UI_CONFIG_RUNNING:
-                case UIMode::UI_QUTTING:
-                    cam.~VideoCapture();
-                    Flags::RaiseFlag("StreamerQuit");
-                    g_thread_exit(0);
                     break;
             }
         }
@@ -278,8 +274,7 @@ void HELPME() {
 
 
 void Quit() {
-    uiMode == UIMode::UI_QUTTING;
-
+    uiMode = UIMode::UI_QUTTING;
     while(!Flags::GetFlag("StreamerQuit")) {
         //haha do nothing
     }
@@ -401,6 +396,7 @@ int main(int argc, char *argv[]) {
         streamerThread = g_thread_new("streamer", GThreadFunc(RunStream), NULL);
 
         //set events and show Window
+        win.SetOnAppClosed(Quit);
         win.SetInterval(75, Update);
         win.Show();
         win.Main(); //MAIN LOOP

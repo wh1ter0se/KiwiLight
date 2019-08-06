@@ -62,6 +62,9 @@ bin/NumberBox.o: ui/NumberBox.cpp
 bin/FileChooser.o: ui/FileChooser.cpp
 	$(CXX) -c -o bin/FileChooser.o ui/FileChooser.cpp $(GTK)
 
+bin/TabView.o: ui/TabView.cpp
+	$(CXX) -c -o bin/TabView.o ui/TabView.cpp $(GTK)
+
 bin/PopupTextBox.o: ui/PopupTextBox.cpp
 	$(CXX) -c -o bin/PopupTextBox.o ui/PopupTextBox.cpp $(GTK)
 
@@ -71,14 +74,20 @@ bin/Image.o: ui/Image.cpp
 bin/Window.o: ui/Window.cpp
 	$(CXX) -c -o bin/Window.o ui/Window.cpp $(GTK)
 
-bin/ConfigRunnerEditor.o: ui/ConfigRunnerEditor.cpp
-	$(CXX) -c -o bin/ConfigRunnerEditor.o ui/ConfigRunnerEditor.cpp $(CV) $(GTK)
-
-bin/ConfigTargetEditor.o: ui/ConfigTargetEditor.cpp
-	$(CXX) -c -o bin/ConfigTargetEditor.o ui/ConfigTargetEditor.cpp $(CV) $(GTK)
+bin/ConfigPanel.o: ui/ConfigPanel.cpp
+	$(CXX) -c -o bin/ConfigPanel.o ui/ConfigPanel.cpp $(GTK)
 
 bin/Settings.o: ui/Settings.cpp
 	$(CXX) -c -o bin/Settings.o ui/Settings.cpp $(GTK)
+
+bin/PreprocessorEditor.o: ui/PreprocessorEditor.cpp
+	$(CXX) -c -o bin/PreprocessorEditor.o ui/PreprocessorEditor.cpp $(CV) $(GTK)
+
+bin/PostprocessorEditor.o: ui/PostprocessorEditor.cpp
+	$(CXX) -c -o bin/PostprocessorEditor.o ui/PostprocessorEditor.cpp $(CV) $(GTK)
+
+bin/RunnerEditor.o: ui/RunnerEditor.cpp
+	$(CXX) -c -o bin/RunnerEditor.o ui/RunnerEditor.cpp $(CV) $(GTK)
 
 bin/ConfigEditor.o: ui/ConfigEditor.cpp
 	$(CXX) -c -o bin/ConfigEditor.o ui/ConfigEditor.cpp $(CV) $(GTK)
@@ -86,8 +95,8 @@ bin/ConfigEditor.o: ui/ConfigEditor.cpp
 bin/CameraSetting.o: ui/CameraSetting.cpp
 	$(CXX) -c -o bin/CameraSetting.o ui/CameraSetting.cpp $(GTK)
 
-lib/UI.a: bin/ConfirmationDialog.o bin/SubMenuItem.o bin/MenuItem.o bin/MenuBar.o bin/Button.o bin/Label.o bin/LabeledSlider.o bin/AboutWindow.o bin/HelpWindow.o bin/Panel.o bin/Scrollable.o bin/Frame.o bin/Separator.o bin/Slider.o bin/CheckBox.o bin/TextBox.o bin/NumberBox.o bin/FileChooser.o bin/PopupTextBox.o bin/Image.o bin/Window.o bin/Settings.o bin/ConfigRunnerEditor.o bin/ConfigTargetEditor.o bin/ConfigEditor.o bin/CameraSetting.o
-	ar rs lib/UI.a bin/ConfirmationDialog.o bin/SubMenuItem.o bin/MenuItem.o bin/MenuBar.o bin/Button.o bin/Label.o bin/LabeledSlider.o bin/AboutWindow.o bin/HelpWindow.o bin/Panel.o bin/Scrollable.o bin/Frame.o bin/Separator.o bin/Slider.o bin/CheckBox.o bin/TextBox.o bin/NumberBox.o bin/FileChooser.o bin/PopupTextBox.o bin/Image.o bin/Window.o bin/Settings.o bin/ConfigRunnerEditor.o bin/ConfigTargetEditor.o bin/ConfigEditor.o bin/CameraSetting.o
+lib/UI.a: bin/ConfirmationDialog.o bin/SubMenuItem.o bin/MenuItem.o bin/MenuBar.o bin/Button.o bin/Label.o bin/LabeledSlider.o bin/AboutWindow.o bin/HelpWindow.o bin/Panel.o bin/Scrollable.o bin/Frame.o bin/Separator.o bin/Slider.o bin/CheckBox.o bin/TextBox.o bin/NumberBox.o bin/FileChooser.o bin/TabView.o bin/PopupTextBox.o bin/Image.o bin/Window.o bin/ConfigPanel.o bin/Settings.o bin/PreprocessorEditor.o bin/PostprocessorEditor.o bin/RunnerEditor.o bin/ConfigEditor.o bin/CameraSetting.o
+	ar rs lib/UI.a bin/ConfirmationDialog.o bin/SubMenuItem.o bin/MenuItem.o bin/MenuBar.o bin/Button.o bin/Label.o bin/LabeledSlider.o bin/AboutWindow.o bin/HelpWindow.o bin/Panel.o bin/Scrollable.o bin/Frame.o bin/Separator.o bin/Slider.o bin/CheckBox.o bin/TextBox.o bin/NumberBox.o bin/FileChooser.o bin/TabView.o bin/PopupTextBox.o bin/Image.o bin/Window.o bin/ConfigPanel.o bin/Settings.o bin/PreprocessorEditor.o bin/PostprocessorEditor.o bin/RunnerEditor.o bin/ConfigEditor.o bin/CameraSetting.o
 
 #UTIL
 bin/Flags.o: util/Flags.cpp
@@ -124,12 +133,6 @@ lib/Util.a: bin/Flags.o bin/Shell.o bin/StringUtils.o bin/DataUtils.o bin/UDP.o 
 	ar rs lib/Util.a bin/Flags.o bin/Shell.o bin/StringUtils.o bin/DataUtils.o bin/UDP.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/SettingPair.o bin/Color.o
 
 #RUNNER
-bin/ConfigurationSetting.o: runner/ConfigurationSetting.cpp
-	$(CXX) -c -o bin/ConfigurationSetting.o runner/ConfigurationSetting.cpp $(GTK) $(CV)
-
-bin/ConfigurationSettingsList.o: runner/ConfigurationSettingsList.cpp
-	$(CXX) -c -o bin/ConfigurationSettingsList.o runner/ConfigurationSettingsList.cpp $(GTK) $(CV)
-
 bin/Contour.o: runner/Contour.cpp
 	$(CXX) -c -o bin/Contour.o runner/Contour.cpp $(GTK) $(CV)
 
@@ -166,23 +169,12 @@ bin/TargetTroubleshooter.o: runner/TargetTroubleshooter.cpp
 bin/RunnerSettings.o: runner/RunnerSettings.cpp
 	$(CXX) -c -o bin/RunnerSettings.o runner/RunnerSettings.cpp
 
-lib/Runner.a: bin/ConfigurationSetting.o bin/ConfigurationSettingsList.o bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/CameraFrame.o bin/ConfigLearner.o bin/Runner.o bin/Target.o bin/TargetDistanceLearner.o bin/TargetTroubleshooter.o bin/RunnerSettings.o
-	ar rs lib/Runner.a bin/Runner.o bin/ConfigLearner.o bin/ConfigurationSetting.o bin/ConfigurationSettingsList.o bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/CameraFrame.o bin/Target.o bin/TargetDistanceLearner.o bin/TargetTroubleshooter.o bin/RunnerSettings.o
-
-#ROOT
-
-bin/ConfigPanel.o: ConfigPanel.cpp
-	$(CXX) -c -o bin/ConfigPanel.o ConfigPanel.cpp $(GTK)
+lib/Runner.a: bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/CameraFrame.o bin/ConfigLearner.o bin/Runner.o bin/Target.o bin/TargetDistanceLearner.o bin/TargetTroubleshooter.o bin/RunnerSettings.o
+	ar rs lib/Runner.a bin/Runner.o bin/ConfigLearner.o bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/CameraFrame.o bin/Target.o bin/TargetDistanceLearner.o bin/TargetTroubleshooter.o bin/RunnerSettings.o
 
 #MAIN FILE
-KiwiLight: Main.cpp lib/UI.a lib/Util.a lib/Runner.a bin/ConfigPanel.o
+KiwiLight: Main.cpp lib/UI.a lib/Util.a lib/Runner.a
 	$(CXX) -o KiwiLight Main.cpp bin/ConfigPanel.o lib/UI.a  lib/Runner.a lib/Util.a $(CV) $(GTK)
-
-RunnerTest: RunnerTest.cpp lib/UI.a lib/Util.a lib/Runner.a bin/Settings.o
-	$(CXX) -o RunnerTest RunnerTest.cpp lib/Runner.a lib/Util.a lib/UI.a $(CV) $(GTK)
-
-Test: Test.cpp lib/UI.a lib/Util.a lib/Runner.a bin/ConfigPanel.o
-	$(CXX) -o Test Test.cpp bin/ConfigPanel.o lib/UI.a  lib/Runner.a lib/Util.a $(CV) $(GTK)
 
 #UNINSTALL
 clean:

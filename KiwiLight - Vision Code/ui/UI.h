@@ -83,6 +83,7 @@ namespace KiwiLight {
         Window() {};
         Window(GtkWindowType type);
         Window(GtkWindowType type, bool terminateOnClose);
+        static void SetOnAppClosed(void(*onAppClosed)());
         void SetPane(Panel pane);
         void Show();
         void SetSize(int w, int h);
@@ -95,7 +96,10 @@ namespace KiwiLight {
         
         private:
         GtkWidget *window;
+        static void(*onAppClosed)();
         static void(*timeoutMethod)();
+        static gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer pointer);
+        static void Destroy();
         static gboolean timeoutCallMethod();
     };
 
@@ -231,7 +235,7 @@ namespace KiwiLight {
         ConfirmationDialog() {};
         ConfirmationDialog(std::string message);
         void SetBody(Panel pnl);
-        bool Show();
+        bool ShowButDontClose();
         void ShowWithoutRunning();
         bool ShowAndGetResponse();
         void Destroy();
@@ -287,14 +291,16 @@ namespace KiwiLight {
 
     class Image : public Widget {
         public:
-        Image() {};
+        Image() { this->declared = false; };
         Image(std::string fileName);
         Image(ImageColorspace colorspace);
+        bool Declared() { return this->declared; };
         void Update(cv::Mat newImage);
         GtkWidget *GetWidget() { return this->image; };
         void SetName(std::string name);
 
         private:
+        bool declared;
         bool declaredAsStaticImage;
         GtkWidget *image;
         ImageColorspace colorspace;
@@ -313,6 +319,19 @@ namespace KiwiLight {
 
         private:
         GtkWidget *filechooser;
+    };
+
+
+    class TabView : public Widget {
+        public:
+        TabView() {};
+        TabView(std::string tab1Name, GtkWidget *tab1Content);
+        void AddTab(std::string tabName, GtkWidget* tabContent);
+        GtkWidget *GetWidget() { return this->tabview; };
+        void SetName(std::string name);
+
+        private:
+        GtkWidget *tabview;
     };
 
 
@@ -418,6 +437,46 @@ namespace KiwiLight {
     };
 
     /**
+     * Panel where configuration can be viewed
+     */
+    class ConfigPanel : public Widget {
+        public:
+        ConfigPanel() {};
+        ConfigPanel(std::string configFilePath) : ConfigPanel(XMLDocument(configFilePath), true, false) {};
+        ConfigPanel(std::string configFilePath, bool withButtons) : ConfigPanel(XMLDocument(configFilePath), withButtons, false) {};
+        ConfigPanel(XMLDocument doc, bool withButtons, bool withDynamicName);
+        void SetUDPEnabled(bool enabled);
+        void LoadConfig(std::string fileName);
+        void LoadConfig(XMLDocument file);
+        void Clear();
+        void SetConfigurationName(std::string newName);
+        std::string GetConfigurationName();
+        std::string GetConfig() { return this->configFile; };
+        GtkWidget *GetWidget() { return this->configPanel; };
+        void SetName(std::string name);
+
+        private:
+        Panel panel;
+        Panel informationPanel;
+        Panel buttonPanel;
+        Label header,
+              fileLabel,
+              PreProcessorLabel,
+              TargetLabel,
+              UDPAddressLabel,
+              UDPPortLabel;
+        Button editConfig;
+        Button toggleUDP;
+
+        bool dynamicName; //when true textbox below will be defined
+        TextBox configName;
+
+        std::string configFile,
+                    configNameString;
+        GtkWidget *configPanel;
+    };
+
+    /**
      * A window where camera settings can be modified.
      */
     class Settings : public Widget {
@@ -444,142 +503,102 @@ namespace KiwiLight {
         GtkWidget *settingsWidget;
     };
 
-
-    class ConfigRunnerEditor : public Widget {
+    
+    class PreprocessorEditor : public Widget {
         public:
-        ConfigRunnerEditor() {};
-        ConfigRunnerEditor(std::string fileName);
-        void Update(cv::Mat originalImage, cv::Mat processedImage, double targetDistance);
-        double GetProperty(RunnerProperty prop);
-        void SetProperty(RunnerProperty prop, double value);
-        ConfigurationSettingsList GetSettings();
-        std::string GetUDPAddress();
-        int GetUDPPort();
-        GtkWidget *GetWidget() { return this->configrunnereditor; };
-        void SetName(std::string name);
-
-        private:
-        Panel panel;
-
-        Label distToTarget,
-              imageTooBig;
-
-        TextBox UDPAddr,
-                UDPPort;
-
-        //sliders used to adjust the camera offset
-        LabeledSlider cameraOffsetX,
-                      cameraOffsetY;
-
-        //sliders used to adjust image resize
-        LabeledSlider imageResizeX,
-                      imageResizeY;
-
-        //sliders used to adjust distance settings
-        LabeledSlider TargetWidth,
-                      TargetFocalWidth,
-                      TargetDistErrCorrect,
-                      TargetCalibratedDistance;
-
-        Button tuneDistance,
-               saveAndExit;
-
-        Image outputImages;
-
-        GtkWidget *configrunnereditor;
-    };
-
-    class ConfigTargetEditor : public Widget {
-        public:
-        ConfigTargetEditor() {};
-        ConfigTargetEditor(std::string fileName, Runner runner);
+        PreprocessorEditor() {};
+        PreprocessorEditor(PreProcessor preprocessor);
         void Update();
-        int NumContours();
-        double GetPreProcessorProperty(PreProcessorProperty prop);
-        void SetPreProcessorProperty(PreProcessorProperty prop, double value);
-        SettingPair GetTargetPropertyValue(int contour, TargetProperty property);
-        void SetExampleTarget(int targetID, ExampleTarget target);
-        void SetTargetPropertyValue(int contour, TargetProperty property, SettingPair values);
-        GtkWidget *GetWidget() { return this->configtargeteditor; };
+        double GetProperty(PreProcessorProperty prop);
+        void SetProperty(PreProcessorProperty prop, double value);
+        GtkWidget *GetWidget() { return this->preprocessoreditor; };
         void SetName(std::string name);
 
         private:
-        void SetValues(int contourID);
-
-        int lastRequestedContour; //last recorded number in the contours box
-        PreProcessorType currentPreProcessor;
-        Runner runner;
-
-        Panel panel;
-        Scrollable scrl;
-
-        CheckBox fullPreProcessor,
-                 partialPreProcessor;
-
+        bool lastIsFull;
+        CheckBox isFull,
+                 isPartial;
+        
         NumberBox colorH,
                   colorS,
                   colorV;
 
-        Image colorResult;
+        Image colorPreview;
 
-        LabeledSlider colorError;
-
-        LabeledSlider thresholdValue,
-                      erosionFactor,
-                      dilationFactor;
-
-        NumberBox ContourID;
+        LabeledSlider colorError,
+                      threshold,
+                      erosion,
+                      dilation;
         
-        NumberBox ContourDistX,
-                      ContourDistY;
-
-        //sliders used to adjust contour distance from center of target
-        LabeledSlider ContourDistXErr,
-                      ContourDistYErr;
-
-        //sliders used to adjust contour shape and other properties
-        LabeledSlider ContourAngle,
-                      ContourAngleErr,
-                      ContourSolidity,
-                      ContourSolidityErr,
-                      ContourAR,
-                      ContourARErr,
-                      ContourMinArea;
-            
-        Button learnTarget,
-               troubleshootTarget;
-        
-        GtkWidget *configtargeteditor;
+        GtkWidget *preprocessoreditor;
     };
 
 
-    class ConfigCameraEditor : public Widget {
+    class PostprocessorEditor : public Widget {
         public:
-        ConfigCameraEditor() {};
-        ConfigCameraEditor(int index);
+        PostprocessorEditor() {};
+        PostprocessorEditor(PostProcessor postprocessor);
         void Update();
-        void StartApply();
-        GtkWidget *GetWidget() { return this->configcameraeditor; };
+        int GetNumContours();
+        SettingPair GetProperty(int contour, TargetProperty prop);
+        void SetProperty(int contour, TargetProperty prop, SettingPair value);
+        GtkWidget *GetWidget() { return this->postprocessoreditor; };
         void SetName(std::string name);
 
         private:
-        Panel panel;
-        Slider camExposure,
-               camWhiteBalance,
-               camBrightness;
+        int lastDesiredContour;
+        
+        NumberBox contourchooser,
+                  distX,
+                  distY;
 
-        CheckBox autoExp,
-                 autoWB;
+        LabeledSlider distXErr,
+                      distYErr,
+                      angle,
+                      angleErr,
+                      ar,
+                      arErr,
+                      solidity,
+                      solidityErr,
+                      minimumArea;
 
-        GtkWidget *configcameraeditor;
+        Runner storageRunner;
+
+        GtkWidget *postprocessoreditor;
     };
 
 
-    enum EditorMode {
-        USE_RUNNER,
-        USE_LEARNER
-    };
+    class RunnerEditor : public Widget {
+        public:
+        RunnerEditor() {};
+        RunnerEditor(Runner runner);
+        void Update(int targetDistance);
+        double GetProperty(RunnerProperty prop);
+        void SetProperty(RunnerProperty prop, double value);
+        std::string GetUDPAddr();
+        int GetUDPPort();
+        void SetUDPAddr(std::string newAddr);
+        void SetUDPPort(int newPort);
+        GtkWidget *GetWidget() { return this->runnereditor; };
+        void SetName(std::string name);
 
+        private:
+        Label distanceLabel;
+
+        TextBox udpAddress;
+        NumberBox udpPort;
+
+        LabeledSlider offsetX,
+                      offsetY,
+                      imageWidth,
+                      imageHeight,
+                      targetTrueWidth,
+                      targetPercievedWidth,
+                      targetCalibratedDistance,
+                      targetErrorCorrection;
+
+        GtkWidget *runnereditor;
+    };
 
     class ConfigEditor : public Widget {
         public:
@@ -591,8 +610,6 @@ namespace KiwiLight {
         void Close();
         void SetUDPEnabled(bool enabled);
         bool GetUDPEnabled();
-        void StopCamera();
-        void RestartCamera();
         void ResetRunnerResolution();
         std::string GetFileName() { return this->fileName; };
         VideoCapture GetVideoCapture() { return this->runner.GetVideoStream(); };
@@ -601,50 +618,42 @@ namespace KiwiLight {
         void SetName(std::string name);
 
         private:
-        //static variables for learning target information in a separate thread
-        static void LearnTarget();
-        static ConfigLearner learner;
-        static ExampleTarget learnerResult;
-        static int learnerMinArea;
-        bool monitorLearner;
+        void UpdateImage();
 
-        //static variables for learning target distance in a separate thread
-        static void LearnDistance();
-        static TargetDistanceLearner distLearner;
-        static double targetTrueDistance;
-        static double targetTrueWidth;
-        static double distResult;
-        bool monitorDistanceLearner;
+        //universal config learnign utility
+        ConfigLearner learner;
+        bool learnerActivated;
 
-        //static variables for troubleshooting targets in a separate thread
-        static void TroubleshootTarget();
-        static TargetTroubleshooter troubleshooter;
-        static TroubleshootingData troubleData[];
-        bool monitorTroubleshooter;
+        //universal focal width learning utility
+        TargetDistanceLearner distanceLearner;
+        bool distanceLearnerRunning;
 
-        ConfirmationDialog learnerMonitorWindow;
-        Label learnerMonitorLabel;
+        TargetDistanceLearner distLearner;
+        TargetTroubleshooter troubleshooter;
+        
+        Label serviceMonitor;
+        Label serviceLabel;
 
-        ConfirmationDialog distLearnerMonitorWindow;
-        Label distMonitorLabel;
-
-        ConfirmationDialog targetTroubleshooterMonitorWindow;
-        Label troubleshooterLabel;
-
+        //runtime things
         Runner runner;
-        EditorMode editorMode;
         XMLDocument currentDoc;
         std::string fileName;
         std::string confName;
 
-        cv::Mat out;
+        TabView tabs;
+        ConfigPanel configOverview;
+        Settings cameraSettings;
+        PreprocessorEditor preprocessorSettings;
+        PostprocessorEditor postprocessorSettings;
+        RunnerEditor runnerSettings;
+
+        cv::Mat out,
+                original;
+        Image outputImage;
 
         Window window;
         Panel content;
-        Panel buttonPanel;
-        Settings cameraSettings;
-        ConfigTargetEditor targetEditor;
-        ConfigRunnerEditor runnerEditor;
+
         GtkWidget *configeditor;
     };
 }
