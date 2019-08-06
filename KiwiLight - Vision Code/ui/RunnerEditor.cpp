@@ -8,7 +8,7 @@
 using namespace KiwiLight;
 
 static void ReconnectUDP() {
-    std::cout << "Reconnect UDP" << std::endl;
+    Flags::RaiseFlag("UDPReconnect");
 }
 
 RunnerEditor::RunnerEditor(Runner runner) {
