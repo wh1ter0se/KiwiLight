@@ -75,36 +75,7 @@ namespace KiwiLight {
                targetSolidity,
                targetAspectRatio;
     };
-
-    /**
-     * Represents a single setting that is used by either the PostProcessor or Preprocessor.
-     */
-    class ConfigurationSetting {
-        public:
-        ConfigurationSetting(std::string name, std::string value);
-        std::string Name() { return this->name; };
-        void SetValue(std::string value);
-        std::string GetValue() { return this->value; };
-
-        private:
-        std::string name;
-        std::string value;
-    };
-
-    /**
-     * Represents a list of ConfigurationSetting's
-     */
-    class ConfigurationSettingsList {
-        public:
-        ConfigurationSettingsList();
-        void AddSetting(std::string settingName, std::string value);
-        void SetSetting(std::string settingName, std::string value);
-        std::string GetSetting(std::string settingName);
-
-        private:
-        std::vector<ConfigurationSetting> settings;
-    };
-
+    
 
     class Contour {
         public:
@@ -244,7 +215,6 @@ namespace KiwiLight {
     class PreProcessor {
         public:
         PreProcessor() {};
-        PreProcessor(ConfigurationSettingsList settings, bool FullPreprocessor, bool debug);
         PreProcessor(bool FullPreprocessor, Color targetColor, int threshold, int erosion, int dilation, bool debugging);
         void SetProperty(PreProcessorProperty prop, double value);
         double GetProperty(PreProcessorProperty prop);

@@ -133,12 +133,6 @@ lib/Util.a: bin/Flags.o bin/Shell.o bin/StringUtils.o bin/DataUtils.o bin/UDP.o 
 	ar rs lib/Util.a bin/Flags.o bin/Shell.o bin/StringUtils.o bin/DataUtils.o bin/UDP.o bin/XMLDocument.o bin/XMLTag.o bin/XMLTagAttribute.o bin/SettingPair.o bin/Color.o
 
 #RUNNER
-bin/ConfigurationSetting.o: runner/ConfigurationSetting.cpp
-	$(CXX) -c -o bin/ConfigurationSetting.o runner/ConfigurationSetting.cpp $(GTK) $(CV)
-
-bin/ConfigurationSettingsList.o: runner/ConfigurationSettingsList.cpp
-	$(CXX) -c -o bin/ConfigurationSettingsList.o runner/ConfigurationSettingsList.cpp $(GTK) $(CV)
-
 bin/Contour.o: runner/Contour.cpp
 	$(CXX) -c -o bin/Contour.o runner/Contour.cpp $(GTK) $(CV)
 
@@ -175,18 +169,12 @@ bin/TargetTroubleshooter.o: runner/TargetTroubleshooter.cpp
 bin/RunnerSettings.o: runner/RunnerSettings.cpp
 	$(CXX) -c -o bin/RunnerSettings.o runner/RunnerSettings.cpp
 
-lib/Runner.a: bin/ConfigurationSetting.o bin/ConfigurationSettingsList.o bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/CameraFrame.o bin/ConfigLearner.o bin/Runner.o bin/Target.o bin/TargetDistanceLearner.o bin/TargetTroubleshooter.o bin/RunnerSettings.o
-	ar rs lib/Runner.a bin/Runner.o bin/ConfigLearner.o bin/ConfigurationSetting.o bin/ConfigurationSettingsList.o bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/CameraFrame.o bin/Target.o bin/TargetDistanceLearner.o bin/TargetTroubleshooter.o bin/RunnerSettings.o
+lib/Runner.a: bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/CameraFrame.o bin/ConfigLearner.o bin/Runner.o bin/Target.o bin/TargetDistanceLearner.o bin/TargetTroubleshooter.o bin/RunnerSettings.o
+	ar rs lib/Runner.a bin/Runner.o bin/ConfigLearner.o bin/Contour.o bin/ExampleContour.o bin/ExampleTarget.o bin/PostProcessor.o bin/PreProcessor.o bin/CameraFrame.o bin/Target.o bin/TargetDistanceLearner.o bin/TargetTroubleshooter.o bin/RunnerSettings.o
 
 #MAIN FILE
 KiwiLight: Main.cpp lib/UI.a lib/Util.a lib/Runner.a
 	$(CXX) -o KiwiLight Main.cpp bin/ConfigPanel.o lib/UI.a  lib/Runner.a lib/Util.a $(CV) $(GTK)
-
-RunnerTest: RunnerTest.cpp lib/UI.a lib/Util.a lib/Runner.a bin/Settings.o
-	$(CXX) -o RunnerTest RunnerTest.cpp lib/Runner.a lib/Util.a lib/UI.a $(CV) $(GTK)
-
-Test: Test.cpp lib/UI.a lib/Util.a lib/Runner.a bin/ConfigPanel.o
-	$(CXX) -o Test Test.cpp bin/ConfigPanel.o lib/UI.a  lib/Runner.a lib/Util.a $(CV) $(GTK)
 
 #UNINSTALL
 clean:
