@@ -1,0 +1,85 @@
+
+/**
+ * Stylesheet written for the KiwiLight UI.
+ * Written By: Brach Knutson
+ */
+
+window, window * {
+    background-color: rgb(24, 24, 24);
+    color: rgb(52, 117, 22);
+}
+
+menubar,
+menubar * {
+    background-color: rgb(50, 50, 50);
+}
+
+menubar label {
+    background-color:transparent;
+    color:white;
+}
+
+window:not(dialog) button,
+window:not(dialog) button * {
+    background-color:black;
+    border-radius: 0px;
+    border-style:solid;
+    border-width:5px;
+    border-color:black;
+    padding:0px;
+}
+
+window:not(dialog) button:hover,
+window:not(dialog) button:hover * {
+    transition: 150ms ease-out;
+    background-color:rgb(39, 39, 39);
+}
+
+window:not(dialog) button:active,
+window:not(dialog) button:active * {
+    transition: 150ms ease-out;
+    background-color:rgb(17, 53, 3);
+}
+
+window:not(dialog) button:disabled {
+    color:rgb(7, 22, 1);
+}
+
+scrolledwindow * {
+    background-color: transparent;
+}
+
+scrollbar {
+    background-color: white;
+}
+
+scale * {
+    background-color: rgb(39, 39, 39);
+    color: rgb(52, 117, 22);
+}
+
+#mainHeader {
+    background-color:rgb(40, 40, 40);
+}
+
+#mainHeader > label {
+    background-color:transparent;
+}
+
+#white {
+    color:rgb(212, 212, 212);
+}
+
+#header {
+    color:rgb(175, 175, 175);
+    font-size:30px;
+}
+
+#subHeader {
+    color:rgb(143, 143, 143);
+    font-size:18px;
+}
+
+#gray {
+    color:rgb(143, 143, 143);
+}
