@@ -239,6 +239,13 @@ void ConfigEditor::Update() {
             this->serviceLabel.SetText("Capturing Frames");
         }
     }
+
+    if(Flags::GetFlag("UDPReconnect")) {
+        Flags::LowerFlag("UDPReconnect");
+        std::string newUDPAddr = this->runnerSettings.GetUDPAddr();
+        int newUDPPort = this->runnerSettings.GetUDPPort();
+        this->runner.ReconnectUDP(newUDPAddr, newUDPPort);
+    }
 }
 
 
