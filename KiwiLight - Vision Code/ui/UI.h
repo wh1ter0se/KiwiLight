@@ -546,6 +546,8 @@ namespace KiwiLight {
         void SetName(std::string name);
 
         private:
+        int lastDesiredContour;
+        
         NumberBox contourchooser,
                   distX,
                   distY;

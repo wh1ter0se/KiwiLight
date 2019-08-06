@@ -12,6 +12,7 @@ using namespace KiwiLight;
 TargetDistanceLearner::TargetDistanceLearner(PreProcessor preprocessor, PostProcessor postprocessor) {
     this->preprocessor = preprocessor;
     this->postprocessor = postprocessor;
+    this->frames = 0;
 }
 
 
@@ -22,12 +23,14 @@ void TargetDistanceLearner::FeedImage(Mat image) {
     if(frameTargs.size() == 1) {
         Target targ = frameTargs[0];
         this->targetWidths.push_back((double) targ.Bounds().width);
+        this->frames++;
     }
 }
 
 
 void TargetDistanceLearner::FeedTarget(Target targ) {
     this->targetWidths.push_back((double) targ.Bounds().width);
+    this->frames++;
 }
 
 
@@ -35,15 +38,16 @@ double TargetDistanceLearner::GetFocalWidth(double trueDistance, double trueWidt
     int sizeBeforeRemove = targetWidths.size();
     this->targetWidths = DataUtils::SortLeastGreatestDouble(this->targetWidths);
     this->targetWidths = DataUtils::RemoveOutliers(this->targetWidths, 30);
-
+    
     double avgWidth = DataUtils::Average(targetWidths);
     
     double focalWidth = avgWidth * trueDistance / trueWidth;
     this->targetWidths = std::vector<double>(); //reset the vector so it can learn again
+    this->frames = 0; //reset the frames counter so it can learn again
     return focalWidth;
 }
 
 
 int TargetDistanceLearner::GetFramesLearned() {
-    return this->targetWidths.size();
+    return this->frames;
 }

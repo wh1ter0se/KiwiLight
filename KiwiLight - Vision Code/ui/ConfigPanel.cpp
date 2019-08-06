@@ -122,7 +122,7 @@ ConfigPanel::ConfigPanel(XMLDocument file, bool withButtons, bool withDynamicNam
                 this->toggleUDP = Button("Enable UDP", ToggleUDP);
                     this->buttonPanel.Pack_start(toggleUDP.GetWidget(), true, true, 0);
 
-                this->panel.Pack_start(this->buttonPanel.GetWidget(), true, true, 0);
+                this->panel.Pack_start(this->buttonPanel.GetWidget(), false, false, 0);
             
         }
 

@@ -11,7 +11,7 @@
 namespace KiwiLight {
     class RunnerSettings {
         public:
-        static const bool USE_CAMERA = false;
+        static const bool USE_CAMERA = true;
         static const std::string IMAGE_TO_USE;
     };
 }

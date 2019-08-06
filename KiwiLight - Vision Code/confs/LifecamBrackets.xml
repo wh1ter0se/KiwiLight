@@ -21,19 +21,19 @@
 </camera>
 <configuration name="Lifecam Brackets">
     <cameraOffset>
-        <horizontal>0.000000</horizontal>
-        <vertical>0.000000</vertical>
+        <horizontal>0</horizontal>
+        <vertical>0</vertical>
     </cameraOffset>
     <constantResize>
-        <width>200</width>
-        <height>125</height>
+        <width>250</width>
+        <height>145</height>
     </constantResize>
     <preprocessor type="full">
-        <threshold>32</threshold>
+        <threshold>34</threshold>
         <erosion>3</erosion>
-        <dilation>6</dilation>
-        <targetColor error="20.000000">
-            <h>86</h>
+        <dilation>7</dilation>
+        <targetColor error="20">
+            <h>80</h>
             <s>255</s>
             <v>255</v>
         </targetColor>
@@ -41,24 +41,24 @@
     <postprocessor>
         <target id="0">
             <contour id="0">
-                <x error="0.250000">1.162597</x>
-                <y error="0.250000">-0.047013</y>
-                <angle error="10.000000">-86.020000</angle>
-                <solidity error="0.250000">0.505453</solidity>
-                <aspectRatio error="0.250000">0.372825</aspectRatio>
-                <minimumArea>250.000000</minimumArea>
+                <x error="0.250000">-0.355263</x>
+                <y error="0.250000">0.000000</y>
+                <angle error="90.000000">0.000000</angle>
+                <solidity error="0.250000">0.574584</solidity>
+                <aspectRatio error="0.250000">0.309859</aspectRatio>
+                <minimumArea>340</minimumArea>
             </contour>
             <contour id="1">
-                <x error="0.250000">-1.104545</x>
-                <y error="0.250000">-0.045455</y>
-                <angle error="10.000000">-3.000000</angle>
-                <solidity error="0.250000">0.535621</solidity>
-                <aspectRatio error="0.250000">0.366667</aspectRatio>
-                <minimumArea>250.000000</minimumArea>
+                <x error="0.250000">0.355263</x>
+                <y error="0.250000">0.000000</y>
+                <angle error="90.000000">-90.000000</angle>
+                <solidity error="0.250000">0.574078</solidity>
+                <aspectRatio error="0.250000">0.305556</aspectRatio>
+                <minimumArea>260</minimumArea>
             </contour>
-            <knownWidth>12.000000</knownWidth>
-            <focalWidth>300.000000</focalWidth>
-            <calibratedDistance>36.000000</calibratedDistance>
+            <knownWidth>19.500000</knownWidth>
+            <focalWidth>251.384615</focalWidth>
+            <calibratedDistance>64.500000</calibratedDistance>
             <distErrorCorrect>-0.100000</distErrorCorrect>
         </target>
         <UDP>

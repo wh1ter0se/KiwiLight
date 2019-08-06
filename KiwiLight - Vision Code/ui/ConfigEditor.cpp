@@ -41,6 +41,7 @@ static void SaveAndCloseButtonPressed() {
  */
 ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
     this->learnerActivated = false;
+    this->distanceLearnerRunning = false;
     this->runner = Runner(fileName, true, cap);
     this->currentDoc = XMLDocument(fileName);
     this->fileName = fileName;
@@ -142,7 +143,8 @@ void ConfigEditor::Update() {
     } catch(cv::Exception ex) {
         std::cout << "cv exception in ce" << std::endl;
     }
-
+    
+    this->cameraSettings.Update();
     this->preprocessorSettings.Update();
     this->postprocessorSettings.Update();
     this->runnerSettings.Update(this->runner.GetClosestTargetToCenter().Distance());
@@ -267,6 +269,7 @@ void ConfigEditor::UpdateImageOnly() {
                 ExampleTarget newTarget = this->learner.StopLearning(minimumArea);
 
                 std::vector<ExampleContour> newContours = newTarget.Contours();
+                std::cout << "got " << newContours.size() << " new contours." << std::endl;
                 for(int i=0; i<newContours.size(); i++) {
                     this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_X, newContours[i].DistX());
                     this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_Y, newContours[i].DistY());

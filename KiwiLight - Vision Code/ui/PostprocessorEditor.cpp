@@ -11,6 +11,7 @@ using namespace KiwiLight;
 PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
     //create a runner to store values for all contours rather than having arrays and things
     this->storageRunner = Runner("confs/generic.xml", true, false);
+    this->lastDesiredContour = 0;
 
     //init the values in the storage runner because they are all generic right now
     for(int i=0; i<postprocessor.GetExampleTargetByID(0).Contours().size(); i++) {
@@ -120,6 +121,22 @@ int PostprocessorEditor::GetNumContours() {
  */
 void PostprocessorEditor::Update() {
     int currentContour = (int) this->contourchooser.GetValue();
+    
+    if(currentContour != this->lastDesiredContour) {
+        //the user has requested to see values for a new contour, show them
+        this->distX.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::DIST_X).Value());
+        this->distXErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::DIST_X).Error());
+        this->distY.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::DIST_Y).Value());
+        this->distYErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::DIST_Y).Error());
+        this->angle.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::ANGLE).Value());
+        this->angleErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::ANGLE).Error());
+        this->ar.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::ASPECT_RATIO).Value());
+        this->arErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::ASPECT_RATIO).Error());
+        this->solidity.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::SOLIDITY).Value());
+        this->solidityErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::SOLIDITY).Error());
+        this->minimumArea.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::MINIMUM_AREA).Value());
+        this->lastDesiredContour = currentContour;
+    }
 
     //set dist x
     SettingPair distXPair = SettingPair(this->distX.GetValue(), this->distXErr.GetValue());
@@ -144,6 +161,7 @@ void PostprocessorEditor::Update() {
     //set min area
     SettingPair minAreaPair = SettingPair(this->minimumArea.GetValue(), 0);
         this->storageRunner.SetPostProcessorContourProperty(currentContour, TargetProperty::MINIMUM_AREA, minAreaPair);
+        
 }
 
 /**

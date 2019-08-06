@@ -417,6 +417,7 @@ namespace KiwiLight {
         double GetFocalWidth(double trueDistance, double trueWidth);
 
         private:
+        int frames;
         PreProcessor preprocessor;
         PostProcessor postprocessor;
         std::vector<double> targetWidths;
