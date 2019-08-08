@@ -10,7 +10,15 @@ using namespace KiwiLight;
 
 PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
     //create a runner to store values for all contours rather than having arrays and things
-    this->storageRunner = Runner("confs/generic.xml", true, false);
+    std::string genericFileLocation = "";
+    //find home so we can get the generic configuration from KiwiLightData
+    char *home = getenv("HOME");
+    if(home != NULL) {
+        genericFileLocation = std::string(home) + "/KiwiLightData/confs/generic.xml";
+    } else {
+        std::cout << "The postprocessor editor was unable to find HOME" << std::endl;
+    }
+    this->storageRunner = Runner(genericFileLocation, true, false);
     this->lastDesiredContour = 0;
 
     //init the values in the storage runner because they are all generic right now

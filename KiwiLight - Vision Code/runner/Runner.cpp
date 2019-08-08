@@ -19,7 +19,7 @@ Runner::Runner(std::string fileName, bool debugging) {
     if(file.HasContents()) {
         this->parseDocument(file);
     } else {
-        std::cout << "sorry! the file could not be found. " << std::endl;
+        std::cout << "sorry! the file " << fileName << " could not be found. " << std::endl;
     }
 
     this->applySettings();
@@ -37,7 +37,7 @@ Runner::Runner(std::string fileName, bool debugging, bool openNewVideoStream) {
     if(file.HasContents()) {
         this->parseDocument(file);
     } else {
-        std::cout << "sorry! the file could not be found. " << std::endl;
+        std::cout << "sorry! the file " << fileName << " could not be found. " << std::endl;
     }
 
     if(openNewVideoStream) {
@@ -57,7 +57,7 @@ Runner::Runner(std::string fileName, bool debugging, VideoCapture cap) {
     if(file.HasContents()) {
         this->parseDocument(file);
     } else {
-        std::cout << "sorry! the file could not be found. " << std::endl;
+        std::cout << "sorry! the file " << fileName << " could not be found. " << std::endl;
     }
 
     this->applySettings();
@@ -121,8 +121,7 @@ std::string Runner::Iterate() {
     if(RunnerSettings::USE_CAMERA) {
         bool success = this->cap.read(img);
         if(!success) {
-            //print out a message and exit the method call
-            std::cout << "CAMERA GRAB FAILED!! ";
+            //oops we shall exit now
             return "";
         }
     } else {

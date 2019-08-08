@@ -168,12 +168,6 @@ void RunStream() {
     g_thread_exit(0);
 }
 
-/**
- * Sets up the config to start when the computer boots up
- */
-void ConfStartConfigOnBoot() {
-    std::cout << "conf start on boot" << std::endl;
-}
 
 /**
  * Opens a file menu to open a config.
@@ -218,7 +212,19 @@ void EditSelected() {
         configEditor = ConfigEditor(runner.GetFileName(), cam);
         configEditor.SetUDPEnabled(runner.GetUDPEnabled());
     } else if(uiMode == UIMode::UI_STREAM) {
-        configEditor = ConfigEditor("confs/generic.xml", cam);
+        std::string genericFilePath = "";
+        char *home = getenv("HOME");
+        if(home != NULL) {
+            genericFilePath = std::string(home) + "/KiwiLightData/confs/generic.xml";
+        } else {
+            //oh HECK. Show the user the error message
+            std::cout << "the HOME environment variable does not exist, therfore I cannot access generic!" << std::endl;
+            ConfirmationDialog error = ConfirmationDialog("ERROR:the HOME environment variable does not exist!");
+            error.ShowAndGetResponse();
+            return;
+        }
+        std::cout << "path: " << genericFilePath << std::endl;
+        configEditor = ConfigEditor(genericFilePath, cam);
     }
     
     uiMode = UIMode::UI_EDITOR;
@@ -308,11 +314,11 @@ void CreateMenuBar() {
 
             menubar.AddItem(file);
 
-        MenuItem config = MenuItem("Config");
-            SubMenuItem confBoot = SubMenuItem("Configure Start on Boot", ConfStartConfigOnBoot);
-                config.AddSubmenuItem(confBoot);
+        // MenuItem config = MenuItem("Config");
+        //     SubMenuItem confBoot = SubMenuItem("Configure Start on Boot", ConfStartConfigOnBoot);
+        //         config.AddSubmenuItem(confBoot);
 
-            menubar.AddItem(config);
+        //     menubar.AddItem(config);
 
         MenuItem help = MenuItem("Help");
             SubMenuItem about = SubMenuItem("About", ShowAbout);

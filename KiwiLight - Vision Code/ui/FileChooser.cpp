@@ -39,6 +39,8 @@ FileChooser::FileChooser(bool writing, std::string defaultFileName) {
                                         NULL
                                         );
     }
+
+    gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(this->filechooser), getenv("HOME"));
 }
 
 

@@ -8,11 +8,20 @@
 using namespace KiwiLight;
 
 std::string Shell::ExecuteCommand(std::string command) {
-    std::string execute = command + " >> shell_out.log";
+    //to create the out file for the command, find HOME to place it in KiwiLightData
+    std::string outLocation = "";
+    char *home = getenv("HOME");
+    if(home != NULL) {
+        outLocation = std::string(home) + "/KiwiLightData/tmp/shell_out.log";
+    } else {
+        std::cout << "The Shell utility was unable to find HOME" << std::endl;
+    }
+
+    std::string execute = command + " >> " + outLocation;
     system(execute.c_str());
 
     //create a file stream to view the log
-    std::fstream log = std::fstream("shell_out.log");
+    std::fstream log = std::fstream(outLocation);
     std::string logString = "";
 
     //loop through and read every line, formatting into std::string separated by newline characters
@@ -24,7 +33,7 @@ std::string Shell::ExecuteCommand(std::string command) {
     log.close();
 
     //clear the file text for the next time
-    std::ofstream file = std::ofstream("shell_out.log", std::ofstream::out | std::ofstream::trunc);
+    std::ofstream file = std::ofstream(outLocation, std::ofstream::out | std::ofstream::trunc);
     file.close();
 
     return logString;
