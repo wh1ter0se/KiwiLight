@@ -121,8 +121,7 @@ std::string Runner::Iterate() {
     if(RunnerSettings::USE_CAMERA) {
         bool success = this->cap.read(img);
         if(!success) {
-            //print out a message and exit the method call
-            std::cout << "CAMERA GRAB FAILED!! ";
+            //oops we shall exit now
             return "";
         }
     } else {
