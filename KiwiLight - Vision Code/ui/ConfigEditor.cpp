@@ -532,8 +532,10 @@ void ConfigEditor::Save() {
     
     //to prompt file name or not to promt file name
     std::string fileToSave = this->fileName;
-    if(fileToSave == "confs/generic.xml") {
-        FileChooser chooser = FileChooser(true, "confs/generic.xml");
+    std::vector<std::string> fileParts = StringUtils::SplitString(fileToSave, '/');
+
+    if(fileParts[fileParts.size() - 1] == "generic.xml") {
+        FileChooser chooser = FileChooser(true, "config.xml");
         fileToSave = chooser.Show();
     }
 
