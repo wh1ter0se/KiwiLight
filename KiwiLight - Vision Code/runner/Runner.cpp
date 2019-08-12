@@ -15,6 +15,7 @@ Runner::Runner(std::string fileName, bool debugging) {
     this->src = fileName;
     this->debug = debugging;
     this->postProcessorTargets = std::vector<ExampleTarget>();
+    this->lastIterationSuccessful = false;
     XMLDocument file = XMLDocument(fileName);
     if(file.HasContents()) {
         this->parseDocument(file);
@@ -33,6 +34,7 @@ Runner::Runner(std::string fileName, bool debugging, bool openNewVideoStream) {
     this->src = fileName;
     this->debug = debugging;
     this->postProcessorTargets = std::vector<ExampleTarget>();
+    this->lastIterationSuccessful = false;
     XMLDocument file = XMLDocument(fileName);
     if(file.HasContents()) {
         this->parseDocument(file);
@@ -53,6 +55,7 @@ Runner::Runner(std::string fileName, bool debugging, VideoCapture cap) {
     this->src = fileName;
     this->debug = debugging;
     this->postProcessorTargets = std::vector<ExampleTarget>();
+    this->lastIterationSuccessful = false;
     XMLDocument file = XMLDocument(fileName);
     if(file.HasContents()) {
         this->parseDocument(file);
@@ -86,7 +89,7 @@ void Runner::Loop() {
     std::cout << std::endl;
     std::cout << "------------------------------------" << std::endl;
     std::cout << "KiwiLight Runner starting..." << std::endl;
-    std::cout << "  Mode: " << (this->debug? "Debug" : "Running") << std::endl;
+    std::cout << "  Mode: " << (this->debug ? "Debug" : "Running") << std::endl;
     std::cout << "  Configuration Name: " << this->configName << std::endl;
     std::cout << "  Preprocessor: " << (this->preprocessor.GetProperty(PreProcessorProperty::IS_FULL) == 1.0 ? "FULL" : "PARTIAL") << std::endl;
     std::cout << "  Postprocessor: FULL" << std::endl;
@@ -124,7 +127,9 @@ std::string Runner::Iterate() {
             //oops we shall exit now
             return "";
         }
+        this->lastIterationSuccessful = success;
     } else {
+        this->lastIterationSuccessful = true;
         img = cv::imread(RunnerSettings::IMAGE_TO_USE);
     }
 

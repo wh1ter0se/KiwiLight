@@ -51,7 +51,7 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
     this->window = Window(GTK_WINDOW_TOPLEVEL, false);
         this->content = Panel(true, 0);
             Panel overviewPanel = Panel(false, 5);
-                this->configOverview = ConfigPanel(this->currentDoc, false, true);
+                this->configOverview = ConfigPanel(this->currentDoc);
                     overviewPanel.Pack_start(this->configOverview.GetWidget(), true ,true, 5);
 
                 Panel learnerPanel = Panel(true, 0);
@@ -252,8 +252,9 @@ void ConfigEditor::Update() {
 /**
  * Updates the internal runner to in turn update the output images.
  */
-void ConfigEditor::UpdateImageOnly() {
+bool ConfigEditor::UpdateImageOnly() {
     this->runner.Iterate();
+    bool retval = this->runner.GetLastFrameSuccessful();
     this->out = this->runner.GetOutputImage();
     this->original = this->runner.GetOriginalImage();
 
@@ -317,6 +318,8 @@ void ConfigEditor::UpdateImageOnly() {
             this->distanceLearnerRunning = false;
         }
     }
+
+    return retval;
 }
 
 /**

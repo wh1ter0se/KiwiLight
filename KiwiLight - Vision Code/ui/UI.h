@@ -442,37 +442,28 @@ namespace KiwiLight {
     class ConfigPanel : public Widget {
         public:
         ConfigPanel() {};
-        ConfigPanel(std::string configFilePath) : ConfigPanel(XMLDocument(configFilePath), true, false) {};
-        ConfigPanel(std::string configFilePath, bool withButtons) : ConfigPanel(XMLDocument(configFilePath), withButtons, false) {};
-        ConfigPanel(XMLDocument doc, bool withButtons, bool withDynamicName);
-        void SetUDPEnabled(bool enabled);
+        ConfigPanel(std::string fileName) : ConfigPanel(XMLDocument(fileName)) {};
+        ConfigPanel(XMLDocument doc);
         void LoadConfig(std::string fileName);
         void LoadConfig(XMLDocument file);
         void Clear();
-        void SetConfigurationName(std::string newName);
-        std::string GetConfigurationName();
-        std::string GetConfig() { return this->configFile; };
+        std::string GetConfigurationName() { return this->configNameString; };
+        std::string GetConfigFile() { return this->configFile; };
         GtkWidget *GetWidget() { return this->configPanel; };
         void SetName(std::string name);
 
         private:
         Panel panel;
-        Panel informationPanel;
-        Panel buttonPanel;
         Label header,
               fileLabel,
               PreProcessorLabel,
               TargetLabel,
               UDPAddressLabel,
               UDPPortLabel;
-        Button editConfig;
-        Button toggleUDP;
-
-        bool dynamicName; //when true textbox below will be defined
-        TextBox configName;
 
         std::string configFile,
                     configNameString;
+
         GtkWidget *configPanel;
     };
 
@@ -605,7 +596,7 @@ namespace KiwiLight {
         ConfigEditor() {};
         ConfigEditor(std::string fileName, VideoCapture cap);
         void Update();
-        void UpdateImageOnly();
+        bool UpdateImageOnly();
         void Save();
         void Close();
         void SetUDPEnabled(bool enabled);

@@ -25,6 +25,62 @@ namespace KiwiLight {
         UI_QUTTING
     };
 
+    /**
+     * Its KiwiLight! Handles everything from building, starting, calling and things in the UI.
+     */
+    class KiwiLightApp {
+        public:
+        //UI building and starting
+        static void Create(int argc, char *argv[]);
+        static void Start();
+
+        //UI accessors
+        static VideoCapture GetCamera();
+        static Runner GetRunner();
+        static ConfigEditor GetEditor();
+
+        private:
+        //menu bar utility
+        static MenuBar CreateMenuBar();
+
+        //streaming thread launcher
+        static void LaunchStreamingThread();
+
+        //UI constant callbacks
+        static void UpdateApp();
+        static void UpdateStreamsConstantly();
+        static void UpdateStreams();
+
+        //UI button callbacks
+        static void OpenNewCamera();
+        static void ToggleUDP();
+        static void NewConfiguration();
+        static void EditConfiguration();
+        static void OpenConfiguration();
+        static void CloseConfiguration();
+        static void Quit();
+        static void ShowAboutWindow();
+        static void ShowHelpWindow();
+
+        //essential objects
+        static VideoCapture camera;
+        static Runner runner;
+        static ConfigEditor configeditor;
+
+        //utilities
+        static UIMode mode;
+        static bool lastFrameGrabSuccessful;
+        static Mat lastFrameGrabImage;
+
+        //ui widgets
+        static Window win;
+        static ConfigPanel confInfo;
+        static NumberBox cameraIndexBox;
+        static Label cameraStatusLabel;
+        static Image outputImage;
+        static Button toggleUDPButton;
+    };
+
 }
 
 #endif

@@ -300,6 +300,7 @@ namespace KiwiLight {
         void ReconnectUDP(std::string udpAddr, int udpPort);
         std::string Iterate();
         int GetNumberOfTargets() { return this->postprocessor.NumTargets(); };
+        bool GetLastFrameSuccessful() { return this->lastIterationSuccessful; };
         std::vector<Target> GetLastFrameTargets() { return this->lastFrameTargets; };
         Target GetClosestTargetToCenter() { return this->closestTarget; };
         std::string GetFileName() { return this->src; };
@@ -340,6 +341,7 @@ namespace KiwiLight {
 
         std::vector<ExampleTarget> postProcessorTargets;
         std::vector<Target> lastFrameTargets;
+        bool lastIterationSuccessful;
         bool stop,
              debug;
 
