@@ -153,6 +153,55 @@ void KiwiLightApp::LaunchStreamingThread() {
 }
 
 /**
+ * Closes the config editor (if it is open)
+ * @param saveFirst when true, causes the editor to save the open configuration to file.
+ */
+void KiwiLightApp::CloseEditor(bool saveFirst) {
+    if(saveFirst) {
+        KiwiLightApp::configeditor.Save();
+    }
+
+    KiwiLightApp::configeditor.Close();
+    KiwiLightApp::runner = Runner(KiwiLightApp::configeditor.GetFileName(), true, KiwiLightApp::camera);
+    KiwiLightApp::mode = UIMode::UI_RUNNER;
+}
+
+/**
+ * Causes the opened editor to begin the target learn process.
+ */
+void KiwiLightApp::StartEditorLearningTarget() {
+    KiwiLightApp::configeditor.StartLearningTarget();
+}
+
+/**
+ * Causes the editor to start learning distance constants.
+ */
+void KiwiLightApp::StartEditorLearningDistance() {
+    KiwiLightApp::configeditor.StartLearningDistance();
+}
+
+/**
+ * Causes the editor to recheck and reapply the user's UDP address and port
+ */
+void KiwiLightApp::EditorReconnectUDP() {
+    KiwiLightApp::configeditor.RecheckUDP();
+}
+
+/**
+ * Causes the editor to set the image resolution from the overview panel.
+ */
+void KiwiLightApp::EditorSetImageResolutionFromOverview() {
+    KiwiLightApp::configeditor.ResetResolutionFromOverview();
+}
+
+/**
+ * Causes the editor to connect the UDP from the overview panel.
+ */
+void KiwiLightApp::EditorConnectUDPFromOverview() {
+    KiwiLightApp::configeditor.ReconnectUDPFromOverview();
+}
+
+/**
  * Updates KiwiLight's utilities depending on it's state.
  */
 void KiwiLightApp::UpdateApp() {
@@ -257,6 +306,7 @@ void KiwiLightApp::OpenConfiguration() {
     FileChooser chooser = FileChooser(false, "");
     std::string fileToOpen = chooser.Show();
 
+    KiwiLightApp::confInfo.LoadConfig(XMLDocument(fileToOpen));
     KiwiLightApp::runner = Runner(fileToOpen, true, KiwiLightApp::camera);
     KiwiLightApp::mode = UIMode::UI_RUNNER;
 }
@@ -265,6 +315,7 @@ void KiwiLightApp::OpenConfiguration() {
  * Causes KiwiLight to close the currently opened configuration.
  */
 void KiwiLightApp::CloseConfiguration() {
+    KiwiLightApp::confInfo.Clear();
     KiwiLightApp::mode = UIMode::UI_STREAM;
 }
 

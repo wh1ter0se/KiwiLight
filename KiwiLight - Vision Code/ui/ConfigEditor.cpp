@@ -1,4 +1,4 @@
-#include "UI.h"
+#include "../KiwiLight.h"
 
 /**
  * Source file for the ConfigEditor class.
@@ -11,29 +11,19 @@ using namespace KiwiLight;
 static int LEARNER_FRAMES = 50;
 
 static void LearnTargetButtonPressed() {
-    Flags::RaiseFlag("StartLearner");
-    ConfirmationDialog confirmation = ConfirmationDialog (
-        std::string("Position the target in the center of the image and press OK.\n") +
-        std::string("It should be highlighted with a blue box."));
-    
-    bool shouldLearn = confirmation.ShowAndGetResponse();
-    if(shouldLearn) {
-        Flags::RaiseFlag("StartLearning");
-    } else {
-        Flags::RaiseFlag("StopLearner");
-    }
+    KiwiLightApp::StartEditorLearningTarget();
 }
 
 static void LearnDistanceButtonPressed() {
-    Flags::RaiseFlag("LearnDistance");
+    KiwiLightApp::StartEditorLearningDistance();
 }
 
 static void JustCloseButtonPressed() {
-    Flags::RaiseFlag("CloseEditor");
+    KiwiLightApp::CloseEditor(false);
 }
 
 static void SaveAndCloseButtonPressed() {
-    Flags::RaiseFlag("SaveAndCloseEditor");
+    KiwiLightApp::CloseEditor(true);
 }
 
 /**
@@ -47,11 +37,11 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
     this->fileName = fileName;
     this->out = Mat(Size(50, 50), CV_8UC3);
     this->confName = this->currentDoc.GetTagsByName("configuration")[0].GetAttributesByName("name")[0].Value();
-   
+
     this->window = Window(GTK_WINDOW_TOPLEVEL, false);
         this->content = Panel(true, 0);
             Panel overviewPanel = Panel(false, 5);
-                this->configOverview = ConfigPanel(this->currentDoc);
+                this->configOverview = OverviewPanel(this->currentDoc);
                     overviewPanel.Pack_start(this->configOverview.GetWidget(), true ,true, 5);
 
                 Panel learnerPanel = Panel(true, 0);
@@ -125,6 +115,7 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
 
         this->window.SetPane(this->content);
     
+    this->window.SetOnWindowClosed(ConfigEditor::Closed);
     this->window.SetCSS("ui/Style.css");
     this->window.Show();
 
@@ -141,7 +132,6 @@ void ConfigEditor::Update() {
         vconcat(this->original, this->out, displayable);
         this->outputImage.Update(displayable);
     } catch(cv::Exception ex) {
-        std::cout << "cv exception in ce" << std::endl;
     }
     
     this->cameraSettings.Update();
@@ -178,74 +168,6 @@ void ConfigEditor::Update() {
     this->runner.SetRunnerProperty(RunnerProperty::PERCEIVED_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::PERCEIVED_WIDTH));
     this->runner.SetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE, this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE));
     this->runner.SetRunnerProperty(RunnerProperty::ERROR_CORRECTION, this->runnerSettings.GetProperty(RunnerProperty::ERROR_CORRECTION));
-
-    if(Flags::GetFlag("StartLearner")) {
-        Flags::LowerFlag("StartLearner");
-        
-        //reinstantiate the learner to apply the preprocessor settings
-        this->learner = ConfigLearner(this->runner.GetPreProcessor());
-        this->learnerActivated = true;
-    }
-
-    if(Flags::GetFlag("StartLearning")) {
-        Flags::LowerFlag("StartLearning");
-        this->serviceMonitor.SetText("Learning Target");
-        this->serviceLabel.SetText("Capturing Frames");
-        this->learner.StartLearning();
-    }
-
-    if(Flags::GetFlag("StopLearner")) {
-        Flags::LowerFlag("StopLearner");
-        this->learnerActivated = false;
-    }
-
-    if(Flags::GetFlag("LearnDistance")) {
-        Flags::LowerFlag("LearnDistance");
-        ConfirmationDialog informationDialog = ConfirmationDialog("Learn Distance");
-        Panel dialogPanel = Panel(false, 0);
-            Panel trueWidthPanel = Panel(true, 0);
-                Label trueWidthPanelHeader = Label("Target Width: ");
-                    trueWidthPanel.Pack_start(trueWidthPanelHeader.GetWidget(), false, false, 0);
-
-                double realTrueWidth = this->runnerSettings.GetProperty(RunnerProperty::TRUE_WIDTH);
-                NumberBox trueWidthPanelValue = NumberBox(0.0, 120.0, 0.1, realTrueWidth);
-                    trueWidthPanel.Pack_start(trueWidthPanelValue.GetWidget(), false, false, 0);
-
-                dialogPanel.Pack_start(trueWidthPanel.GetWidget(), false, false, 0);
-
-            Panel distancePanel = Panel(true, 0);
-                Label distancePanelHeader = Label("Distance From Camera: ");
-                    distancePanel.Pack_start(distancePanelHeader.GetWidget(), false, false, 0);
-
-                double realDistance = this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE);
-                NumberBox distanceValue = NumberBox(6.0, 240.0, 0.1, realDistance);
-                    distancePanel.Pack_start(distanceValue.GetWidget(), false, false, 0);
-
-                dialogPanel.Pack_start(distancePanel.GetWidget(), false, false, 0);
-            informationDialog.SetBody(dialogPanel);
-
-        bool shouldLearn = informationDialog.ShowButDontClose();
-        double targetTrueWidth = trueWidthPanelValue.GetValue();
-        double targetDistance = distanceValue.GetValue();
-        informationDialog.Destroy();
-        if(shouldLearn) {
-            this->runnerSettings.SetProperty(RunnerProperty::TRUE_WIDTH, targetTrueWidth);
-            this->runnerSettings.SetProperty(RunnerProperty::CALIBRATED_DISTANCE, targetDistance);
-
-            this->distanceLearner = TargetDistanceLearner(this->runner.GetPreProcessor(), this->runner.GetPostProcessor());
-            this->distanceLearnerRunning = true;
-
-            this->serviceMonitor.SetText("Learning Distance Constants");
-            this->serviceLabel.SetText("Capturing Frames");
-        }
-    }
-
-    if(Flags::GetFlag("UDPReconnect")) {
-        Flags::LowerFlag("UDPReconnect");
-        std::string newUDPAddr = this->runnerSettings.GetUDPAddr();
-        int newUDPPort = this->runnerSettings.GetUDPPort();
-        this->runner.ReconnectUDP(newUDPAddr, newUDPPort);
-    }
 }
 
 
@@ -277,7 +199,6 @@ bool ConfigEditor::UpdateImageOnly() {
                 ExampleTarget newTarget = this->learner.StopLearning(minimumArea);
 
                 std::vector<ExampleContour> newContours = newTarget.Contours();
-                std::cout << "got " << newContours.size() << " new contours." << std::endl;
                 for(int i=0; i<newContours.size(); i++) {
                     this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_X, newContours[i].DistX());
                     this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_Y, newContours[i].DistY());
@@ -291,9 +212,21 @@ bool ConfigEditor::UpdateImageOnly() {
                 this->serviceLabel.SetText("");
                 this->learnerActivated = false;
             }
+
+            if(this->learner.GetHasFailed()) {
+                this->serviceMonitor.SetText("No Service Running.");
+                this->serviceLabel.SetText("");
+                this->learnerActivated = false;
+
+                //alert the user
+                ConfirmationDialog alert = ConfirmationDialog(
+                    std::string("The utility has failed due to a video error.\n") +
+                    std::string("Is the camera plugged in?")
+                );
+                alert.ShowAndGetResponse();
+            }
         }
     }
-
 
     if(this->distanceLearnerRunning) {
         this->distLearner.FeedTarget(this->runner.GetClosestTargetToCenter());
@@ -360,7 +293,7 @@ void ConfigEditor::Save() {
          * <configuration>
          */
         XMLTag configuration = XMLTag("configuration");
-            XMLTagAttribute configurationName = XMLTagAttribute("name", this->configOverview.GetConfigurationName());
+            XMLTagAttribute configurationName = XMLTagAttribute("name", this->configOverview.GetConfigName());
                 configuration.AddAttribute(configurationName);
 
             /**
@@ -551,6 +484,112 @@ void ConfigEditor::Close() {
 }
 
 
+void ConfigEditor::StartLearningTarget() {
+    if(this->runner.GetVideoStream().isOpened()) {
+        //reinstantiate the learner to apply the preprocessor settings
+        this->learner = ConfigLearner(this->runner.GetPreProcessor());
+        this->learnerActivated = true;
+        
+        ConfirmationDialog confirmLearn = ConfirmationDialog(
+            std::string("Position the target in the center of the image and press OK.\n") +
+            std::string("It should be highlighted with a blue box.")
+        );
+        bool shouldLearn = confirmLearn.ShowAndGetResponse();
+        if(shouldLearn) {
+            this->serviceMonitor.SetText("Learning Target");
+            this->serviceLabel.SetText("Capturing Frames");
+            this->learner.StartLearning();
+        } else {
+            this->learnerActivated = false;
+        }
+    } else {
+        //the camera is not opened, alert the user
+        ConfirmationDialog alert = ConfirmationDialog(
+            std::string("The utility could not start because of a video error.\n") +
+            std::string("Is the camera plugged in and working correctly on your device?")
+        );
+
+        alert.ShowAndGetResponse();
+    }
+}
+
+
+void ConfigEditor::StartLearningDistance() {
+    //check for video errors
+    if(this->runner.GetVideoStream().isOpened()) {
+        ConfirmationDialog informationDialog = ConfirmationDialog("Learn Distance");
+        Panel dialogPanel = Panel(false, 0);
+            Panel trueWidthPanel = Panel(true, 0);
+                Label trueWidthPanelHeader = Label("Target Width: ");
+                    trueWidthPanel.Pack_start(trueWidthPanelHeader.GetWidget(), false, false, 0);
+
+                double realTrueWidth = this->runnerSettings.GetProperty(RunnerProperty::TRUE_WIDTH);
+                NumberBox trueWidthPanelValue = NumberBox(0.0, 120.0, 0.1, realTrueWidth);
+                    trueWidthPanel.Pack_start(trueWidthPanelValue.GetWidget(), false, false, 0);
+
+                dialogPanel.Pack_start(trueWidthPanel.GetWidget(), false, false, 0);
+
+            Panel distancePanel = Panel(true, 0);
+                Label distancePanelHeader = Label("Distance From Camera: ");
+                    distancePanel.Pack_start(distancePanelHeader.GetWidget(), false, false, 0);
+
+                double realDistance = this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE);
+                NumberBox distanceValue = NumberBox(6.0, 240.0, 0.1, realDistance);
+                    distancePanel.Pack_start(distanceValue.GetWidget(), false, false, 0);
+
+                dialogPanel.Pack_start(distancePanel.GetWidget(), false, false, 0);
+            informationDialog.SetBody(dialogPanel);
+
+        //show the dialog anc ask the question, but do not destroy the dialog when the user presses OK
+        bool shouldLearn = informationDialog.ShowButDontClose();
+        double targetTrueWidth = trueWidthPanelValue.GetValue();
+        double targetDistance = distanceValue.GetValue();
+        informationDialog.Destroy();
+
+        if(shouldLearn) {
+            this->runnerSettings.SetProperty(RunnerProperty::TRUE_WIDTH, targetTrueWidth);
+            this->runnerSettings.SetProperty(RunnerProperty::CALIBRATED_DISTANCE, targetDistance);
+
+            this->distanceLearner = TargetDistanceLearner(this->runner.GetPreProcessor(), this->runner.GetPostProcessor());
+            this->distanceLearnerRunning = true;
+
+            this->serviceMonitor.SetText("Learning Distance Constants");
+            this->serviceLabel.SetText("Capturing Frames");
+        }
+    } else {
+        //the camera is not opened, alert the user
+        ConfirmationDialog alert = ConfirmationDialog(
+            std::string("The utility could not be opened because of a video error.\n") +
+            std::string("Is the camera plugged in and working correctly on your device?")
+        );
+
+        alert.ShowAndGetResponse();
+    }
+}
+
+
+void ConfigEditor::RecheckUDP() {
+    std::string newUDPAddr = this->runnerSettings.GetUDPAddr();
+    int newUDPPort = this->runnerSettings.GetUDPPort();
+    this->runner.ReconnectUDP(newUDPAddr, newUDPPort);
+}
+
+
+void ConfigEditor::ReconnectUDPFromOverview() {
+    std::string newAddr = this->configOverview.GetUDPAddr();
+    int newPort = this->configOverview.GetUDPPort();
+    this->runner.ReconnectUDP(newAddr, newPort);
+
+    //set the properties in the actual editor
+    this->runnerSettings.SetUDPAddr(newAddr);
+    this->runnerSettings.SetUDPPort(newPort);
+}
+
+
+void ConfigEditor::ResetResolutionFromOverview() {
+
+}
+
 void ConfigEditor::SetUDPEnabled(bool enabled) {
     this->runner.SetUDPEnabled(enabled);
 }
@@ -572,6 +611,14 @@ void ConfigEditor::ResetRunnerResolution() {
 void ConfigEditor::SetName(std::string name) {
     gtk_widget_set_name(this->configeditor, name.c_str());
 }
+
+/**
+ * Called when the X in the corner is pressed
+ */
+void ConfigEditor::Closed() {
+    KiwiLightApp::CloseEditor(false);
+}
+
 
 void ConfigEditor::UpdateImage() {
     this->runner.Iterate();

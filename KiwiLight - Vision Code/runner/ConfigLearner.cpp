@@ -12,6 +12,7 @@ using namespace KiwiLight;
 ConfigLearner::ConfigLearner(PreProcessor preprocessor) {
     this->preprocessor = preprocessor;
     this->currentlyLearning = false;
+    this->failedFrames = 0;
 }
 
 
@@ -23,6 +24,12 @@ void ConfigLearner::StartLearning() {
  * Feeds an unprocessed image into the learner for possible processing.
  */
 void ConfigLearner::FeedImage(Mat img, int minimumContourArea) {
+    //if the camera grab has failed and the image doesn't exist...
+    if(img.empty()) {
+        failedFrames++;
+        return;
+    }
+
     img.copyTo(this->original);
     Mat preprocessed = this->preprocessor.ProcessImage(img);
     preprocessed.copyTo(this->out);

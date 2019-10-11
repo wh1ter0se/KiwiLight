@@ -39,6 +39,14 @@ namespace KiwiLight {
         static Runner GetRunner();
         static ConfigEditor GetEditor();
 
+        //misc. UI callbacks
+        static void CloseEditor(bool saveFirst);
+        static void StartEditorLearningTarget();
+        static void StartEditorLearningDistance();
+        static void EditorReconnectUDP();
+        static void EditorSetImageResolutionFromOverview();
+        static void EditorConnectUDPFromOverview();
+
         private:
         //menu bar utility
         static MenuBar CreateMenuBar();

@@ -84,6 +84,7 @@ namespace KiwiLight {
         Window(GtkWindowType type);
         Window(GtkWindowType type, bool terminateOnClose);
         static void SetOnAppClosed(void(*onAppClosed)());
+        void SetOnWindowClosed(void(*onWindowClosed)());
         void SetPane(Panel pane);
         void Show();
         void SetSize(int w, int h);
@@ -467,6 +468,35 @@ namespace KiwiLight {
         GtkWidget *configPanel;
     };
 
+    class OverviewPanel : public Widget {
+        public:
+        OverviewPanel() {};
+        OverviewPanel(XMLDocument doc);
+        void Update();
+        void SetConfigName(std::string name);
+        std::string GetConfigName();
+        void SetUDPAddr(std::string addr);
+        std::string GetUDPAddr();
+        void SetUDPPort(int port);
+        int GetUDPPort();
+        void SetImageResolution(Size res);
+        Size GetImageResolution();
+        GtkWidget *GetWidget() { return overviewpanel; };
+        void SetName(std::string name);
+
+        private:
+        TextBox configName;
+        TextBox udpAddr;
+        NumberBox udpPort;
+        NumberBox
+            imgResX,
+            imgResY;
+
+        LabeledSlider focalWidth;
+
+        GtkWidget *overviewpanel;
+    };
+
     /**
      * A window where camera settings can be modified.
      */
@@ -599,6 +629,11 @@ namespace KiwiLight {
         bool UpdateImageOnly();
         void Save();
         void Close();
+        void StartLearningTarget();
+        void StartLearningDistance();
+        void RecheckUDP();
+        void ReconnectUDPFromOverview();
+        void ResetResolutionFromOverview();
         void SetUDPEnabled(bool enabled);
         bool GetUDPEnabled();
         void ResetRunnerResolution();
@@ -609,6 +644,7 @@ namespace KiwiLight {
         void SetName(std::string name);
 
         private:
+        static void Closed();
         void UpdateImage();
 
         //universal config learnign utility
@@ -632,7 +668,7 @@ namespace KiwiLight {
         std::string confName;
 
         TabView tabs;
-        ConfigPanel configOverview;
+        OverviewPanel configOverview;
         Settings cameraSettings;
         PreprocessorEditor preprocessorSettings;
         PostprocessorEditor postprocessorSettings;

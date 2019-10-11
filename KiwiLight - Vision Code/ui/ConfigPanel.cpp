@@ -121,11 +121,11 @@ void ConfigPanel::LoadConfig(XMLDocument file) {
 
     //set the label texts for the informational panel with the found information
     this->header.SetText("Configuration: " + name);
-    this->fileLabel.SetText("File: " + file.FileName());
-    this->PreProcessorLabel.SetText("Preprocessor: " + preProcessorType);
-    this->TargetLabel.SetText("Contours: " + numContours);
-    this->UDPAddressLabel.SetText("UDP Address: " + udpAddress);
-    this->UDPPortLabel.SetText("UDP Port: " + udpPort);
+    this->fileLabel.SetText(file.FileName());
+    this->PreProcessorLabel.SetText(preProcessorType);
+    this->TargetLabel.SetText(numContours);
+    this->UDPAddressLabel.SetText(udpAddress);
+    this->UDPPortLabel.SetText(udpPort);
 
     this->configNameString = name;
 }
@@ -133,11 +133,11 @@ void ConfigPanel::LoadConfig(XMLDocument file) {
 
 void ConfigPanel::Clear() {
     this->header.SetText("Configuration: (none loaded)");
-    this->fileLabel.SetText("File: (none)");
-    this->PreProcessorLabel.SetText("Preprocessor: (none)");
-    this->TargetLabel.SetText("Targets: (none)");
-    this->UDPAddressLabel.SetText("UDP Address: (none)");
-    this->UDPPortLabel.SetText("UDP Port: (none)");
+    this->fileLabel.SetText("(none)");
+    this->PreProcessorLabel.SetText("(none)");
+    this->TargetLabel.SetText("(none)");
+    this->UDPAddressLabel.SetText("(none)");
+    this->UDPPortLabel.SetText("(none)");
 }
 
 void ConfigPanel::SetName(std::string name) {

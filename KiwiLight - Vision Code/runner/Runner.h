@@ -362,6 +362,7 @@ namespace KiwiLight {
         void FeedImage(Mat img, int minimumContourArea);
         ExampleTarget StopLearning(int minimumContourArea);
         bool GetLearning() { return this->currentlyLearning; };
+        bool GetHasFailed() { return this->failedFrames > 10; };
         int GetFramesLearned();
         Mat GetOutputImageFromLastFeed() { return this->out; };
         Mat GetOriginalImageFromLastFeed() { return this->original; };
@@ -371,6 +372,8 @@ namespace KiwiLight {
 
         bool currentlyLearning;
         std::vector<CameraFrame> currentFrames;
+
+        int failedFrames;
 
         Mat out,
             original;
@@ -386,10 +389,12 @@ namespace KiwiLight {
         void FeedImage(Mat img);
         void FeedTarget(Target targ);
         int GetFramesLearned();
+        bool GetHasFailed() { return this->failedFrames > 10; };
         double GetFocalWidth(double trueDistance, double trueWidth);
 
         private:
         int frames;
+        int failedFrames;
         PreProcessor preprocessor;
         PostProcessor postprocessor;
         std::vector<double> targetWidths;
