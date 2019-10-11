@@ -46,6 +46,7 @@ namespace KiwiLight {
         static void EditorReconnectUDP();
         static void EditorSetImageResolutionFromOverview();
         static void EditorConnectUDPFromOverview();
+        static void EditorApplyCameraSettings();
 
         private:
         //menu bar utility

@@ -202,6 +202,13 @@ void KiwiLightApp::EditorConnectUDPFromOverview() {
 }
 
 /**
+ * Causes the editor to apply all camera settings to the video stream.
+ */
+void KiwiLightApp::EditorApplyCameraSettings() {
+    KiwiLightApp::configeditor.ApplyCameraSettings();
+}
+
+/**
  * Updates KiwiLight's utilities depending on it's state.
  */
 void KiwiLightApp::UpdateApp() {

@@ -400,6 +400,16 @@ double Runner::GetRunnerProperty(RunnerProperty prop) {
     return this->postprocessor.GetRunnerProperty(prop);
 }
 
+void Runner::SetCameraProperty(int id, double value) {
+    std::cout << "setting property " << id << " to " << value << std::endl;
+    this->cap.set(id, value);
+}
+
+
+double Runner::GetCameraProperty(int id) {
+    return this->cap.get(id);
+}
+
 /**
  * Parses the XMLdocument doc and initalizes all runner settings and variables.
  */
@@ -407,9 +417,12 @@ void Runner::parseDocument(XMLDocument doc) {
     XMLTag camera = doc.GetTagsByName("camera")[0];
         this->cameraIndex = std::stoi(camera.GetAttributesByName("index")[0].Value());
         
-        XMLTag camRes = camera.GetTagsByName("resolution")[0];
-            int camResX = std::stoi(camRes.GetTagsByName("width")[0].Content());
-            int camResY = std::stoi(camRes.GetTagsByName("height")[0].Content());
+        std::vector<XMLTag> camSettings = 
+            camera.GetTagsByName("settings")[0]
+            .GetTagsByName("setting");
+
+            int camResX = std::stoi(Util::SearchCameraSettingsByID(camSettings, CAP_PROP_FRAME_WIDTH).Content());
+            int camResY = std::stoi(Util::SearchCameraSettingsByID(camSettings, CAP_PROP_FRAME_HEIGHT).Content());
             this->cameraResolution = Size(camResX, camResY);
 
     XMLTag config = doc.GetTagsByName("configuration")[0];
@@ -417,7 +430,6 @@ void Runner::parseDocument(XMLDocument doc) {
         XMLTag cameraOffset = config.GetTagsByName("cameraOffset")[0];
             this->centerOffsetX = std::stod(cameraOffset.GetTagsByName("horizontal")[0].Content());
             this->centerOffsetY = std::stod(cameraOffset.GetTagsByName("vertical")[0].Content());
-
 
         XMLTag constResize = config.GetTagsByName("constantResize")[0];
             int resizeX = std::stoi(constResize.GetTagsByName("width")[0].Content());
@@ -497,19 +509,15 @@ void Runner::parseDocument(XMLDocument doc) {
  */
 void Runner::applySettings() {
     XMLDocument document = XMLDocument(this->GetFileName());
-    XMLTag cameraTag = document.GetTagsByName("camera")[0];
-        XMLTag resolutionTag = cameraTag.GetTagsByName("resolution")[0];
-            int resWidth = std::stoi(resolutionTag.GetTagsByName("width")[0].Content());
-            int resHeight = std::stoi(resolutionTag.GetTagsByName("height")[0].Content());
-            this->cameraResolution = Size(resWidth, resHeight);
-    
-    std::vector<XMLTag> camSettings = cameraTag.GetTagsByName("settings")[0].GetTagsByName("setting");
+    std::vector<XMLTag> camSettings =
+        document.GetTagsByName("camera")[0]
+        .GetTagsByName("settings")[0]
+        .GetTagsByName("setting");
+
     for(int i=0; i<camSettings.size(); i++) {
-        //find basic information for the setting and format it into a shell command 
         XMLTag setting = camSettings[i];
-        std::string settingName = setting.GetAttributesByName("name")[0].Value();
-        std::string settingValue = setting.Content();
-        std::string command = "v4l2-ctl --set-ctrl=" + settingName + "=" + settingValue;
-        Shell::ExecuteCommand(command);
+        int settingID = std::stoi(setting.GetAttributesByName("id")[0].Value());
+        double settingValue = std::stod(setting.Content());
+        this->cap.set(settingID, settingValue);
     }
 }

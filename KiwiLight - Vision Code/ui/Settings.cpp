@@ -1,4 +1,4 @@
-#include "UI.h"
+#include "../KiwiLight.h"
 
 /**
  * Source file for the Settings class
@@ -11,136 +11,151 @@ using namespace KiwiLight;
 /**
  * Create a new Settings menu.
  */
-Settings::Settings(int index, VideoCapture cap) {
-    //get the settings for the current camera, as well as their ranges.
-    std::string command = "v4l2-ctl -d " + std::to_string(index) + " --list-ctrls";
-    std::string settingsAsString = Shell::ExecuteCommand(command);
-    std::vector<std::string> settingsList = StringUtils::SplitString(settingsAsString, '\n');
+Settings::Settings(VideoCapture cap, XMLDocument doc) {
 
-    this->camWidth = cap.get(CAP_PROP_FRAME_WIDTH);
-    this->camHeight = cap.get(CAP_PROP_FRAME_HEIGHT);
+    std::vector<XMLTag> docSettings = 
+        doc.GetTagsByName("camera")[0]
+        .GetTagsByName("settings")[0]
+        .GetTagsByName("setting");
 
-    Panel panel = Panel(false, 5);
+    Panel editor = Panel(false, 0);
 
-    this->frameWidth  = CameraSetting("Width (int)", 1, 2000, this->camWidth);
-        panel.Pack_start(frameWidth.GetWidget(), true, false, 0);
+        //resolution area
+        Label resolutionHeader = Label("Resolution");
+            resolutionHeader.SetName("subHeader");
+            editor.Pack_start(resolutionHeader.GetWidget(), true, true, 0);
 
-    this->frameHeight = CameraSetting("Height (int)", 1, 2000, this->camHeight);
-        panel.Pack_start(frameHeight.GetWidget(), true, false, 0);
+        //frame width
+        int realFrameWidth = std::stoi(Util::SearchCameraSettingsByID(docSettings, CAP_PROP_FRAME_WIDTH).Content());
+        cap.set(CAP_PROP_FRAME_WIDTH, (double) realFrameWidth);
+        CameraSetting frameWidth = CameraSetting("Width: ", CAP_PROP_FRAME_WIDTH, 100, 2000, realFrameWidth);
+        this->settings.push_back(frameWidth);
+            editor.Pack_start(frameWidth.GetWidget(), true, true, 0);
 
-    Label warning = Label("NOTE: Some resolutions may not be supported by your camera!");
-        panel.Pack_start(warning.GetWidget(), true, false, 0);
+        //frame height
+        int realFrameHeight = std::stoi(Util::SearchCameraSettingsByID(docSettings, CAP_PROP_FRAME_HEIGHT).Content());
+        cap.set(CAP_PROP_FRAME_HEIGHT, (double) realFrameHeight);
+        CameraSetting frameHeight = CameraSetting("Height: ", CAP_PROP_FRAME_HEIGHT, 100, 2000, realFrameHeight);
+        this->settings.push_back(frameHeight);
+            editor.Pack_start(frameHeight.GetWidget(), true, true, 0);
 
-    Separator sep = Separator(true);
-        panel.Pack_start(sep.GetWidget(), true, false, 0);
+        Label resolutionNote = Label(
+            "NOTE: Some resolutions may not be supported by your camera!"
+        );
+            editor.Pack_start(resolutionNote.GetWidget(), true, true, 0);
 
-    for(int i=0; i<settingsList.size(); i++) {
-        //create a camera settings widget for each setting. 
-        //this is done by parsing the input std::string for the name and values of the setting.
+        Separator hsep = Separator(true);
+            editor.Pack_start(hsep.GetWidget(), true, true, 0);
 
-        std::string settingName   = StringUtils::SplitString(settingsList[i], ':')[0];
-        std::string settingRanges = StringUtils::SplitString(settingsList[i], ':')[1];
+        Label settingsHeader = Label("Other Settings");
+            editor.Pack_start(settingsHeader.GetWidget(), true, true, 0);
 
-        int min = searchAndReturnValue(settingRanges, "min");
-        int max = searchAndReturnValue(settingRanges, "max");
-        int value = searchAndReturnValue(settingRanges, "value");
+        //exposure auto
+        int realExposureAuto = std::stoi(Util::SearchCameraSettingsByID(docSettings, CAP_PROP_AUTO_EXPOSURE).Content());
+        CameraSetting autoExposure = CameraSetting("Auto Exposure: ", CAP_PROP_AUTO_EXPOSURE, 0, 6, realExposureAuto);
+        this->settings.push_back(autoExposure);
+            editor.Pack_start(autoExposure.GetWidget(), true, true, 0);
 
-        this->settings.push_back(CameraSetting(settingName, min, max, value));
-        panel.Pack_start(this->settings[i].GetWidget(), true, false, 0);
-    }
+        //exposure
+        int realExposure = std::stoi(Util::SearchCameraSettingsByID(docSettings, CAP_PROP_EXPOSURE).Content());
+        CameraSetting exposure = CameraSetting("Exposure: ", CAP_PROP_EXPOSURE, 0, 2000, realExposure);
+        this->settings.push_back(exposure);
+            editor.Pack_start(exposure.GetWidget(), true, true, 0);
 
-    Panel buttonPanel = Panel(true, 0);
-        Button applyButton = Button("Apply Settings", Settings::ScheduleApplySettings);
-            buttonPanel.Pack_start(applyButton.GetWidget(), true, true, 5);
+        //white balance auto
+        int realWhiteBalanceAuto = std::stoi(Util::SearchCameraSettingsByID(docSettings, CAP_PROP_AUTO_WB).Content());
+        CameraSetting autoWB = CameraSetting("Auto White Balance: ", CAP_PROP_AUTO_WB, 0, 6, 1);
+        this->settings.push_back(autoWB);
+            editor.Pack_start(autoWB.GetWidget(), true, true, 0);
 
-        panel.Pack_start(buttonPanel.GetWidget(), true, false, 0);
+        //white balance
+        int realWhiteBalance = std::stoi(Util::SearchCameraSettingsByID(docSettings, CAP_PROP_WB_TEMPERATURE).Content());
+        CameraSetting WB = CameraSetting("White Balance: ", CAP_PROP_WB_TEMPERATURE, 0, 2000, 512);
+        this->settings.push_back(WB);
+            editor.Pack_start(WB.GetWidget(), true, true, 0);
 
-    this->settingsWidget = panel.GetWidget();
+        //auto focus
+        int realAutoFocus = std::stoi(Util::SearchCameraSettingsByID(docSettings, CAP_PROP_AUTOFOCUS).Content());
+        CameraSetting autoFocus = CameraSetting("Auto Focus: ", CAP_PROP_AUTOFOCUS, 0, 6, 1);
+        this->settings.push_back(autoFocus);
+            editor.Pack_start(autoFocus.GetWidget(), true, true, 0);
+
+        //focus
+        int realFocus = std::stoi(Util::SearchCameraSettingsByID(docSettings, CAP_PROP_FOCUS).Content());
+        CameraSetting focus = CameraSetting("Focus: ", CAP_PROP_AUTOFOCUS, 0, 2000, 512);
+        this->settings.push_back(focus);
+            editor.Pack_start(focus.GetWidget(), true, true, 0);
+
+        //brightness
+        int realBrightness = std::stoi(Util::SearchCameraSettingsByID(docSettings, CAP_PROP_BRIGHTNESS).Content());
+        CameraSetting brightness = CameraSetting("Brightness: ", CAP_PROP_BRIGHTNESS, 0, 2000, 512);
+        this->settings.push_back(brightness);
+            editor.Pack_start(brightness.GetWidget(), true, true, 0);
+
+        //gain
+        int realGain = std::stoi(Util::SearchCameraSettingsByID(docSettings, CAP_PROP_GAIN).Content());
+        CameraSetting gain = CameraSetting("Gain: ", CAP_PROP_GAIN, 0, 2000, 512);
+        this->settings.push_back(gain);
+            editor.Pack_start(gain.GetWidget(), true, true, 0);
+
+        //gamma
+        int realGamma = std::stoi(Util::SearchCameraSettingsByID(docSettings, CAP_PROP_GAMMA).Content());
+        CameraSetting gamma = CameraSetting("Gamma: ", CAP_PROP_GAMMA, 0, 2000, 512);
+        this->settings.push_back(gamma);
+            editor.Pack_start(gamma.GetWidget(), true, true, 0);
+
+        //the apply button
+        Button apply = Button("Apply", KiwiLightApp::EditorApplyCameraSettings);
+            editor.Pack_start(apply.GetWidget(), true, true, 0);
+
+    this->settingsWidget = editor.GetWidget();
 }
 
-/**
- * Tells the current camera manager to close the stream during the next iteration.
- * The camera manager will then schedule the settings to be applied.
- */
-void Settings::ScheduleApplySettings() {
-    Flags::RaiseFlag("CloseCamera");
-}
-
-/**
- * Checks for updates that need to be applied using the flagging system.
- */
 void Settings::Update() {
 
-    //check for the update settings flag. if raised, the camera stream is closed and we can update settings
-    if(Flags::GetFlag("CameraClosed")) {
-        Flags::LowerFlag("CameraClosed");
-
-        this->camWidth  = this->frameWidth.GetValue();
-        this->camHeight = this->frameHeight.GetValue();
-
-        //go through all settings, grab values, use Shell to set them
-        for(int i=0; i<this->settings.size(); i++) {
-
-            std::string setCommand = "v4l2-ctl --set-ctrl=" + this->settings[i].GetName() + "=" +
-                                                      std::to_string(this->settings[i].GetValue());
-
-            Shell::ExecuteCommand(setCommand);
-
-            // to improve ease of access, get the value of the setting and update the widget.
-            std::string getCommand = "v4l2-ctl --get-ctrl=" + this->settings[i].GetName();
-            std::string newValue = Shell::ExecuteCommand(getCommand);
-
-            // when run, getCommand will return a string in this format:
-            // [setting name]:[value]
-
-            int valueInt = std::stoi(StringUtils::SplitString(newValue, ':')[1]);
-            this->settings[i].SetValue(valueInt);
-        }
-
-        Flags::RaiseFlag("StartCamera");
-    }
 }
 
 
+/**
+ * Returns an XMLTag containing information describing the settings' values.
+ */
 XMLTag Settings::GetFinishedTag() {
-    XMLTag finishedTag = XMLTag("settings");
     
-    for(int i=0; i<this->settings.size(); i++) {
-        std::string settingName = this->settings[i].GetName();
-        std::string settingValue = std::to_string(this->settings[i].GetValue());
-
-        XMLTagAttribute newTagNameAttr = XMLTagAttribute("name", settingName);
-        std::vector<XMLTagAttribute> attrList = std::vector<XMLTagAttribute>();
-        attrList.push_back(newTagNameAttr);
-
-        XMLTag newTag = XMLTag("setting", settingValue, attrList);
-        finishedTag.AddTag(newTag);
-    }
-
-    return finishedTag;
 }
 
 /**
- * Assuming searchString is a v4l std::string, searches searchString for the value of term
- * and returns that. Returns -1 if no term found in searchString. 
- * ex. a searchString of "min=4" returns 4 when term is "min"
+ * Finds the setting with the given ID and sets its value.
  */
-int Settings::searchAndReturnValue(std::string searchString, std::string term) {
-    std::vector<std::string> possibleMatches = StringUtils::SplitString(searchString, ' ');
-    std::string searchTerm = term + "=";
+void Settings::SetSettingValueFromID(int id, double value) {
+    for(int i=0; i<this->settings.size(); i++) {
+        if(this->settings[i].GetValueName() == id) {
+            this->settings[i].SetValue((int) value);
+        }
+    }
+}
 
-    //go through the possibilities and find the term
-    for(int i=0; i<possibleMatches.size(); i++) {
-        
-        int termPos = possibleMatches[i].find(searchTerm.c_str());
-        if(termPos > -1) {
-            //we found it, determine the value, convert to int and return
-            std::string valueString = possibleMatches[i].substr(term.length() + 1);
-            return std::stoi(valueString);
+
+/**
+ * Finds the setting with the given ID and returns it's value, or -1.0 if none found.
+ */
+double Settings::GetSettingValueFromID(int id) {
+    for(int i=0; i<this->settings.size(); i++) {
+        if(this->settings[i].GetValueName() == id) {
+            return this->settings[i].GetValue();
         }
     }
 
     return -1;
+}
+
+
+std::vector<int> Settings::GetSettingIDs() {
+    std::vector<int> ids;
+    for(int i=0; i<this->settings.size(); i++) {
+        ids.push_back(this->settings[i].GetValueName());
+    }
+
+    return ids;
 }
 
 

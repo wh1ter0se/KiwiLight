@@ -11,36 +11,18 @@ using namespace KiwiLight;
 /**
  * Creates a new CameraSetting widget, using the given std::string from V4L
  */
-CameraSetting::CameraSetting(std::string name, int min, int max, int value) {
+CameraSetting::CameraSetting(std::string name, int valueName, int min, int max, int value) {
+    this->name = name;
+    this->valueName = valueName;
     this->min = min;
     this->max = max;
     this->value = value;
 
-    //find true name and type of the setting
-    int index = name.find_first_not_of(' ');
-    int endIndex = index;
-    while(endIndex < name.length()) {
-        if(name.at(endIndex) == ' ') {
-            break;
-        }
-        endIndex++;
-    }
-
-    //do substd::string manually because the one std provides wasn't working correctly
-    for(int i=index; i<endIndex; i++) {
-        this->name += name.at(i);
-    }
-
-    //find the true type. It is assumed that the input std::string has one set of () because v4l
-    int firstParen = name.find('(');
-    int lastParen  = name.find(')');
-    for(int k=firstParen; k <= lastParen; k++) {
-        this->type += name.at(k);
-    }
 
     //create the widget
-    std::string boundString = "Min: " + std::to_string(min) + 
-                         "  Max: " + std::to_string(max);
+    std::string boundString = 
+        "Min: " + std::to_string(min) + 
+        ",  Max: " + std::to_string(max);
 
     std::string nameString = this->name + " (" + boundString + ")";
 
@@ -58,6 +40,13 @@ CameraSetting::CameraSetting(std::string name, int min, int max, int value) {
  */
 int CameraSetting::GetValue() {
     return (int) this->input.GetValue();
+}
+
+/**
+ * Returns an integer describing the name of the setting that this widget embodies
+ */
+int CameraSetting::GetValueName() {
+    return this->valueName;
 }
 
 /**

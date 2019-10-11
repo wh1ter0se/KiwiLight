@@ -27,14 +27,18 @@ OverviewPanel::OverviewPanel(XMLDocument doc) {
             imageResolutionHeader.SetName("subHeader");
             editor.Pack_start(imageResolutionHeader.GetWidget(), true, true, 0);
 
-        XMLTag imgResTag = doc.GetTagsByName("camera")[0].GetTagsByName("resolution")[0];
+        std::vector<XMLTag> camerasettings = 
+            doc.GetTagsByName("camera")[0]
+            .GetTagsByName("settings")[0]
+            .GetTagsByName("setting");
+
         Panel imageResolutionPanel = Panel(true, 0);
             Panel imageResolutionContents = Panel(false, 0);
                 Panel resXPanel = Panel(true, 0);
                     Label resXHeader = Label("Width: ");
                         resXPanel.Pack_start(resXHeader.GetWidget(), true, true, 0);
 
-                    int realImgResX = std::stoi(imgResTag.GetTagsByName("width")[0].Content());
+                    int realImgResX = std::stoi(Util::SearchCameraSettingsByID(camerasettings, CAP_PROP_FRAME_WIDTH).Content());
                     this->imgResX = NumberBox(100, 2000, 1, realImgResX);
                         resXPanel.Pack_start(this->imgResX.GetWidget(), true, true, 0);
 
@@ -44,7 +48,7 @@ OverviewPanel::OverviewPanel(XMLDocument doc) {
                     Label resYHeader = Label("Height: ");
                         resYPanel.Pack_start(resYHeader.GetWidget(), true, true, 0);
 
-                    int realImgResY = std::stoi(imgResTag.GetTagsByName("height")[0].Content());
+                    int realImgResY = std::stoi(Util::SearchCameraSettingsByID(camerasettings, CAP_PROP_FRAME_HEIGHT).Content());
                     this->imgResY = NumberBox(100, 2000, 1, realImgResY);
                         resYPanel.Pack_start(this->imgResY.GetWidget(), true, true, 0);
 

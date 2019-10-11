@@ -66,10 +66,9 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
                 Label cameraSettingsHeader = Label("Camera Settings");
                     cameraSettingsHeader.SetName("header");
                     cameraSettingsPanel.Pack_start(cameraSettingsHeader.GetWidget(), true, true, 0);
-
-                this->cameraSettings = Settings(0, cap);
+                this->cameraSettings = Settings(cap, this->currentDoc);
                     cameraSettingsPanel.Pack_start(this->cameraSettings.GetWidget(), true, false, 0);
-
+            
             Panel preprocessorSettingsPanel = Panel(false, 5);
                 Label preprocessorSettingsPanelHeader = Label("Preprocessor");
                     preprocessorSettingsPanelHeader.SetName("header");
@@ -77,7 +76,7 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
                 
                 this->preprocessorSettings = PreprocessorEditor(this->runner.GetPreProcessor());
                     preprocessorSettingsPanel.Pack_start(this->preprocessorSettings.GetWidget(), true, true, 0);
-
+            
             Panel postprocessorSettingsPanel = Panel(false, 5);
                 Label postprocessorSettingsPanelHeader = Label("Postprocessor");
                     postprocessorSettingsPanelHeader.SetName("header");
@@ -114,7 +113,6 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
                 this->content.Pack_start(imageAndServicePanel.GetWidget(), false, false, 0);
 
         this->window.SetPane(this->content);
-    
     this->window.SetOnWindowClosed(ConfigEditor::Closed);
     this->window.SetCSS("ui/Style.css");
     this->window.Show();
@@ -272,10 +270,10 @@ void ConfigEditor::Save() {
              *  <resolution>
              */
             XMLTag resolution = XMLTag("resolution");
-                XMLTag resolutionWidth = XMLTag("width", std::to_string(this->cameraSettings.GetWidth()));
+                XMLTag resolutionWidth = XMLTag("width", std::to_string(this->cameraSettings.GetSettingValueFromID(CAP_PROP_FRAME_WIDTH)));
                     resolution.AddTag(resolutionWidth);
 
-                XMLTag resolutionHeight = XMLTag("height", std::to_string(this->cameraSettings.GetHeight()));
+                XMLTag resolutionHeight = XMLTag("height", std::to_string(this->cameraSettings.GetSettingValueFromID(CAP_PROP_FRAME_HEIGHT)));
                     resolution.AddTag(resolutionHeight);
 
                 camera.AddTag(resolution);
@@ -574,6 +572,20 @@ void ConfigEditor::RecheckUDP() {
     this->runner.ReconnectUDP(newUDPAddr, newUDPPort);
 }
 
+/**
+ * Applies the settings from the camera tab to the camera itself.
+ */
+void ConfigEditor::ApplyCameraSettings() {
+    std::vector<int> settingIDs = this->cameraSettings.GetSettingIDs();
+    
+    //tell the runner to apply each setting
+    for(int i=0; i<settingIDs.size(); i++) {
+        int id = settingIDs[i];
+        double value = this->cameraSettings.GetSettingValueFromID(id);
+        this->runner.SetCameraProperty(id, value);
+    }
+}
+
 
 void ConfigEditor::ReconnectUDPFromOverview() {
     std::string newAddr = this->configOverview.GetUDPAddr();
@@ -587,7 +599,12 @@ void ConfigEditor::ReconnectUDPFromOverview() {
 
 
 void ConfigEditor::ResetResolutionFromOverview() {
+    Size newRes = this->configOverview.GetImageResolution();
+    this->runner.SetResolution(newRes);
 
+    //set the resolution in the camera settings menu
+    this->cameraSettings.SetSettingValueFromID(CAP_PROP_FRAME_WIDTH, newRes.width);
+    this->cameraSettings.SetSettingValueFromID(CAP_PROP_FRAME_HEIGHT, newRes.height);
 }
 
 void ConfigEditor::SetUDPEnabled(bool enabled) {
@@ -601,8 +618,8 @@ bool ConfigEditor::GetUDPEnabled() {
 
 
 void ConfigEditor::ResetRunnerResolution() {
-    int camResX = this->cameraSettings.GetWidth();
-    int camResY = this->cameraSettings.GetHeight();
+    int camResX = this->cameraSettings.GetSettingValueFromID(CAP_PROP_FRAME_WIDTH);
+    int camResY = this->cameraSettings.GetSettingValueFromID(CAP_PROP_FRAME_HEIGHT);
     Size newRes = Size(camResX, camResY);
     this->runner.SetResolution(newRes);
 }

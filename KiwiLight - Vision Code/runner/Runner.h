@@ -319,6 +319,8 @@ namespace KiwiLight {
         SettingPair GetPostProcessorContourProperty(int contour, TargetProperty prop);
         void SetRunnerProperty(RunnerProperty prop, double value);
         double GetRunnerProperty(RunnerProperty prop);
+        void SetCameraProperty(int id, double value);
+        double GetCameraProperty(int id);
 
         private:
         void parseDocument(XMLDocument doc);

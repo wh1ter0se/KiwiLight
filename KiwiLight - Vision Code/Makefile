@@ -108,6 +108,9 @@ bin/util/Flags.o: util/Flags.cpp
 bin/util/Shell.o: util/Shell.cpp
 	$(CXX) -c -o bin/util/Shell.o util/Shell.cpp $(GTK)
 
+bin/util/Util.o: util/Util.cpp
+	$(CXX) -c -o bin/util/Util.o util/Util.cpp $(GTK)
+
 bin/util/StringUtils.o: util/StringUtils.cpp
 	$(CXX) -c -o bin/util/StringUtils.o util/StringUtils.cpp $(GTK)
 
@@ -132,8 +135,8 @@ bin/util/SettingPair.o: util/SettingPair.cpp
 bin/util/Color.o: util/Color.cpp
 	$(CXX) -c -o bin/util/Color.o util/Color.cpp $(GTK) $(CV)
 
-lib/Util.a: bin/util/Flags.o bin/util/Shell.o bin/util/StringUtils.o bin/util/DataUtils.o bin/util/UDP.o bin/util/XMLDocument.o bin/util/XMLTag.o bin/util/XMLTagAttribute.o bin/util/SettingPair.o bin/util/Color.o
-	ar rs lib/Util.a bin/util/Flags.o bin/util/Shell.o bin/util/StringUtils.o bin/util/DataUtils.o bin/util/UDP.o bin/util/XMLDocument.o bin/util/XMLTag.o bin/util/XMLTagAttribute.o bin/util/SettingPair.o bin/util/Color.o
+lib/Util.a: bin/util/Flags.o bin/util/Shell.o bin/util/Util.o bin/util/StringUtils.o bin/util/DataUtils.o bin/util/UDP.o bin/util/XMLDocument.o bin/util/XMLTag.o bin/util/XMLTagAttribute.o bin/util/SettingPair.o bin/util/Color.o
+	ar rs lib/Util.a bin/util/Flags.o bin/util/Shell.o bin/util/Util.o bin/util/StringUtils.o bin/util/DataUtils.o bin/util/UDP.o bin/util/XMLDocument.o bin/util/XMLTag.o bin/util/XMLTagAttribute.o bin/util/SettingPair.o bin/util/Color.o
 
 #RUNNER
 bin/runner/Contour.o: runner/Contour.cpp
@@ -181,6 +184,13 @@ bin/KiwiLight.o: KiwiLight.cpp
 
 KiwiLight: Main.cpp bin/KiwiLight.o lib/UI.a lib/Util.a lib/Runner.a
 	$(CXX) -o KiwiLight Main.cpp bin/KiwiLight.o lib/UI.a  lib/Runner.a lib/Util.a $(CV) $(GTK)
+
+#SET UP THE FILES AND FOLDERS
+setup:
+	mkdir lib
+	mkdir bin/ui
+	mkdir bin/util
+	mkdir bin/runner
 
 #UNINSTALL
 clean:

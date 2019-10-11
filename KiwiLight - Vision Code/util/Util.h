@@ -173,6 +173,14 @@ namespace KiwiLight {
     };
 
     /**
+     * General util class containing useful methods used by multiple classes
+     */
+    class Util {
+        public:
+        static XMLTag SearchCameraSettingsByID(std::vector<XMLTag> settings, int id);
+    };
+
+    /**
      * Represents a single value with an error.
      */
     class SettingPair {

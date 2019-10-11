@@ -415,8 +415,9 @@ namespace KiwiLight {
     class CameraSetting : public Widget {
         public:
         CameraSetting() {};
-        CameraSetting(std::string name, int min, int max, int value);
+        CameraSetting(std::string name, int valueName, int min, int max, int value);
         int GetValue();
+        int GetValueName();
         void SetValue(int newValue);
         void Destroy();
         std::string GetName() { return name; };
@@ -429,10 +430,13 @@ namespace KiwiLight {
         Label  nameLabel;
         NumberBox input;
 
-        std::string name,
-                    type;
+        std::string 
+            name,
+            type;
 
-        int min, 
+        int 
+            valueName,
+            min, 
             max,
             value;
     };
@@ -455,15 +459,17 @@ namespace KiwiLight {
 
         private:
         Panel panel;
-        Label header,
-              fileLabel,
-              PreProcessorLabel,
-              TargetLabel,
-              UDPAddressLabel,
-              UDPPortLabel;
+        Label
+            header,
+            fileLabel,
+            PreProcessorLabel,
+            TargetLabel,
+            UDPAddressLabel,
+            UDPPortLabel;
 
-        std::string configFile,
-                    configNameString;
+        std::string 
+            configFile,
+            configNameString;
 
         GtkWidget *configPanel;
     };
@@ -503,24 +509,19 @@ namespace KiwiLight {
     class Settings : public Widget {
         public:
         Settings() {};
-        Settings(int index, VideoCapture cap);
+        Settings(VideoCapture cap, XMLDocument doc);
         void Update();
         void UpdateValue();
         void Show() { gtk_widget_show_all(this->settingsWidget); };
-        int GetWidth() { return camWidth; };
-        int GetHeight() { return camHeight; };
         XMLTag GetFinishedTag();
+        void SetSettingValueFromID(int id, double value);
+        double GetSettingValueFromID(int id);
+        std::vector<int> GetSettingIDs();
         GtkWidget *GetWidget() { return settingsWidget; };
         void SetName(std::string name);
 
         private:
-        static void ScheduleApplySettings();
-        int searchAndReturnValue(std::string searchString, std::string term);
-        CameraSetting frameWidth,
-                      frameHeight;
         std::vector<CameraSetting> settings;
-        int camWidth,
-            camHeight;
         GtkWidget *settingsWidget;
     };
 
@@ -537,19 +538,22 @@ namespace KiwiLight {
 
         private:
         bool lastIsFull;
-        CheckBox isFull,
-                 isPartial;
+        CheckBox 
+            isFull,
+            isPartial;
         
-        NumberBox colorH,
-                  colorS,
-                  colorV;
+        NumberBox 
+            colorH,
+            colorS,
+            colorV;
 
         Image colorPreview;
 
-        LabeledSlider colorError,
-                      threshold,
-                      erosion,
-                      dilation;
+        LabeledSlider 
+            colorError,
+            threshold,
+            erosion,
+            dilation;
         
         GtkWidget *preprocessoreditor;
     };
@@ -569,19 +573,21 @@ namespace KiwiLight {
         private:
         int lastDesiredContour;
         
-        NumberBox contourchooser,
-                  distX,
-                  distY;
+        NumberBox 
+            contourchooser,
+            distX,
+            distY;
 
-        LabeledSlider distXErr,
-                      distYErr,
-                      angle,
-                      angleErr,
-                      ar,
-                      arErr,
-                      solidity,
-                      solidityErr,
-                      minimumArea;
+        LabeledSlider 
+            distXErr,
+            distYErr,
+            angle,
+            angleErr,
+            ar,
+            arErr,
+            solidity,
+            solidityErr,
+            minimumArea;
 
         Runner storageRunner;
 
@@ -609,14 +615,15 @@ namespace KiwiLight {
         TextBox udpAddress;
         NumberBox udpPort;
 
-        LabeledSlider offsetX,
-                      offsetY,
-                      imageWidth,
-                      imageHeight,
-                      targetTrueWidth,
-                      targetPercievedWidth,
-                      targetCalibratedDistance,
-                      targetErrorCorrection;
+        LabeledSlider 
+            offsetX,
+            offsetY,
+            imageWidth,
+            imageHeight,
+            targetTrueWidth,
+            targetPercievedWidth,
+            targetCalibratedDistance,
+            targetErrorCorrection;
 
         GtkWidget *runnereditor;
     };
@@ -632,6 +639,7 @@ namespace KiwiLight {
         void StartLearningTarget();
         void StartLearningDistance();
         void RecheckUDP();
+        void ApplyCameraSettings();
         void ReconnectUDPFromOverview();
         void ResetResolutionFromOverview();
         void SetUDPEnabled(bool enabled);
