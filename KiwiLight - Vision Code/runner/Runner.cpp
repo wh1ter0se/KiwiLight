@@ -132,7 +132,7 @@ std::string Runner::Iterate() {
         this->lastIterationSuccessful = true;
         img = cv::imread(RunnerSettings::IMAGE_TO_USE);
     }
-
+    
     resize(img, img, this->constantResize);
     img.copyTo(this->originalImage);
     img = this->preprocessor.ProcessImage(img);
@@ -401,8 +401,11 @@ double Runner::GetRunnerProperty(RunnerProperty prop) {
 }
 
 void Runner::SetCameraProperty(int id, double value) {
-    std::cout << "setting property " << id << " to " << value << std::endl;
-    this->cap.set(id, value);
+    bool success = this->cap.set(id, value);
+    
+    if(!success) {
+        std::cout << "SETTING VALUE FOR " << id << " FAILED!" << std::endl;
+    }
 }
 
 

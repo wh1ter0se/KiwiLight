@@ -199,4 +199,5 @@ clean:
 	rm bin/util/*
 	rm bin/runner/*
 	rm lib/*
+	rm bin/KiwiLight.o
 	rm KiwiLight

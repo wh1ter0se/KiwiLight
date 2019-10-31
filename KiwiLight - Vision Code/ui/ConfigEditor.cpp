@@ -177,7 +177,7 @@ bool ConfigEditor::UpdateImageOnly() {
     bool retval = this->runner.GetLastFrameSuccessful();
     this->out = this->runner.GetOutputImage();
     this->original = this->runner.GetOriginalImage();
-
+        
     if(this->learnerActivated) {
         int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
         this->learner.FeedImage(this->original, minimumArea);
@@ -225,7 +225,7 @@ bool ConfigEditor::UpdateImageOnly() {
             }
         }
     }
-
+    
     if(this->distanceLearnerRunning) {
         this->distLearner.FeedTarget(this->runner.GetClosestTargetToCenter());
 
@@ -249,7 +249,7 @@ bool ConfigEditor::UpdateImageOnly() {
             this->distanceLearnerRunning = false;
         }
     }
-
+    
     return retval;
 }
 
@@ -583,6 +583,13 @@ void ConfigEditor::ApplyCameraSettings() {
         int id = settingIDs[i];
         double value = this->cameraSettings.GetSettingValueFromID(id);
         this->runner.SetCameraProperty(id, value);
+    }
+    
+    //get the settings and apply them to the menu to tell the user if they were rejected or not
+    for(int i=0; i<settingIDs.size(); i++) {
+        int id = settingIDs[i];
+        double value = this->runner.GetCameraProperty(id);
+        this->cameraSettings.SetSettingValueFromID(id, value);
     }
 }
 

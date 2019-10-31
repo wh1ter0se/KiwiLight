@@ -27,6 +27,7 @@ Button        KiwiLightApp::toggleUDPButton;
  */
 void KiwiLightApp::Create(int argc, char *argv[]) {
     KiwiLightApp::mode = UIMode::UI_STREAM;
+    KiwiLightApp::camera = VideoCapture(0);
 
     gtk_init(&argc, &argv);
     win = Window(GTK_WINDOW_TOPLEVEL);
@@ -231,6 +232,8 @@ void KiwiLightApp::UpdateStreamsConstantly() {
     while(KiwiLightApp::mode != UIMode::UI_QUTTING) {
         KiwiLightApp::UpdateStreams();
     }
+    
+    std::cout << "stream terminated!" << std::endl;
 
     g_thread_exit(0);
 }
@@ -248,10 +251,16 @@ void KiwiLightApp::UpdateStreams() {
         case UIMode::UI_RUNNER:
             KiwiLightApp::runner.Iterate();
             streamSuccess = KiwiLightApp::runner.GetLastFrameSuccessful();
+            displayImage = KiwiLightApp::runner.GetOutputImage();
             break;
         case UIMode::UI_EDITOR:
             streamSuccess = KiwiLightApp::configeditor.UpdateImageOnly();
+            displayImage = KiwiLightApp::configeditor.GetOutputImage();
             break;
+    }
+    
+    if(displayImage.empty()) {
+        std::cout << "DISPLAY IMAGE EMPTY!" << std::endl;
     }
 
     KiwiLightApp::lastFrameGrabSuccessful = streamSuccess;

@@ -22,7 +22,8 @@ CameraSetting::CameraSetting(std::string name, int valueName, int min, int max, 
     //create the widget
     std::string boundString = 
         "Min: " + std::to_string(min) + 
-        ",  Max: " + std::to_string(max);
+        ",  Max: " + std::to_string(max) +
+        ", ID: " + std::to_string(valueName);
 
     std::string nameString = this->name + " (" + boundString + ")";
 

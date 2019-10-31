@@ -58,7 +58,7 @@ Settings::Settings(VideoCapture cap, XMLDocument doc) {
 
         //exposure
         int realExposure = std::stoi(Util::SearchCameraSettingsByID(docSettings, CAP_PROP_EXPOSURE).Content());
-        CameraSetting exposure = CameraSetting("Exposure: ", CAP_PROP_EXPOSURE, 0, 2000, realExposure);
+        CameraSetting exposure = CameraSetting("Exposure: ", CAP_PROP_EXPOSURE, -64, 64, realExposure);
         this->settings.push_back(exposure);
             editor.Pack_start(exposure.GetWidget(), true, true, 0);
 
@@ -70,7 +70,7 @@ Settings::Settings(VideoCapture cap, XMLDocument doc) {
 
         //white balance
         int realWhiteBalance = std::stoi(Util::SearchCameraSettingsByID(docSettings, CAP_PROP_WB_TEMPERATURE).Content());
-        CameraSetting WB = CameraSetting("White Balance: ", CAP_PROP_WB_TEMPERATURE, 0, 2000, 512);
+        CameraSetting WB = CameraSetting("White Balance: ", CAP_PROP_WB_TEMPERATURE, -64, 64, 512);
         this->settings.push_back(WB);
             editor.Pack_start(WB.GetWidget(), true, true, 0);
 
