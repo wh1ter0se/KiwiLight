@@ -91,7 +91,6 @@ UDP::UDP(std::string this_ip, std::string dest_ip, int port, bool blockUntilConn
 
     std::cout << "Setting up UDP..." << std::endl;
     
-    this->enabled = true;
 
     this->sock = socket(AF_INET, SOCK_DGRAM, 0); //"0" for wildcard of what protocol is best
     if(this->sock < 0) //socket creation didnt be like that tho
@@ -143,6 +142,10 @@ UDP::UDP(std::string this_ip, std::string dest_ip, int port, bool blockUntilConn
 bool UDP::AttemptToConnect() {
     if(!this->connected) {
         int connect_result = connect(this->sock, (sockaddr*) &this->client_address, sizeof(this->client_address));
+        
+        if(connect_result < 0) {
+            std::cout << "CONNECT FAILED" << std::endl;
+        }
         return (connect_result > -1);
     }
 
@@ -150,21 +153,13 @@ bool UDP::AttemptToConnect() {
 }
 
 /**
- * sets whether or not the UDP messaging is enabled.
- */
-void UDP::SetEnabled(bool enabled) {
-    this->enabled = enabled;
-}
-
-/**
  * Sends the given message to the destination
  * @param msg a string containing the message to send
  */
 void UDP::Send(std::string msg) {
-    if(this->enabled) {
-        const char *buffer = msg.c_str();
-        int send_result = send(this->sock, buffer, strlen(buffer), 0); //the big send
-    }
+    std::cout << "sending " << msg << std::endl;
+    const char *buffer = msg.c_str();
+    int send_result = send(this->sock, buffer, strlen(buffer), 0); //the big send
 }
 
 /**
@@ -172,15 +167,10 @@ void UDP::Send(std::string msg) {
  * @return a string containing the contents of the buffer
  */
 std::string UDP::Recieve() {
-    if(this->enabled) {
-        char buffer[1024] = {0};
-        int read_result = recv(this->sock, buffer, 1024, MSG_DONTWAIT);
-        std::string bufferStr = std::string(buffer);
-        return bufferStr;
-    }
-    
-    std::cout << "Recieve not enabled!" << std::endl;
-    return "";
+    char buffer[1024] = {0};
+    int read_result = recv(this->sock, buffer, 1024, MSG_DONTWAIT);
+    std::string bufferStr = std::string(buffer);
+    return bufferStr;
 }
 
 /**

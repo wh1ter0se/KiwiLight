@@ -14,6 +14,7 @@ Runner        KiwiLightApp::runner;
 ConfigEditor  KiwiLightApp::configeditor;
 UIMode        KiwiLightApp::mode = UIMode::UI_STREAM;
 bool          KiwiLightApp::lastFrameGrabSuccessful = false;
+bool          KiwiLightApp::udpEnabled = false;
 Mat           KiwiLightApp::lastFrameGrabImage;
 Window        KiwiLightApp::win;
 ConfigPanel   KiwiLightApp::confInfo;
@@ -248,14 +249,28 @@ void KiwiLightApp::UpdateStreams() {
         case UIMode::UI_STREAM:
             streamSuccess = KiwiLightApp::camera.read(displayImage);
             break;
-        case UIMode::UI_RUNNER:
-            KiwiLightApp::runner.Iterate();
-            streamSuccess = KiwiLightApp::runner.GetLastFrameSuccessful();
-            displayImage = KiwiLightApp::runner.GetOutputImage();
+        case UIMode::UI_RUNNER: {
+                std::string output = KiwiLightApp::runner.Iterate();
+                streamSuccess = KiwiLightApp::runner.GetLastFrameSuccessful();
+                displayImage = KiwiLightApp::runner.GetOutputImage();
+                
+                //if the udp is enabled, send the message
+                if(KiwiLightApp::udpEnabled) {
+                    KiwiLightApp::runner.GetUDP().Send(output);
+                }
+            }
             break;
-        case UIMode::UI_EDITOR:
-            streamSuccess = KiwiLightApp::configeditor.UpdateImageOnly();
-            displayImage = KiwiLightApp::configeditor.GetOutputImage();
+        case UIMode::UI_EDITOR: {
+                streamSuccess = KiwiLightApp::configeditor.UpdateImageOnly();
+                displayImage = KiwiLightApp::configeditor.GetOutputImage();
+                
+                std::string output = KiwiLightApp::configeditor.GetLastFrameResult(); //gets the results of the last runner iteration
+                
+                //send if udp enabled
+                if(KiwiLightApp::udpEnabled) {
+                    KiwiLightApp::runner.GetUDP().Send(output);
+                }
+            }
             break;
     }
     
@@ -280,7 +295,10 @@ void KiwiLightApp::OpenNewCamera() {
  * Enables or disables the runner's UDP.
  */
 void KiwiLightApp::ToggleUDP() {
-    std::cout << "toggle UDP" << std::endl;
+    KiwiLightApp::udpEnabled = !KiwiLightApp::udpEnabled;
+    
+    //set the button text
+    KiwiLightApp::toggleUDPButton.SetText((KiwiLightApp::udpEnabled ? "Disable UDP" : "Enable UDP"));
 }
 
 /**

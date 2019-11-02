@@ -634,6 +634,7 @@ namespace KiwiLight {
         ConfigEditor(std::string fileName, VideoCapture cap);
         void Update();
         bool UpdateImageOnly();
+        std::string GetLastFrameResult();
         void Save();
         void Close();
         void StartLearningTarget();
@@ -642,8 +643,6 @@ namespace KiwiLight {
         void ApplyCameraSettings();
         void ReconnectUDPFromOverview();
         void ResetResolutionFromOverview();
-        void SetUDPEnabled(bool enabled);
-        bool GetUDPEnabled();
         void ResetRunnerResolution();
         std::string GetFileName() { return this->fileName; };
         VideoCapture GetVideoCapture() { return this->runner.GetVideoStream(); };
@@ -672,8 +671,11 @@ namespace KiwiLight {
         //runtime things
         Runner runner;
         XMLDocument currentDoc;
-        std::string fileName;
-        std::string confName;
+        std::string 
+                fileName,
+                confName;
+                
+        std::string lastIterationResult;
 
         TabView tabs;
         OverviewPanel configOverview;

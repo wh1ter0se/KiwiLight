@@ -258,18 +258,6 @@ std::string Runner::Iterate() {
         out.copyTo(this->outputImage);
     }
 
-    //enabled the UDP if it was disabled and runner is not in debug mode
-    if(!this->debug) {
-        this->udp.SetEnabled(true);
-    }
-
-    //send the message to the RIO
-    if(this->udp.IsEnabled()) {
-        //send the UDP if it is enabled or running mode is enabled.
-        this->udp.AttemptToConnect();
-        this->udp.Send(rioMessage);
-    }
-
     return rioMessage;
 }
 
@@ -279,17 +267,6 @@ std::string Runner::Iterate() {
 ExampleTarget Runner::GetExampleTargetByID(int id) {
     return this->postprocessor.GetExampleTargetByID(id);
 }
-
-
-void Runner::SetUDPEnabled(bool enabled) {
-    this->udp.SetEnabled(enabled);
-}
-
-
-bool Runner::GetUDPEnabled() {
-    return this->udp.IsEnabled();
-}
-
 
 void Runner::SetExampleTarget(int contourID, ExampleTarget target) {
     for(int i=0; i<this->postProcessorTargets.size(); i++) {

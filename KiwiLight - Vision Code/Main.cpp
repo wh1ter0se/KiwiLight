@@ -8,7 +8,19 @@ using namespace cv;
 using namespace KiwiLight;
 
 int main(int argc, char *argv[]) {
-    KiwiLightApp::Create(argc, argv);
-    KiwiLightApp::Start();
+    if(argc == 1) {
+        KiwiLightApp::Create(argc, argv);
+        KiwiLightApp::Start();
+    } else {
+        std::cout << "Command: \"" << argv[1] << "\"" << std::endl;
+        //special command, do something else
+        if(std::string(argv[1]) == "-c") {
+            std::string configPath = argv[2];
+            std::cout << "Config Path: " << configPath << std::endl;
+            Runner runner = Runner(configPath, false);
+            runner.Loop();
+        }
+    }
+    
     return 0;
 }
