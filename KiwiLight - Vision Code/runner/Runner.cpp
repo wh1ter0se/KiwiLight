@@ -23,8 +23,8 @@ Runner::Runner(std::string fileName, bool debugging) {
         std::cout << "sorry! the file " << fileName << " could not be found. " << std::endl;
     }
 
-    this->applySettings();
     this->cap = VideoCapture(this->cameraIndex);
+    this->applySettings();
     this->SetResolution(this->cameraResolution);
     this->stop = false;
 }
@@ -43,10 +43,11 @@ Runner::Runner(std::string fileName, bool debugging, bool openNewVideoStream) {
     }
 
     if(openNewVideoStream) {
-        this->applySettings();
         this->cap = VideoCapture(this->cameraIndex);
         this->SetResolution(this->cameraResolution);
     }
+    
+    this->applySettings();
     this->stop = false;
 }
 
@@ -62,9 +63,9 @@ Runner::Runner(std::string fileName, bool debugging, VideoCapture cap) {
     } else {
         std::cout << "sorry! the file " << fileName << " could not be found. " << std::endl;
     }
-
-    this->applySettings();
+    
     this->cap = cap;
+    this->applySettings();
     this->SetResolution(this->cameraResolution);
     this->stop = false;
 }

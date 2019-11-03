@@ -132,7 +132,8 @@ void ConfigEditor::Update() {
         this->outputImage.Update(displayable);
     } catch(cv::Exception ex) {
     }
-    
+    //update the different tabs
+    this->configOverview.SetTargetInformationLabelsFromString(this->lastIterationResult);
     this->cameraSettings.Update();
     this->preprocessorSettings.Update();
     this->postprocessorSettings.Update();
@@ -174,13 +175,11 @@ void ConfigEditor::Update() {
  * Updates the internal runner to in turn update the output images.
  */
 bool ConfigEditor::UpdateImageOnly() {
+    //std::cout << "uio1" << std::endl;
     this->lastIterationResult = this->runner.Iterate();
     bool retval = this->runner.GetLastFrameSuccessful();
     this->out = this->runner.GetOutputImage();
     this->original = this->runner.GetOriginalImage();
-
-    //update overview panel
-    this->configOverview.SetTargetInformationLabelsFromString(this->lastIterationResult);
         
     if(this->learnerActivated) {
         int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
@@ -254,6 +253,7 @@ bool ConfigEditor::UpdateImageOnly() {
         }
     }
     
+    //std::cout << "uio2" << std::endl;
     return retval;
 }
 

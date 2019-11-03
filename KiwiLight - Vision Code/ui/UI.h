@@ -415,10 +415,10 @@ namespace KiwiLight {
     class CameraSetting : public Widget {
         public:
         CameraSetting() {};
-        CameraSetting(std::string name, int valueName, int min, int max, int value);
-        int GetValue();
+        CameraSetting(std::string name, int valueName, double min, double max, double value);
+        double GetValue();
         int GetValueName();
-        void SetValue(int newValue);
+        void SetValue(double newValue);
         void Destroy();
         std::string GetName() { return name; };
         GtkWidget *GetWidget() { return this->camerasetting; };
@@ -662,7 +662,7 @@ namespace KiwiLight {
         static void Closed();
         void UpdateImage();
 
-        //universal config learnign utility
+        //universal config learning utility
         ConfigLearner learner;
         bool learnerActivated;
 
