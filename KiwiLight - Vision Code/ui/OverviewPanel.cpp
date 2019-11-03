@@ -23,43 +23,29 @@ OverviewPanel::OverviewPanel(XMLDocument doc) {
             
             editor.Pack_start(namePanel.GetWidget(), false, false, 0);
 
-        Label imageResolutionHeader = Label("Image Resolution");
-            imageResolutionHeader.SetName("subHeader");
-            editor.Pack_start(imageResolutionHeader.GetWidget(), true, true, 0);
+        Label targetInformationHeader = Label("Target Information:");
+            targetInformationHeader.SetName("subHeader");
+            editor.Pack_start(targetInformationHeader.GetWidget(), true, true, 0);
 
-        std::vector<XMLTag> camerasettings = 
-            doc.GetTagsByName("camera")[0]
-            .GetTagsByName("settings")[0]
-            .GetTagsByName("setting");
+        //the real time target information panel
+        Panel targetInformationPanel = Panel(false, 0);
+            this->targetSpotted = Label("Target Spotted: NO");
+            this->targetSpotted.SetName("gray");
+                targetInformationPanel.Pack_start(this->targetSpotted.GetWidget(), false, false, 0);
 
-        Panel imageResolutionPanel = Panel(true, 0);
-            Panel imageResolutionContents = Panel(false, 0);
-                Panel resXPanel = Panel(true, 0);
-                    Label resXHeader = Label("Width: ");
-                        resXPanel.Pack_start(resXHeader.GetWidget(), true, true, 0);
+            this->targetImageLocation = Label("Target Location: N/A");
+                targetInformationPanel.Pack_start(this->targetImageLocation.GetWidget(), false, false, 0);
 
-                    int realImgResX = std::stoi(Util::SearchCameraSettingsByID(camerasettings, CAP_PROP_FRAME_WIDTH).Content());
-                    this->imgResX = NumberBox(100, 2000, 1, realImgResX);
-                        resXPanel.Pack_start(this->imgResX.GetWidget(), true, true, 0);
+            this->targetDist = Label("Target Distance: N/A");
+                targetInformationPanel.Pack_start(this->targetDist.GetWidget(), false, false, 0);
 
-                    imageResolutionContents.Pack_start(resXPanel.GetWidget(), true, true, 0);
+            this->targetHAngle = Label("Target Horizontal Angle: N/A");
+                targetInformationPanel.Pack_start(this->targetHAngle.GetWidget(), false, false, 0);
 
-                Panel resYPanel = Panel(true, 0);
-                    Label resYHeader = Label("Height: ");
-                        resYPanel.Pack_start(resYHeader.GetWidget(), true, true, 0);
+            this->targetVAngle = Label("Target Vertical Angle: N/A");
+                targetInformationPanel.Pack_start(this->targetVAngle.GetWidget(), false, false, 0);
 
-                    int realImgResY = std::stoi(Util::SearchCameraSettingsByID(camerasettings, CAP_PROP_FRAME_HEIGHT).Content());
-                    this->imgResY = NumberBox(100, 2000, 1, realImgResY);
-                        resYPanel.Pack_start(this->imgResY.GetWidget(), true, true, 0);
-
-                    imageResolutionContents.Pack_start(resYPanel.GetWidget(), true, true, 0);
-
-                imageResolutionPanel.Pack_start(imageResolutionContents.GetWidget(), true, true, 0);
-
-            Button setResolution = Button("Set", KiwiLightApp::EditorSetImageResolutionFromOverview);
-                imageResolutionPanel.Pack_start(setResolution.GetWidget(), true, true, 0);
-
-            editor.Pack_start(imageResolutionPanel.GetWidget(), true, true, 0);
+            editor.Pack_start(targetInformationPanel.GetWidget(), true, true, 0);
 
         Label udpHeader = Label("UDP");
             udpHeader.SetName("subHeader");
@@ -129,15 +115,50 @@ int OverviewPanel::GetUDPPort() {
     return (int) this->udpPort.GetValue();
 }
 
-void OverviewPanel::SetImageResolution(Size res) { 
-    this->imgResX.SetValue(res.width);
-    this->imgResY.SetValue(res.height);
+void OverviewPanel::SetTargetInformationLabels(bool targetSpotted, int targetImgX, int targetImgY, double targetDist, double targetHAngle, double targetVAngle) {
+    this->targetSpotted.SetText(std::string("Target Spotted: ") + (targetSpotted ? std::string("YES") : std::string("NO")));
+    
+    std::string
+        targetLocationString = "N/A",
+        targetDistString = "N/A",
+        targetHAngleString = "N/A",
+        targetVAngleString = "N/A";
+
+    if(targetSpotted) {
+        targetLocationString = "( " + std::to_string(targetImgX) + ", " + std::to_string(targetImgY) + ")";
+        targetDistString = std::to_string(targetDist);
+        targetHAngleString = std::to_string(targetHAngle);
+        targetVAngleString = std::to_string(targetVAngle);
+    }
+
+    this->targetImageLocation.SetText("Target Location " + targetLocationString);
+    this->targetDist.SetText("Target Distance: " + targetDistString);
+    this->targetHAngle.SetText("Target Horizontal Angle: " + targetHAngleString);
+    this->targetVAngle.SetText("Target Vertical Angle: " + targetVAngleString);
 }
 
-Size OverviewPanel::GetImageResolution() { 
-    int resX = (int) this->imgResX.GetValue();
-    int resY = (int) this->imgResY.GetValue();
-    return Size(resX, resY);
+
+void OverviewPanel::SetTargetInformationLabelsFromString(std::string iterOutput) {
+    if(iterOutput.length() < 3) { //improperly formatted string
+        return;
+    }
+
+    std::string trimmedOutput = iterOutput.substr(1, iterOutput.length() - 2); //sub off the ':' and ';' at beginning and end
+    std::vector<std::string> splitOutput = StringUtils::SplitString(trimmedOutput, ',');
+
+    //there must be 5 nums in string, no more, no less
+    if(splitOutput.size() == 5) {
+        int targetX = std::stoi(splitOutput[0]);
+        int targetY = std::stoi(splitOutput[1]);
+        double targetDist = std::stod(splitOutput[2]);
+        double targetAngleHorizontal = std::stod(splitOutput[3]);
+        double targetAngleVertical = std::stod(splitOutput[4]);
+        bool targetSpotted = (targetX > -1);
+
+        SetTargetInformationLabels(targetSpotted, targetX, targetY, targetDist, targetAngleHorizontal, targetAngleVertical);
+    } else {
+        std::cout << "WARNING: Could not update overview panel information labels. Input string was wrongly formatted." << std::endl;
+    }
 }
 
 

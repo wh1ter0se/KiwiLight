@@ -309,8 +309,6 @@ namespace KiwiLight {
         cv::VideoCapture GetVideoStream() { return this->cap; };
         Size GetConstantSize() { return this->constantResize; };
         ExampleTarget GetExampleTargetByID(int id);
-        void SetUDPEnabled(bool enabled);
-        bool GetUDPEnabled();
         UDP GetUDP() { return this->udp; };
         void SetExampleTarget(int targetID, ExampleTarget target);
         void SetPreprocessorProperty(PreProcessorProperty prop, double value);

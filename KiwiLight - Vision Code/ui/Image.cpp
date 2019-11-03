@@ -28,10 +28,6 @@ Image::Image(ImageColorspace colorspace) {
  * Updates and redraws the widget with newImage.
  */
 void Image::Update(cv::Mat newImage) {    
-    if(newImage.empty()) {
-        std::cout << "THE IMAGE IS EMPTY!!!" << std::endl;
-    }
-    
     if(!this->declaredAsStaticImage) {
         //convert the newImage to RGB colorspace
         cv::Mat newImageCopy; //copy the image so that changes arent made to the argument image

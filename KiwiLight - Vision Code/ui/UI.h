@@ -485,8 +485,15 @@ namespace KiwiLight {
         std::string GetUDPAddr();
         void SetUDPPort(int port);
         int GetUDPPort();
-        void SetImageResolution(Size res);
-        Size GetImageResolution();
+        void SetTargetInformationLabels(
+            bool targetSpotted,
+            int targetImgX,
+            int targetImgY,
+            double targetDist,
+            double targetHAngle,
+            double targetVAngle
+        );
+        void SetTargetInformationLabelsFromString(std::string iterOutput);
         GtkWidget *GetWidget() { return overviewpanel; };
         void SetName(std::string name);
 
@@ -494,11 +501,13 @@ namespace KiwiLight {
         TextBox configName;
         TextBox udpAddr;
         NumberBox udpPort;
-        NumberBox
-            imgResX,
-            imgResY;
 
-        LabeledSlider focalWidth;
+        Label
+            targetSpotted,
+            targetImageLocation,
+            targetDist,
+            targetHAngle,
+            targetVAngle;
 
         GtkWidget *overviewpanel;
     };
@@ -634,6 +643,7 @@ namespace KiwiLight {
         ConfigEditor(std::string fileName, VideoCapture cap);
         void Update();
         bool UpdateImageOnly();
+        std::string GetLastFrameResult();
         void Save();
         void Close();
         void StartLearningTarget();
@@ -641,9 +651,6 @@ namespace KiwiLight {
         void RecheckUDP();
         void ApplyCameraSettings();
         void ReconnectUDPFromOverview();
-        void ResetResolutionFromOverview();
-        void SetUDPEnabled(bool enabled);
-        bool GetUDPEnabled();
         void ResetRunnerResolution();
         std::string GetFileName() { return this->fileName; };
         VideoCapture GetVideoCapture() { return this->runner.GetVideoStream(); };
@@ -672,8 +679,11 @@ namespace KiwiLight {
         //runtime things
         Runner runner;
         XMLDocument currentDoc;
-        std::string fileName;
-        std::string confName;
+        std::string 
+                fileName,
+                confName;
+                
+        std::string lastIterationResult;
 
         TabView tabs;
         OverviewPanel configOverview;

@@ -120,7 +120,17 @@ void Settings::Update() {
  * Returns an XMLTag containing information describing the settings' values.
  */
 XMLTag Settings::GetFinishedTag() {
-    
+    XMLTag settingsTag = XMLTag("settings");
+        for(int i=0; i<this->settings.size(); i++) {
+            XMLTag newSetting = XMLTag("setting", std::to_string(this->settings[i].GetValue()));
+            //add the name attribute
+                XMLTagAttribute settingAttr = XMLTagAttribute("id", std::to_string(this->settings[i].GetValueName()));
+                newSetting.AddAttribute(settingAttr);
+
+            settingsTag.AddTag(newSetting);
+        }
+
+    return settingsTag;
 }
 
 /**

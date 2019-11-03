@@ -79,6 +79,7 @@ namespace KiwiLight {
         //utilities
         static UIMode mode;
         static bool lastFrameGrabSuccessful;
+        static bool udpEnabled;
         static Mat lastFrameGrabImage;
 
         //ui widgets
