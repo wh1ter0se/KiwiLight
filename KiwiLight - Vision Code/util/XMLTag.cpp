@@ -52,11 +52,8 @@ XMLTag::XMLTag(std::string name, std::string content) {
 
 
 void XMLTag::AddTag(XMLTag tag) {
-    std::cout << "xt1" << std::endl;
     this->containsChildren = true;
-    std::cout << "xt2" << std::endl;
     this->children.push_back(tag);
-    std::cout << "xt3" << std::endl;
 }
 
 

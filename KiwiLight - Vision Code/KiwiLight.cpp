@@ -9,19 +9,19 @@ using namespace cv;
 using namespace KiwiLight;
 
 //define some static vars for KiwiLightApp. Vars will be defined for real on call to Create();
-VideoCapture  KiwiLightApp::camera;
-Runner        KiwiLightApp::runner;
-ConfigEditor  KiwiLightApp::configeditor;
-UIMode        KiwiLightApp::mode = UIMode::UI_STREAM;
-bool          KiwiLightApp::lastFrameGrabSuccessful = false;
-bool          KiwiLightApp::udpEnabled = false;
-Mat           KiwiLightApp::lastFrameGrabImage;
-Window        KiwiLightApp::win;
-ConfigPanel   KiwiLightApp::confInfo;
-NumberBox     KiwiLightApp::cameraIndexBox;
-Label         KiwiLightApp::cameraStatusLabel;
-Image         KiwiLightApp::outputImage;
-Button        KiwiLightApp::toggleUDPButton;
+VideoCapture KiwiLightApp::camera;
+Runner       KiwiLightApp::runner;
+ConfigEditor KiwiLightApp::configeditor;
+UIMode       KiwiLightApp::mode = UIMode::UI_STREAM;
+bool         KiwiLightApp::lastFrameGrabSuccessful = false;
+bool         KiwiLightApp::udpEnabled = false;
+Mat          KiwiLightApp::lastFrameGrabImage;
+Window       KiwiLightApp::win;
+ConfigPanel  KiwiLightApp::confInfo;
+NumberBox    KiwiLightApp::cameraIndexBox;
+Label        KiwiLightApp::cameraStatusLabel;
+Image        KiwiLightApp::outputImage;
+Button       KiwiLightApp::toggleUDPButton;
 
 /**
  * Initializes GTK and builds KiwiLight
@@ -190,13 +190,6 @@ void KiwiLightApp::EditorReconnectUDP() {
 }
 
 /**
- * Causes the editor to set the image resolution from the overview panel.
- */
-void KiwiLightApp::EditorSetImageResolutionFromOverview() {
-    KiwiLightApp::configeditor.ResetResolutionFromOverview();
-}
-
-/**
  * Causes the editor to connect the UDP from the overview panel.
  */
 void KiwiLightApp::EditorConnectUDPFromOverview() {
@@ -272,10 +265,6 @@ void KiwiLightApp::UpdateStreams() {
                 }
             }
             break;
-    }
-    
-    if(displayImage.empty()) {
-        std::cout << "DISPLAY IMAGE EMPTY!" << std::endl;
     }
 
     KiwiLightApp::lastFrameGrabSuccessful = streamSuccess;

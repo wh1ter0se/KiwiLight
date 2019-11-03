@@ -178,6 +178,9 @@ bool ConfigEditor::UpdateImageOnly() {
     bool retval = this->runner.GetLastFrameSuccessful();
     this->out = this->runner.GetOutputImage();
     this->original = this->runner.GetOriginalImage();
+
+    //update overview panel
+    this->configOverview.SetTargetInformationLabelsFromString(this->lastIterationResult);
         
     if(this->learnerActivated) {
         int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
@@ -265,19 +268,14 @@ std::string ConfigEditor::GetLastFrameResult() {
  * Causes the editor to save the config to file.
  */
 void ConfigEditor::Save() {
-    std::cout << "cs1" << std::endl;
     //assemble the file structure and write it into a file which the user may designate
     XMLDocument doc = XMLDocument();
     
-    std::cout << "cs1a" << std::endl;
-
         //<camera>
         XMLTag camera = XMLTag("camera");
             XMLTagAttribute cameraIndex = XMLTagAttribute("index", std::to_string(this->runner.GetCameraIndex()));
                 camera.AddAttribute(cameraIndex);
                 
-            std::cout << "cs1b" << std::endl;
-
             /**
              * <camera>
              *  <resolution>
@@ -291,21 +289,15 @@ void ConfigEditor::Save() {
 
                 camera.AddTag(resolution);
                 
-                std::cout << "cs1c" << std::endl;
-
             /**
              * <camera>
              *  <settings>
              */
             XMLTag settings = this->cameraSettings.GetFinishedTag();
-                std::cout << "cs1ca" << std::endl;
                 camera.AddTag(settings);
             
-            std::cout << "cs1cb" << std::endl;
             doc.AddTag(camera);
             
-            std::cout << "cs1d" << std::endl;
-
         /**
          * <configuration>
          */
@@ -313,8 +305,6 @@ void ConfigEditor::Save() {
             XMLTagAttribute configurationName = XMLTagAttribute("name", this->configOverview.GetConfigName());
                 configuration.AddAttribute(configurationName);
                 
-                std::cout << "cs1e" << std::endl;
-
             /**
              * <configuration>
              *  <cameraOffset>
@@ -328,8 +318,6 @@ void ConfigEditor::Save() {
 
                 configuration.AddTag(cameraOffset);
                 
-                std::cout << "cs1f" << std::endl;
-
             /**
              * <configuration>
              *  <constantResize>
@@ -343,8 +331,6 @@ void ConfigEditor::Save() {
 
                 configuration.AddTag(constantResize);
                 
-                std::cout << "cs1g" << std::endl;
-
             /**
              * <configuration>
              *  <preprocessor>
@@ -365,8 +351,6 @@ void ConfigEditor::Save() {
                 XMLTag dilation = XMLTag("dilation", std::to_string((int) this->preprocessorSettings.GetProperty(PreProcessorProperty::DILATION)));
                     preprocessor.AddTag(dilation);
                     
-                    std::cout << "cs1e" << std::endl;
-
                 /**
                  * <configuration>
                  *  <preprocessor>
@@ -390,9 +374,7 @@ void ConfigEditor::Save() {
 
                     preprocessor.AddTag(targetColor);
                 configuration.AddTag(preprocessor);
-                
-                std::cout << "cs1f" << std::endl;
-
+            
             /**
              * <configuration>
              *  <postprocessor>
@@ -403,8 +385,6 @@ void ConfigEditor::Save() {
                     XMLTagAttribute targetID = XMLTagAttribute("id", "0"); //this remains constant for now until multiple target support is added.
                         target.AddAttribute(targetID);
                         
-                        std::cout << "cs1g" << std::endl;
-
                     for(int i=0; i<this->postprocessorSettings.GetNumContours(); i++) {
                         /**
                          * <configuration>
@@ -459,8 +439,6 @@ void ConfigEditor::Save() {
                             target.AddTag(contour);
                     }
                     
-                    std::cout << "cs1h" << std::endl;
-
                     //<knownWidth>
                     XMLTag knownWidth = XMLTag("knownWidth", std::to_string((double) this->runnerSettings.GetProperty(RunnerProperty::TRUE_WIDTH)));
                         target.AddTag(knownWidth);
@@ -478,9 +456,7 @@ void ConfigEditor::Save() {
                         target.AddTag(distErrorCorrect);
 
                     postprocessor.AddTag(target);
-                    
-                    std::cout << "cs1i" << std::endl;
-                
+                                    
                 /**
                  * <configuration>
                  *  <postprocessor>
@@ -495,30 +471,20 @@ void ConfigEditor::Save() {
                     XMLTag port = XMLTag("port", std::to_string(this->runnerSettings.GetUDPPort()));
                         UDP.AddTag(port);
                         
-                        std::cout << "cs1j" << std::endl;
-
                     postprocessor.AddTag(UDP);
                 configuration.AddTag(postprocessor);
             doc.AddTag(configuration);
-            
-            std::cout << "cs1k" << std::endl;
-    
+                
     //to prompt file name or not to promt file name
     std::string fileToSave = this->fileName;
     std::vector<std::string> fileParts = StringUtils::SplitString(fileToSave, '/');
     
-    std::cout << "cs1l" << std::endl;
-
     if(fileParts[fileParts.size() - 1] == "generic.xml") {
         FileChooser chooser = FileChooser(true, "config.xml");
         fileToSave = chooser.Show();
     }
     
-    std::cout << "cs1m" << std::endl;
-
     doc.WriteFile(fileToSave);
-    
-    std::cout << "cs2" << std::endl;
 }
 
 
@@ -648,17 +614,6 @@ void ConfigEditor::ReconnectUDPFromOverview() {
     this->runnerSettings.SetUDPAddr(newAddr);
     this->runnerSettings.SetUDPPort(newPort);
 }
-
-
-void ConfigEditor::ResetResolutionFromOverview() {
-    Size newRes = this->configOverview.GetImageResolution();
-    this->runner.SetResolution(newRes);
-
-    //set the resolution in the camera settings menu
-    this->cameraSettings.SetSettingValueFromID(CAP_PROP_FRAME_WIDTH, newRes.width);
-    this->cameraSettings.SetSettingValueFromID(CAP_PROP_FRAME_HEIGHT, newRes.height);
-}
-
 
 void ConfigEditor::ResetRunnerResolution() {
     int camResX = this->cameraSettings.GetSettingValueFromID(CAP_PROP_FRAME_WIDTH);
