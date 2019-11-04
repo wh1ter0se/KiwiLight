@@ -293,11 +293,8 @@ namespace KiwiLight {
         void SetImageResize(Size sz);
         void SetResolution(Size sz);
         void Loop();
-        void Stop();
-        void StopLoopOnly();
-        void UnlockLoop();
-        void Start();
         void ReconnectUDP(std::string udpAddr, int udpPort);
+        void SendOverUDP(std::string message);
         std::string Iterate();
         int GetNumberOfTargets() { return this->postprocessor.NumTargets(); };
         bool GetLastFrameSuccessful() { return this->lastIterationSuccessful; };

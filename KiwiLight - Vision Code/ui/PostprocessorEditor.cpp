@@ -85,7 +85,7 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
                 anglePanel.Pack_start(this->angle.GetWidget(), true, true, 0);
 
             double realAngleErr = postprocessor.GetTargetContourProperty(0, TargetProperty::ANGLE).Error();
-            this->angleErr = LabeledSlider("Range", -90.0, 90.0, 0.05, realAngleErr);
+            this->angleErr = LabeledSlider("Range", 0.0, 90.0, 0.05, realAngleErr);
                 anglePanel.Pack_start(this->angleErr.GetWidget(), true, true, 0);
 
             editor.Pack_start(anglePanel.GetWidget(), true, true, 0);

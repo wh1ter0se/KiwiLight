@@ -209,7 +209,12 @@ void KiwiLightApp::EditorApplyCameraSettings() {
 void KiwiLightApp::UpdateApp() {
     if(KiwiLightApp::lastFrameGrabSuccessful) {
         KiwiLightApp::cameraStatusLabel.SetText("");
-        KiwiLightApp::outputImage.Update(KiwiLightApp::lastFrameGrabImage);
+        
+        //attempt to put the image onto the screen
+        try {
+            KiwiLightApp::outputImage.Update(KiwiLightApp::lastFrameGrabImage);
+        } catch(cv::Exception ex) {
+        }
     } else {
         KiwiLightApp::cameraStatusLabel.SetText("Camera Error!");
     }
@@ -249,7 +254,7 @@ void KiwiLightApp::UpdateStreams() {
                 
                 //if the udp is enabled, send the message
                 if(KiwiLightApp::udpEnabled) {
-                    KiwiLightApp::runner.GetUDP().Send(output);
+                    KiwiLightApp::runner.SendOverUDP(output);
                 }
             }
             break;
@@ -261,7 +266,7 @@ void KiwiLightApp::UpdateStreams() {
                 
                 //send if udp enabled
                 if(KiwiLightApp::udpEnabled) {
-                    KiwiLightApp::runner.GetUDP().Send(output);
+                    KiwiLightApp::configeditor.SendOverUDP(output);
                 }
             }
             break;
@@ -328,10 +333,15 @@ void KiwiLightApp::EditConfiguration() {
 void KiwiLightApp::OpenConfiguration() {
     FileChooser chooser = FileChooser(false, "");
     std::string fileToOpen = chooser.Show();
-
-    KiwiLightApp::confInfo.LoadConfig(XMLDocument(fileToOpen));
-    KiwiLightApp::runner = Runner(fileToOpen, true, KiwiLightApp::camera);
-    KiwiLightApp::mode = UIMode::UI_RUNNER;
+    
+    XMLDocument newDoc = XMLDocument(fileToOpen);
+    if(newDoc.HasContents()) {
+        KiwiLightApp::confInfo.LoadConfig(newDoc);
+        KiwiLightApp::runner = Runner(fileToOpen, true, KiwiLightApp::camera);
+        KiwiLightApp::mode = UIMode::UI_RUNNER;
+    } else {
+        std::cout << "New Document either empty or not specified. Taking no action." << std::endl;
+    }
 }
 
 /**

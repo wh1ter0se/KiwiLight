@@ -649,6 +649,7 @@ namespace KiwiLight {
         void StartLearningTarget();
         void StartLearningDistance();
         void RecheckUDP();
+        void SendOverUDP(std::string message);
         void ApplyCameraSettings();
         void ReconnectUDPFromOverview();
         void ResetRunnerResolution();

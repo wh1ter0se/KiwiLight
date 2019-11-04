@@ -112,7 +112,8 @@ void Runner::Loop() {
     //loops a lot until stopped
     while(!stop) {
         //run algorithm and get the udp message to send to rio
-        this->Iterate();
+        std::string output = this->Iterate();
+        this->udp.Send(output);
     }
 }
 
@@ -278,45 +279,13 @@ void Runner::SetExampleTarget(int contourID, ExampleTarget target) {
     }
 }
 
-/**
- * Stops runner and releases camera. Camera function will not be granted to anything else
- * unless this method is called.
- */
-void Runner::Stop() {
-    this->cap.~VideoCapture();
-    this->stop = true;
-}
-
-/**
- * Stops the loop if one is happening, but does not close the camera stream.
- */
-void Runner::StopLoopOnly() {
-    this->stop = true;
-}
-
-/**
- * If Stop() or StopLoopOnly() has been called to stop the main loop, UnlockLoop() must be called
- * to allow a new loop to start.
- */
-void Runner::UnlockLoop() {
-    this->stop = false;
-}
-
-/**
- * Restarts the camera stream associated with this runner.
- * This should only be called if Stop() has been called.
- * NOTE: THIS METHOD DOES NOT CALL LOOP(). Loop() must be called separately.
- */
-void Runner::Start() {
-    this->cap = VideoCapture(this->cameraIndex);
-    this->stop = false;
-}
-
-
 void Runner::ReconnectUDP(std::string udpAddr, int udpPort) {
     this->udp = UDP(udpAddr, udpPort);
 }
 
+void Runner::SendOverUDP(std::string message) {
+    this->udp.Send(message);
+}
 
 void Runner::SetPreprocessorProperty(PreProcessorProperty prop, double value) {
     if(this->debug) {
@@ -407,6 +376,7 @@ void Runner::parseDocument(XMLDocument doc) {
             this->cameraResolution = Size(camResX, camResY);
 
     XMLTag config = doc.GetTagsByName("configuration")[0];
+        this->configName = doc.GetTagsByName("configuration")[0].GetAttributesByName("name")[0].Value();
 
         XMLTag cameraOffset = config.GetTagsByName("cameraOffset")[0];
             this->centerOffsetX = std::stod(cameraOffset.GetTagsByName("horizontal")[0].Content());

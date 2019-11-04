@@ -175,7 +175,6 @@ void ConfigEditor::Update() {
  * Updates the internal runner to in turn update the output images.
  */
 bool ConfigEditor::UpdateImageOnly() {
-    //std::cout << "uio1" << std::endl;
     this->lastIterationResult = this->runner.Iterate();
     bool retval = this->runner.GetLastFrameSuccessful();
     this->out = this->runner.GetOutputImage();
@@ -253,7 +252,6 @@ bool ConfigEditor::UpdateImageOnly() {
         }
     }
     
-    //std::cout << "uio2" << std::endl;
     return retval;
 }
 
@@ -581,6 +579,10 @@ void ConfigEditor::RecheckUDP() {
     std::string newUDPAddr = this->runnerSettings.GetUDPAddr();
     int newUDPPort = this->runnerSettings.GetUDPPort();
     this->runner.ReconnectUDP(newUDPAddr, newUDPPort);
+}
+
+void ConfigEditor::SendOverUDP(std::string message) {
+    this->runner.SendOverUDP(message);
 }
 
 /**
