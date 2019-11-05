@@ -188,6 +188,7 @@ KiwiLight: Main.cpp bin/KiwiLight.o lib/UI.a lib/Util.a lib/Runner.a
 #SET UP THE FILES AND FOLDERS
 setup:
 	mkdir lib
+	mkdir bin
 	mkdir bin/ui
 	mkdir bin/util
 	mkdir bin/runner

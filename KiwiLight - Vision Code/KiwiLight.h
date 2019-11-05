@@ -92,6 +92,9 @@ namespace KiwiLight {
         static Label cameraStatusLabel;
         static Image outputImage;
         static Button toggleUDPButton;
+        
+        //counters
+        static int cameraFailures;
     };
 
 }

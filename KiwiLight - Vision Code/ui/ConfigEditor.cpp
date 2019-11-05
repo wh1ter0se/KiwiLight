@@ -488,7 +488,12 @@ void ConfigEditor::Save() {
 
 
 void ConfigEditor::Close() {
+    this->ReleaseCamera();
     gtk_widget_destroy(this->configeditor);
+}
+
+void ConfigEditor::ReleaseCamera() {
+    this->runner.ReleaseCamera();
 }
 
 

@@ -652,6 +652,7 @@ namespace KiwiLight {
         std::string GetLastFrameResult();
         void Save();
         void Close();
+        void ReleaseCamera();
         void StartLearningTarget();
         void StartLearningDistance();
         void ReconnectUDPFromEditor();

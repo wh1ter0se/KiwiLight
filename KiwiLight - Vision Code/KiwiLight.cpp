@@ -22,12 +22,14 @@ NumberBox    KiwiLightApp::cameraIndexBox;
 Label        KiwiLightApp::cameraStatusLabel;
 Image        KiwiLightApp::outputImage;
 Button       KiwiLightApp::toggleUDPButton;
+int          KiwiLightApp::cameraFailures;
 
 /**
  * Initializes GTK and builds KiwiLight
  */
 void KiwiLightApp::Create(int argc, char *argv[]) {
     KiwiLightApp::mode = UIMode::UI_STREAM;
+    KiwiLightApp::cameraFailures = 0;
 
     gtk_init(&argc, &argv);
     win = Window(GTK_WINDOW_TOPLEVEL);
@@ -163,7 +165,7 @@ void KiwiLightApp::CloseEditor(bool saveFirst) {
     if(saveFirst) {
         KiwiLightApp::configeditor.Save();
     }
-
+    
     KiwiLightApp::configeditor.Close();
     OpenConfigurationFromFile(KiwiLightApp::configeditor.GetFileName());
 }
@@ -209,6 +211,14 @@ void KiwiLightApp::OpenNewCameraOnIndex(int index) {
 
     //set the text box
     KiwiLightApp::cameraIndexBox.SetValue((double) index);
+    
+    //close any open cameras. The application will freeze if any streams are open.
+    if(KiwiLightApp::camera.isOpened()) {
+        KiwiLightApp::camera.release();
+    }
+    
+    KiwiLightApp::runner.ReleaseCamera();
+    KiwiLightApp::configeditor.ReleaseCamera();
 
     if(KiwiLightApp::mode == UIMode::UI_STREAM) {
         KiwiLightApp::camera.~VideoCapture();
@@ -247,8 +257,16 @@ void KiwiLightApp::UpdateApp() {
                 KiwiLightApp::outputImage.Update(KiwiLightApp::lastFrameGrabImage);
             } catch(cv::Exception ex) {
             }
+            
+            KiwiLightApp::cameraFailures = 0;
         } else {
             KiwiLightApp::cameraStatusLabel.SetText("Camera Error!");
+            KiwiLightApp::cameraFailures++;
+            if(KiwiLightApp::cameraFailures > 25) {
+                //attempt to reconnect the camera stream
+                OpenNewCameraFromMainIndex();
+                KiwiLightApp::cameraFailures = 0;
+            }
         }
 
         if(KiwiLightApp::mode == UIMode::UI_EDITOR) {
@@ -399,6 +417,8 @@ void KiwiLightApp::OpenConfigurationFromFile(std::string fileName) {
  * Causes KiwiLight to close the currently opened configuration.
  */
 void KiwiLightApp::CloseConfiguration() {
+    KiwiLightApp::camera = KiwiLightApp::runner.GetVideoStream();
+    
     KiwiLightApp::confInfo.Clear();
     KiwiLightApp::mode = UIMode::UI_STREAM;
 }

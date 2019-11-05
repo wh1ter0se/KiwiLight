@@ -290,6 +290,7 @@ namespace KiwiLight {
         PreProcessor GetPreProcessor() { return this->preprocessor; };
         PostProcessor GetPostProcessor() { return this->postprocessor; };
         int GetCameraIndex() { return this->cameraIndex; };
+        void ReleaseCamera();
         void SetCameraIndex(int index);
         void SetImageResize(Size sz);
         void SetResolution(Size sz);

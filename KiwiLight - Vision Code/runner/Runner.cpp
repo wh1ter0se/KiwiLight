@@ -70,6 +70,16 @@ Runner::Runner(std::string fileName, bool debugging, VideoCapture cap) {
     this->stop = false;
 }
 
+void Runner::ReleaseCamera() {
+    if(this->debug) {
+        if(this->cap.isOpened()) {
+            this->cap.release();
+        }
+    } else {
+        std::cout << "Attempted to release the camera in running mode. This is not allowed." << std::endl;
+    }
+}
+
 /**
  * Connects the videocapture to a different camera and reapplies settings
  */
