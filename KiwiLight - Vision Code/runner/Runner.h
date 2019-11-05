@@ -290,6 +290,7 @@ namespace KiwiLight {
         PreProcessor GetPreProcessor() { return this->preprocessor; };
         PostProcessor GetPostProcessor() { return this->postprocessor; };
         int GetCameraIndex() { return this->cameraIndex; };
+        void SetCameraIndex(int index);
         void SetImageResize(Size sz);
         void SetResolution(Size sz);
         void Loop();
@@ -302,7 +303,7 @@ namespace KiwiLight {
         Target GetClosestTargetToCenter() { return this->closestTarget; };
         std::string GetFileName() { return this->src; };
         cv::Mat GetOriginalImage() { return this->originalImage; };
-        cv::Mat GetOutputImage() { return this->outputImage; imshow("out", this->outputImage); };
+        cv::Mat GetOutputImage() { return this->outputImage; };
         cv::VideoCapture GetVideoStream() { return this->cap; };
         Size GetConstantSize() { return this->constantResize; };
         ExampleTarget GetExampleTargetByID(int id);

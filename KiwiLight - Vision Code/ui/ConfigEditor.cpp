@@ -271,7 +271,7 @@ void ConfigEditor::Save() {
     
         //<camera>
         XMLTag camera = XMLTag("camera");
-            XMLTagAttribute cameraIndex = XMLTagAttribute("index", std::to_string(this->runner.GetCameraIndex()));
+            XMLTagAttribute cameraIndex = XMLTagAttribute("index", std::to_string(this->cameraSettings.GetCameraIndex()));
                 camera.AddAttribute(cameraIndex);
                 
             /**
@@ -480,6 +480,7 @@ void ConfigEditor::Save() {
     if(fileParts[fileParts.size() - 1] == "generic.xml") {
         FileChooser chooser = FileChooser(true, "config.xml");
         fileToSave = chooser.Show();
+        this->fileName = fileToSave;
     }
     
     doc.WriteFile(fileToSave);
@@ -575,14 +576,24 @@ void ConfigEditor::StartLearningDistance() {
 }
 
 
-void ConfigEditor::RecheckUDP() {
+void ConfigEditor::ReconnectUDPFromEditor() {
     std::string newUDPAddr = this->runnerSettings.GetUDPAddr();
     int newUDPPort = this->runnerSettings.GetUDPPort();
     this->runner.ReconnectUDP(newUDPAddr, newUDPPort);
+
+    //set the things in the overview panel
+    this->configOverview.SetUDPAddr(newUDPAddr);
+    this->configOverview.SetUDPPort(newUDPPort);
 }
 
 void ConfigEditor::SendOverUDP(std::string message) {
     this->runner.SendOverUDP(message);
+}
+
+void ConfigEditor::SetCameraIndex(int index) {
+    this->runner.SetCameraIndex(index);
+    this->cameraSettings.SetCameraIndex(index);
+    this->configOverview.SetCameraIndex(index);
 }
 
 /**
@@ -590,6 +601,16 @@ void ConfigEditor::SendOverUDP(std::string message) {
  */
 void ConfigEditor::ApplyCameraSettings() {
     std::vector<int> settingIDs = this->cameraSettings.GetSettingIDs();
+
+    int newCameraIndex = this->cameraSettings.GetCameraIndex();
+    int currentCameraIndex = this->runner.GetCameraIndex();
+    if(currentCameraIndex != newCameraIndex) {
+        //open a new camera because the user wants to
+        KiwiLightApp::OpenNewCameraOnIndex(newCameraIndex);
+
+        //set the camera index in the overview panel as well
+        this->configOverview.SetCameraIndex(newCameraIndex);
+    }
     
     //tell the runner to apply each setting
     for(int i=0; i<settingIDs.size(); i++) {
@@ -616,6 +637,19 @@ void ConfigEditor::ReconnectUDPFromOverview() {
     this->runnerSettings.SetUDPAddr(newAddr);
     this->runnerSettings.SetUDPPort(newPort);
 }
+
+
+void ConfigEditor::OpenNewCameraFromOverview() {
+    int newCameraIndex = this->configOverview.GetCameraIndex();
+    int currentCameraIndex = this->runner.GetCameraIndex();
+
+    if(newCameraIndex != currentCameraIndex) {
+        //the camera needs to be reconnected because indexes are different
+        this->cameraSettings.SetCameraIndex(newCameraIndex); //set real index
+        KiwiLightApp::OpenNewCameraOnIndex(newCameraIndex);
+    }
+}
+
 
 void ConfigEditor::ResetRunnerResolution() {
     int camResX = this->cameraSettings.GetSettingValueFromID(CAP_PROP_FRAME_WIDTH);

@@ -481,10 +481,6 @@ namespace KiwiLight {
         void Update();
         void SetConfigName(std::string name);
         std::string GetConfigName();
-        void SetUDPAddr(std::string addr);
-        std::string GetUDPAddr();
-        void SetUDPPort(int port);
-        int GetUDPPort();
         void SetTargetInformationLabels(
             bool targetSpotted,
             int targetImgX,
@@ -493,6 +489,12 @@ namespace KiwiLight {
             double targetHAngle,
             double targetVAngle
         );
+        void SetCameraIndex(int index);
+        int GetCameraIndex();
+        void SetUDPAddr(std::string addr);
+        std::string GetUDPAddr();
+        void SetUDPPort(int port);
+        int GetUDPPort();
         void SetTargetInformationLabelsFromString(std::string iterOutput);
         GtkWidget *GetWidget() { return overviewpanel; };
         void SetName(std::string name);
@@ -501,6 +503,7 @@ namespace KiwiLight {
         TextBox configName;
         TextBox udpAddr;
         NumberBox udpPort;
+        NumberBox cameraIndex;
 
         Label
             targetSpotted,
@@ -525,11 +528,14 @@ namespace KiwiLight {
         XMLTag GetFinishedTag();
         void SetSettingValueFromID(int id, double value);
         double GetSettingValueFromID(int id);
+        void SetCameraIndex(int index);
+        int GetCameraIndex();
         std::vector<int> GetSettingIDs();
         GtkWidget *GetWidget() { return settingsWidget; };
         void SetName(std::string name);
 
         private:
+        NumberBox cameraIndex;
         std::vector<CameraSetting> settings;
         GtkWidget *settingsWidget;
     };
@@ -648,10 +654,12 @@ namespace KiwiLight {
         void Close();
         void StartLearningTarget();
         void StartLearningDistance();
-        void RecheckUDP();
+        void ReconnectUDPFromEditor();
         void SendOverUDP(std::string message);
+        void SetCameraIndex(int index);
         void ApplyCameraSettings();
         void ReconnectUDPFromOverview();
+        void OpenNewCameraFromOverview();
         void ResetRunnerResolution();
         std::string GetFileName() { return this->fileName; };
         VideoCapture GetVideoCapture() { return this->runner.GetVideoStream(); };

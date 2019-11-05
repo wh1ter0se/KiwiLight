@@ -20,6 +20,16 @@ Settings::Settings(VideoCapture cap, XMLDocument doc) {
 
     Panel editor = Panel(false, 0);
 
+        //camera index
+        Panel cameraIndexPanel = Panel(true, 0);
+            Label cameraIndexHeader = Label("Camera Index: ");
+                cameraIndexPanel.Pack_start(cameraIndexHeader.GetWidget(), true, true, 0);
+
+            int realCameraIndex = std::stoi(doc.GetTagsByName("camera")[0].GetAttributesByName("index")[0].Value());
+            this->cameraIndex = NumberBox(0.0, 10.0, 1.0, realCameraIndex);
+                cameraIndexPanel.Pack_start(this->cameraIndex.GetWidget(), true, true, 0);
+            editor.Pack_start(cameraIndexPanel.GetWidget(), true, true, 0);
+
         //resolution area
         Label resolutionHeader = Label("Resolution");
             resolutionHeader.SetName("subHeader");
@@ -132,6 +142,16 @@ double Settings::GetSettingValueFromID(int id) {
     }
 
     return -1;
+}
+
+
+void Settings::SetCameraIndex(int index) {
+    this->cameraIndex.SetValue((double) index);
+}
+
+
+int Settings::GetCameraIndex() {
+    return this->cameraIndex.GetValue();
 }
 
 

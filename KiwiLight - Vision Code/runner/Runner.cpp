@@ -70,6 +70,19 @@ Runner::Runner(std::string fileName, bool debugging, VideoCapture cap) {
     this->stop = false;
 }
 
+/**
+ * Connects the videocapture to a different camera and reapplies settings
+ */
+void Runner::SetCameraIndex(int index) {
+    if(this->debug) {
+        this->cap.~VideoCapture();
+        this->cap = VideoCapture(index);
+        this->applySettings();
+    } else {
+        std::cout << "Attempted to open a new camera in running mode. This is not allowed." << std::endl;
+    }
+}
+
 
 void Runner::SetImageResize(Size sz) {
     this->constantResize = sz;
@@ -92,6 +105,7 @@ void Runner::Loop() {
     std::cout << "KiwiLight Runner starting..." << std::endl;
     std::cout << "  Mode: " << (this->debug ? "Debug" : "Running") << std::endl;
     std::cout << "  Configuration Name: " << this->configName << std::endl;
+    std::cout << "  Camera Index: " << this->cameraIndex << std::endl;
     std::cout << "  Preprocessor: " << (this->preprocessor.GetProperty(PreProcessorProperty::IS_FULL) == 1.0 ? "FULL" : "PARTIAL") << std::endl;
     std::cout << "  Postprocessor: FULL" << std::endl;
     std::cout << "    Number of Contours: " << this->postProcessorTargets[0].Contours().size() << std::endl;
@@ -111,9 +125,14 @@ void Runner::Loop() {
 
     //loops a lot until stopped
     while(!stop) {
-        //run algorithm and get the udp message to send to rio
-        std::string output = this->Iterate();
-        this->udp.Send(output);
+        try {
+            //run algorithm and get the udp message to send to rio
+            std::string output = this->Iterate();
+            this->udp.Send(output);
+        } catch(cv::Exception ex) {
+            std::cout << "An OpenCv Exception was encountered in the Loop!" << std::endl;
+            std::cout << "ex.what(): " << ex.what() << std::endl;
+        }
     }
 }
 

@@ -47,6 +47,8 @@ namespace KiwiLight {
         static void EditorSetImageResolutionFromOverview();
         static void EditorConnectUDPFromOverview();
         static void EditorApplyCameraSettings();
+        static void EditorOpenNewCameraFromOverview();
+        static void OpenNewCameraOnIndex(int index);
 
         private:
         //menu bar utility
@@ -61,11 +63,12 @@ namespace KiwiLight {
         static void UpdateStreams();
 
         //UI button callbacks
-        static void OpenNewCamera();
+        static void OpenNewCameraFromMainIndex();
         static void ToggleUDP();
         static void NewConfiguration();
         static void EditConfiguration();
         static void OpenConfiguration();
+        static void OpenConfigurationFromFile(std::string fileName);
         static void CloseConfiguration();
         static void Quit();
         static void ShowAboutWindow();

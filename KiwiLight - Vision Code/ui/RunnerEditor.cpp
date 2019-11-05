@@ -1,4 +1,4 @@
-#include "UI.h"
+#include "../KiwiLight.h"
 
 /**
  * Source file for the RunnerEditor class.
@@ -8,7 +8,7 @@
 using namespace KiwiLight;
 
 static void ReconnectUDP() {
-    Flags::RaiseFlag("UDPReconnect");
+    KiwiLightApp::EditorReconnectUDP();
 }
 
 RunnerEditor::RunnerEditor(Runner runner) {
