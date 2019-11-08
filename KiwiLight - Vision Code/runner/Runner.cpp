@@ -8,6 +8,8 @@
 using namespace cv;
 using namespace KiwiLight;
 
+const std::string Runner::NULL_MESSAGE = ":-1,-1,-1,180,180;";
+
 /**
  * Creates a new runner which runs the configuration described by the given file
  */
@@ -153,12 +155,13 @@ std::string Runner::Iterate() {
     cv::Mat img;
     cv::Mat out; //output image we draw on for debugging
     if(RunnerSettings::USE_CAMERA) {
-        bool success = this->cap.read(img);
+        bool success = this->cap.read(img);        
+        this->lastIterationSuccessful = success;
+
         if(!success) {
             //oops we shall exit now
-            return "";
+            return NULL_MESSAGE;
         }
-        this->lastIterationSuccessful = success;
     } else {
         this->lastIterationSuccessful = true;
         img = cv::imread(RunnerSettings::IMAGE_TO_USE);

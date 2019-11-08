@@ -599,6 +599,8 @@ void ConfigEditor::SetCameraIndex(int index) {
     this->runner.SetCameraIndex(index);
     this->cameraSettings.SetCameraIndex(index);
     this->configOverview.SetCameraIndex(index);
+
+    this->ApplyCameraSettings();
 }
 
 /**

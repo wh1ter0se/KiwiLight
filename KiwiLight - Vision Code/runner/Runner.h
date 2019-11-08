@@ -283,6 +283,9 @@ namespace KiwiLight {
      */
     class Runner {
         public:
+
+        static const std::string NULL_MESSAGE;
+
         Runner() {};
         Runner(std::string filename, bool debugging);
         Runner(std::string filename, bool debugging, bool openNewVideoStream);

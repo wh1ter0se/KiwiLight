@@ -14,7 +14,7 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
     //find home so we can get the generic configuration from KiwiLightData
     char *home = getenv("HOME");
     if(home != NULL) {
-        genericFileLocation = std::string(home) + "/KiwiLightData/confs/generic.xml";
+        genericFileLocation = std::string(home) + std::string("/KiwiLightData/confs/generic.xml");
     } else {
         std::cout << "The postprocessor editor was unable to find HOME" << std::endl;
     }
@@ -122,6 +122,11 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
 
 int PostprocessorEditor::GetNumContours() {
     return this->storageRunner.GetExampleTargetByID(0).Contours().size();
+}
+
+
+void PostProcessorEditor::SetNumContours(int contours) {
+    this->runner.
 }
 
 /**

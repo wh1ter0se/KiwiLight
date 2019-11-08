@@ -580,6 +580,7 @@ namespace KiwiLight {
         PostprocessorEditor(PostProcessor postprocessor);
         void Update();
         int GetNumContours();
+        void SetNumContours(int contours);
         SettingPair GetProperty(int contour, TargetProperty prop);
         void SetProperty(int contour, TargetProperty prop, SettingPair value);
         GtkWidget *GetWidget() { return this->postprocessoreditor; };

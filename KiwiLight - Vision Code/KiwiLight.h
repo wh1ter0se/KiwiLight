@@ -54,8 +54,9 @@ namespace KiwiLight {
         //menu bar utility
         static MenuBar CreateMenuBar();
 
-        //streaming thread launcher
+        //thread utilities
         static void LaunchStreamingThread();
+        static void StopStreamingThread();
 
         //UI constant callbacks
         static void UpdateApp();
@@ -78,6 +79,7 @@ namespace KiwiLight {
         static VideoCapture camera;
         static Runner runner;
         static ConfigEditor configeditor;
+        static GThread *streamingThread;
 
         //utilities
         static UIMode mode;
