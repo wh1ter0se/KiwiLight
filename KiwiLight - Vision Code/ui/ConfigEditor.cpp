@@ -596,16 +596,10 @@ void ConfigEditor::SendOverUDP(std::string message) {
  */
 void ConfigEditor::ApplyCameraSettings() {
     std::vector<int> settingIDs = this->cameraSettings.GetSettingIDs();
-
     int newCameraIndex = this->cameraSettings.GetCameraIndex();
-    int currentCameraIndex = this->runner.GetCameraIndex();
-    if(currentCameraIndex != newCameraIndex) {
-        //open a new camera because the user wants to
-        KiwiLightApp::OpenNewCameraOnIndex(newCameraIndex);
 
-        //set the camera index in the overview panel as well
-        this->configOverview.SetCameraIndex(newCameraIndex);
-    }
+    //open a new camera because the user wants to
+    KiwiLightApp::OpenNewCameraOnIndex(newCameraIndex);
     
     //tell the runner to apply each setting
     for(int i=0; i<settingIDs.size(); i++) {
@@ -623,6 +617,12 @@ void ConfigEditor::ApplyCameraSettings() {
 }
 
 
+void ConfigEditor::SetCameraIndexBoxes(int index) {
+    this->configOverview.SetCameraIndex(index);
+    this->cameraSettings.SetCameraIndex(index);
+}
+
+
 void ConfigEditor::ReconnectUDPFromOverview() {
     std::string newAddr = this->configOverview.GetUDPAddr();
     int newPort = this->configOverview.GetUDPPort();
@@ -636,13 +636,10 @@ void ConfigEditor::ReconnectUDPFromOverview() {
 
 void ConfigEditor::OpenNewCameraFromOverview() {
     int newCameraIndex = this->configOverview.GetCameraIndex();
-    int currentCameraIndex = this->runner.GetCameraIndex();
 
-    if(newCameraIndex != currentCameraIndex) {
-        //the camera needs to be reconnected because indexes are different
-        this->cameraSettings.SetCameraIndex(newCameraIndex); //set real index
-        KiwiLightApp::OpenNewCameraOnIndex(newCameraIndex);
-    }
+    //the camera needs to be reconnected because indexes are different
+    this->cameraSettings.SetCameraIndex(newCameraIndex); //set real index
+    KiwiLightApp::OpenNewCameraOnIndex(newCameraIndex);
 }
 
 

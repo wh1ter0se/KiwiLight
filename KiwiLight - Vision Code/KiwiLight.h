@@ -48,6 +48,7 @@ namespace KiwiLight {
 
         //general accessors 
         static bool LastImageCaptureSuccessful();
+        static UIMode CurrentMode();
 
         //misc. UI callbacks
         static void CloseEditor(bool saveFirst);

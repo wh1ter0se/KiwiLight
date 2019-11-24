@@ -658,6 +658,7 @@ namespace KiwiLight {
         void ReconnectUDPFromEditor();
         void SendOverUDP(std::string message);
         void ApplyCameraSettings();
+        void SetCameraIndexBoxes(int index);
         void ReconnectUDPFromOverview();
         void OpenNewCameraFromOverview();
         void ResetRunnerResolution();

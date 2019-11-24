@@ -126,7 +126,6 @@ Mat KiwiLightApp::TakeImage() {
         lastImageGrabSuccessful = false;
     }
 
-    std::cout << "TakeImage() img empty: " << img.empty() << std::endl;
     return img;
 }
 
@@ -209,10 +208,10 @@ void KiwiLightApp::LaunchStreamingThread(UIMode newMode) {
 void KiwiLightApp::StopStreamingThread() {
     if(streamThreadEnabled) {
         streamThreadEnabled = false;
-        UIMode currentMode = KiwiLightApp::mode;
+        // UIMode currentMode = KiwiLightApp::mode;
         KiwiLightApp::mode = UIMode::UI_PAUSING;
         g_thread_join(KiwiLightApp::streamingThread);
-        KiwiLightApp::mode = currentMode;
+        // KiwiLightApp::mode = currentMode;
     }
 }
 
@@ -267,10 +266,13 @@ void KiwiLightApp::EditorConnectUDPFromOverview() {
 void KiwiLightApp::OpenNewCameraOnIndex(int index) {
     UIMode currentMode = KiwiLightApp::mode;
 
+    StopStreamingThread();
+
     KiwiLightApp::camera.~VideoCapture();
     KiwiLightApp::camera = VideoCapture(index);
     
-    StopStreamingThread();
+    //set the auto exposure menu in shell because opencv cant do it
+    //if this is not set then exposure cannot be set
     std::cout << "Configuring Auto Exposure setting on new camera" << std::endl;
     Shell::ExecuteCommand(
         std::string("v4l2-ctl -d ") + 
@@ -278,32 +280,36 @@ void KiwiLightApp::OpenNewCameraOnIndex(int index) {
         std::string(" --set-ctrl=exposure_auto=1")
     );
 
-    //set the text box
+    //set the text box on main UI
     KiwiLightApp::cameraIndexBox.SetValue((double) index);
 
-    std::cout << "oncoi launch" << std::endl;
-    LaunchStreamingThread(currentMode);
+    //set editor text boxes if necessary
+    if(currentMode == UIMode::UI_EDITOR) {
+        KiwiLightApp::configeditor.SetCameraIndexBoxes(index);
+    }
+
+    //if the stream was running before call to this method, restart it. Otherwise, it is in the hands of another method.
+    if(currentMode != UIMode::UI_PAUSING) {
+        std::cout << "oncoi launch" << std::endl;
+        LaunchStreamingThread(currentMode);
+    }
 }
 
 /**
  * Causes the editor to apply all camera settings to the video stream.
  */
 void KiwiLightApp::EditorApplyCameraSettings() {
-    StopStreamingThread();
+    //not worrying about stream handling here, it is handled in OpenNewCameraOnIndex()
     KiwiLightApp::configeditor.ApplyCameraSettings();
-    std::cout << "eacs launch" << std::endl;
-    LaunchStreamingThread(UIMode::UI_EDITOR);
+    std::cout << "eacs launch" << std::endl;    
 }
 
 /**
  * Causes the editor to connect tot a different camera using index from the overview panel.
  */
 void KiwiLightApp::EditorOpenNewCameraFromOverview(){
-    StopStreamingThread();
+    //we don't need to do stream things here because it is all handled in OpenNewCameraOnIndex()
     KiwiLightApp::configeditor.OpenNewCameraFromOverview();
-
-    std::cout << "eonc launch" << std::endl;
-    LaunchStreamingThread(UIMode::UI_EDITOR);
 }
 
 /**
@@ -312,7 +318,7 @@ void KiwiLightApp::EditorOpenNewCameraFromOverview(){
 void KiwiLightApp::UpdateApp() {
     try {
         KiwiLightApp::outputImage.Update(KiwiLightApp::lastFrameGrabImage);
-        KiwiLightApp::cameraFailures = 0;
+        // KiwiLightApp::cameraFailures = 0;
 
         if(KiwiLightApp::mode == UIMode::UI_EDITOR) {
             KiwiLightApp::configeditor.Update();
@@ -323,8 +329,8 @@ void KiwiLightApp::UpdateApp() {
             KiwiLightApp::cameraStatusLabel.SetText(""); 
         } else {
             KiwiLightApp::cameraStatusLabel.SetText("Camera Error!");
-
             KiwiLightApp::cameraFailures++;
+
             std::cout << "errors: " << KiwiLightApp::cameraFailures << std::endl;
             if(KiwiLightApp::cameraFailures > 50) {
                 std::cout << "restarting stream due to errors." << std::endl;
@@ -345,8 +351,8 @@ void KiwiLightApp::UpdateApp() {
  */
 void KiwiLightApp::UpdateStreamsConstantly() {
     std::cout << "stream enterring" << std::endl;
+    std::cout << "mode: " << mode << std::endl;
     while(KiwiLightApp::mode != UIMode::UI_PAUSING && streamThreadEnabled) {
-        std::cout << "stream update running from UpdateStreamsConstantly" << std::endl;
         KiwiLightApp::UpdateStreams();
     }
     
@@ -359,17 +365,14 @@ void KiwiLightApp::UpdateStreamsConstantly() {
  * Updates KiwiLight's video streams.
  */
 void KiwiLightApp::UpdateStreams() {
-    std::cout << "streaming thread running" << std::endl;
     try {
         //attempt to loop the things
         Mat displayImage;
         switch(KiwiLightApp::mode) {
             case UIMode::UI_STREAM:
-                std::cout << "streamer time" << std::endl;
                 displayImage = KiwiLightApp::TakeImage();
                 break;
             case UIMode::UI_RUNNER: {
-                    std::cout << "runner time" << std::endl;
                     std::string output = KiwiLightApp::runner.Iterate();
                     KiwiLightApp::runner.GetLastFrameSuccessful(); //boolean
                     displayImage = KiwiLightApp::runner.GetOutputImage();
@@ -381,7 +384,6 @@ void KiwiLightApp::UpdateStreams() {
                 }
                 break;
             case UIMode::UI_EDITOR: {
-                    std::cout << "editor time" << std::endl;
                     KiwiLightApp::configeditor.UpdateImageOnly(); //boolean
                     displayImage = KiwiLightApp::configeditor.GetOutputImage();
                     
@@ -436,12 +438,15 @@ void KiwiLightApp::NewConfiguration() {
 
 /**
  * Causes KiwiLight to open the editor for the selected configuration.
+ * @param currentMode The UIMode active when callback was triggered
  */
 void KiwiLightApp::EditConfiguration() {
+    UIMode currentMode = KiwiLightApp::mode;
+
     StopStreamingThread();
     std::string pathToOpen = "";
 
-    if(KiwiLightApp::mode == UIMode::UI_STREAM) {
+    if(currentMode == UIMode::UI_STREAM) {
         //find generic.xml (in /home/user/KiwiLightData/confs)
         char *homedir = getenv("HOME");
         if(homedir == NULL) {
@@ -450,14 +455,15 @@ void KiwiLightApp::EditConfiguration() {
         } else {
             pathToOpen = std::string(homedir) + "/KiwiLightData/confs/generic.xml";
         }
-    } else if(KiwiLightApp::mode == UIMode::UI_RUNNER) {
+    } else if(currentMode == UIMode::UI_RUNNER) {
         std::cout << "taking runner path" << std::endl;
         pathToOpen = KiwiLightApp::runner.GetFileName();
+    } else if(currentMode == UIMode::UI_PAUSING) {
+        std::cout << "WARNING: UI mode unclear. Make sure EditConfiguration() is called before stream thread is terminated" << std::endl;
     }
 
     std::cout << "file path: " << pathToOpen << std::endl;
     KiwiLightApp::configeditor = ConfigEditor(pathToOpen);
-    KiwiLightApp::mode = UIMode::UI_EDITOR;
 
     std::cout << "edit launch" << std::endl;
     LaunchStreamingThread(UIMode::UI_EDITOR);
