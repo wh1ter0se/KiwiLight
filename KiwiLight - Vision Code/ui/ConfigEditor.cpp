@@ -29,16 +29,16 @@ static void SaveAndCloseButtonPressed() {
 /**
  * Creates a window to edit the bassed file.
  */
-ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
+ConfigEditor::ConfigEditor(std::string fileName) {
     this->learnerActivated = false;
     this->distanceLearnerRunning = false;
-    this->runner = Runner(fileName, true, cap);
+    this->runner = Runner(fileName, true);
     this->currentDoc = XMLDocument(fileName);
     this->fileName = fileName;
     this->lastIterationResult = "";
     this->out = Mat(Size(50, 50), CV_8UC3);
     this->confName = this->currentDoc.GetTagsByName("configuration")[0].GetAttributesByName("name")[0].Value();
-
+    
     this->window = Window(GTK_WINDOW_TOPLEVEL, false);
         this->content = Panel(true, 0);
             Panel overviewPanel = Panel(false, 5);
@@ -67,7 +67,7 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
                 Label cameraSettingsHeader = Label("Camera Settings");
                     cameraSettingsHeader.SetName("header");
                     cameraSettingsPanel.Pack_start(cameraSettingsHeader.GetWidget(), true, true, 0);
-                this->cameraSettings = Settings(cap, this->currentDoc);
+                this->cameraSettings = Settings(this->currentDoc);
                     cameraSettingsPanel.Pack_start(this->cameraSettings.GetWidget(), true, false, 0);
             
             Panel preprocessorSettingsPanel = Panel(false, 5);
@@ -112,6 +112,7 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
                     imageAndServicePanel.Pack_start(this->serviceLabel.GetWidget(), false, false, 0);
                 
                 this->content.Pack_start(imageAndServicePanel.GetWidget(), false, false, 0);
+
 
         this->window.SetPane(this->content);
     this->window.SetOnWindowClosed(ConfigEditor::Closed);
@@ -488,17 +489,12 @@ void ConfigEditor::Save() {
 
 
 void ConfigEditor::Close() {
-    this->ReleaseCamera();
     gtk_widget_destroy(this->configeditor);
-}
-
-void ConfigEditor::ReleaseCamera() {
-    this->runner.ReleaseCamera();
 }
 
 
 void ConfigEditor::StartLearningTarget() {
-    if(this->runner.GetVideoStream().isOpened()) {
+    if(KiwiLightApp::CameraOpen()) {
         //reinstantiate the learner to apply the preprocessor settings
         this->learner = ConfigLearner(this->runner.GetPreProcessor());
         this->learnerActivated = true;
@@ -529,7 +525,7 @@ void ConfigEditor::StartLearningTarget() {
 
 void ConfigEditor::StartLearningDistance() {
     //check for video errors
-    if(this->runner.GetVideoStream().isOpened()) {
+    if(KiwiLightApp::CameraOpen()) {
         ConfirmationDialog informationDialog = ConfirmationDialog("Learn Distance");
         Panel dialogPanel = Panel(false, 0);
             Panel trueWidthPanel = Panel(true, 0);
@@ -595,14 +591,6 @@ void ConfigEditor::SendOverUDP(std::string message) {
     this->runner.SendOverUDP(message);
 }
 
-void ConfigEditor::SetCameraIndex(int index) {
-    this->runner.SetCameraIndex(index);
-    this->cameraSettings.SetCameraIndex(index);
-    this->configOverview.SetCameraIndex(index);
-
-    this->ApplyCameraSettings();
-}
-
 /**
  * Applies the settings from the camera tab to the camera itself.
  */
@@ -623,13 +611,13 @@ void ConfigEditor::ApplyCameraSettings() {
     for(int i=0; i<settingIDs.size(); i++) {
         int id = settingIDs[i];
         double value = this->cameraSettings.GetSettingValueFromID(id);
-        this->runner.SetCameraProperty(id, value);
+        KiwiLightApp::SetCameraProperty(id, value);
     }
     
     //get the settings and apply them to the menu to tell the user if they were rejected or not
     for(int i=0; i<settingIDs.size(); i++) {
         int id = settingIDs[i];
-        double value = this->runner.GetCameraProperty(id);
+        double value = KiwiLightApp::GetCameraProperty(id);
         this->cameraSettings.SetSettingValueFromID(id, value);
     }
 }

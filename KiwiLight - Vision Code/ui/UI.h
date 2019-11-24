@@ -521,7 +521,7 @@ namespace KiwiLight {
     class Settings : public Widget {
         public:
         Settings() {};
-        Settings(VideoCapture cap, XMLDocument doc);
+        Settings(XMLDocument doc);
         void Update();
         void UpdateValue();
         void Show() { gtk_widget_show_all(this->settingsWidget); };
@@ -647,24 +647,21 @@ namespace KiwiLight {
     class ConfigEditor : public Widget {
         public:
         ConfigEditor() {};
-        ConfigEditor(std::string fileName, VideoCapture cap);
+        ConfigEditor(std::string fileName);
         void Update();
         bool UpdateImageOnly();
         std::string GetLastFrameResult();
         void Save();
         void Close();
-        void ReleaseCamera();
         void StartLearningTarget();
         void StartLearningDistance();
         void ReconnectUDPFromEditor();
         void SendOverUDP(std::string message);
-        void SetCameraIndex(int index);
         void ApplyCameraSettings();
         void ReconnectUDPFromOverview();
         void OpenNewCameraFromOverview();
         void ResetRunnerResolution();
         std::string GetFileName() { return this->fileName; };
-        VideoCapture GetVideoCapture() { return this->runner.GetVideoStream(); };
         cv::Mat GetOutputImage() { return this->out; };
         GtkWidget *GetWidget() { return this->configeditor; };
         void SetName(std::string name);

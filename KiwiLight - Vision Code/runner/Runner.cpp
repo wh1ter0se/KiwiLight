@@ -1,4 +1,4 @@
-#include "Runner.h"
+#include "../KiwiLight.h"
 
 /**
  * Source file for the Runner class.
@@ -14,87 +14,26 @@ const std::string Runner::NULL_MESSAGE = ":-1,-1,-1,180,180;";
  * Creates a new runner which runs the configuration described by the given file
  */
 Runner::Runner(std::string fileName, bool debugging) {
+    std::cout << "r1" << std::endl;
     this->src = fileName;
     this->debug = debugging;
     this->postProcessorTargets = std::vector<ExampleTarget>();
     this->lastIterationSuccessful = false;
     XMLDocument file = XMLDocument(fileName);
+    std::cout << "r2" << std::endl;
     if(file.HasContents()) {
         this->parseDocument(file);
     } else {
         std::cout << "sorry! the file " << fileName << " could not be found. " << std::endl;
     }
-
-    this->cap = VideoCapture(this->cameraIndex);
+    std::cout << "r3a" << std::endl;
     this->applySettings();
+    std::cout << "r3b" << std::endl;
     this->SetResolution(this->cameraResolution);
+    std::cout << "r3c" << std::endl;
     this->stop = false;
+    std::cout << "r4" << std::endl;
 }
-
-
-Runner::Runner(std::string fileName, bool debugging, bool openNewVideoStream) {
-    this->src = fileName;
-    this->debug = debugging;
-    this->postProcessorTargets = std::vector<ExampleTarget>();
-    this->lastIterationSuccessful = false;
-    XMLDocument file = XMLDocument(fileName);
-    if(file.HasContents()) {
-        this->parseDocument(file);
-    } else {
-        std::cout << "sorry! the file " << fileName << " could not be found. " << std::endl;
-    }
-
-    if(openNewVideoStream) {
-        this->cap = VideoCapture(this->cameraIndex);
-        this->SetResolution(this->cameraResolution);
-    }
-    
-    this->applySettings();
-    this->stop = false;
-}
-
-
-Runner::Runner(std::string fileName, bool debugging, VideoCapture cap) {
-    this->src = fileName;
-    this->debug = debugging;
-    this->postProcessorTargets = std::vector<ExampleTarget>();
-    this->lastIterationSuccessful = false;
-    XMLDocument file = XMLDocument(fileName);
-    if(file.HasContents()) {
-        this->parseDocument(file);
-    } else {
-        std::cout << "sorry! the file " << fileName << " could not be found. " << std::endl;
-    }
-    
-    this->cap = cap;
-    this->applySettings();
-    this->SetResolution(this->cameraResolution);
-    this->stop = false;
-}
-
-void Runner::ReleaseCamera() {
-    if(this->debug) {
-        if(this->cap.isOpened()) {
-            this->cap.release();
-        }
-    } else {
-        std::cout << "Attempted to release the camera in running mode. This is not allowed." << std::endl;
-    }
-}
-
-/**
- * Connects the videocapture to a different camera and reapplies settings
- */
-void Runner::SetCameraIndex(int index) {
-    if(this->debug) {
-        this->cap.~VideoCapture();
-        this->cap = VideoCapture(index);
-        this->applySettings();
-    } else {
-        std::cout << "Attempted to open a new camera in running mode. This is not allowed." << std::endl;
-    }
-}
-
 
 void Runner::SetImageResize(Size sz) {
     this->constantResize = sz;
@@ -102,8 +41,8 @@ void Runner::SetImageResize(Size sz) {
 
 
 void Runner::SetResolution(Size sz) {
-    this->cap.set(CAP_PROP_FRAME_WIDTH, sz.width);
-    this->cap.set(CAP_PROP_FRAME_HEIGHT, sz.height);
+    KiwiLightApp::SetCameraProperty(CAP_PROP_FRAME_WIDTH, sz.width);
+    KiwiLightApp::SetCameraProperty(CAP_PROP_FRAME_HEIGHT, sz.height);
 }
 
 /**
@@ -155,11 +94,10 @@ std::string Runner::Iterate() {
     cv::Mat img;
     cv::Mat out; //output image we draw on for debugging
     if(RunnerSettings::USE_CAMERA) {
-        bool success = this->cap.read(img);        
-        this->lastIterationSuccessful = success;
+        img = KiwiLightApp::TakeImage();
 
-        if(!success) {
-            //oops we shall exit now
+        if(img.empty()) {
+            //oops we shall exit now because there be nothing in image
             return NULL_MESSAGE;
         }
     } else {
@@ -379,19 +317,6 @@ double Runner::GetRunnerProperty(RunnerProperty prop) {
     return this->postprocessor.GetRunnerProperty(prop);
 }
 
-void Runner::SetCameraProperty(int id, double value) {
-    bool success = this->cap.set(id, value);
-    
-    if(!success) {
-        std::cout << "SETTING VALUE FOR " << id << " FAILED!" << std::endl;
-    }
-}
-
-
-double Runner::GetCameraProperty(int id) {
-    return this->cap.get(id);
-}
-
 /**
  * Parses the XMLdocument doc and initalizes all runner settings and variables.
  */
@@ -491,16 +416,23 @@ void Runner::parseDocument(XMLDocument doc) {
  * Applies the camera settings via shell.
  */
 void Runner::applySettings() {
+    std::cout << "as1" << std::endl;
     XMLDocument document = XMLDocument(this->GetFileName());
     std::vector<XMLTag> camSettings =
         document.GetTagsByName("camera")[0]
         .GetTagsByName("settings")[0]
         .GetTagsByName("setting");
-
+    std::cout << "as2" << std::endl;
     for(int i=0; i<camSettings.size(); i++) {
+        std::cout << "as3a" << std::endl;
         XMLTag setting = camSettings[i];
+        std::cout << "as3b" << std::endl;
         int settingID = std::stoi(setting.GetAttributesByName("id")[0].Value());
+        std::cout << "as3c" << std::endl;
         double settingValue = std::stod(setting.Content());
-        this->cap.set(settingID, settingValue);
+        std::cout << "as3d" << std::endl;
+        KiwiLightApp::SetCameraProperty(settingID, settingValue);
+        std::cout << "as3e" << std::endl;
     }
+    std::cout << "as4" << std::endl;
 }

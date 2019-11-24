@@ -17,7 +17,9 @@ int main(int argc, char *argv[]) {
         if(std::string(argv[1]) == "-c") {
             std::string configPath = argv[2];
             std::cout << "Config Path: " << configPath << std::endl;
+            //create the KiwiLight runner and camera
             Runner runner = Runner(configPath, false);
+            KiwiLightApp::OpenNewCameraOnIndex(runner.GetCameraIndex());
             runner.Loop();
         }
     }

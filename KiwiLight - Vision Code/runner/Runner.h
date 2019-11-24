@@ -288,13 +288,9 @@ namespace KiwiLight {
 
         Runner() {};
         Runner(std::string filename, bool debugging);
-        Runner(std::string filename, bool debugging, bool openNewVideoStream);
-        Runner(std::string filename, bool debugging, VideoCapture cap);
         PreProcessor GetPreProcessor() { return this->preprocessor; };
         PostProcessor GetPostProcessor() { return this->postprocessor; };
         int GetCameraIndex() { return this->cameraIndex; };
-        void ReleaseCamera();
-        void SetCameraIndex(int index);
         void SetImageResize(Size sz);
         void SetResolution(Size sz);
         void Loop();
@@ -308,7 +304,6 @@ namespace KiwiLight {
         std::string GetFileName() { return this->src; };
         cv::Mat GetOriginalImage() { return this->originalImage; };
         cv::Mat GetOutputImage() { return this->outputImage; };
-        cv::VideoCapture GetVideoStream() { return this->cap; };
         Size GetConstantSize() { return this->constantResize; };
         ExampleTarget GetExampleTargetByID(int id);
         UDP GetUDP() { return this->udp; };
@@ -319,14 +314,11 @@ namespace KiwiLight {
         SettingPair GetPostProcessorContourProperty(int contour, TargetProperty prop);
         void SetRunnerProperty(RunnerProperty prop, double value);
         double GetRunnerProperty(RunnerProperty prop);
-        void SetCameraProperty(int id, double value);
-        double GetCameraProperty(int id);
 
         private:
         void parseDocument(XMLDocument doc);
         void applySettings();
 
-        VideoCapture cap;
         PreProcessor preprocessor;
         PostProcessor postprocessor;
         Size constantResize,

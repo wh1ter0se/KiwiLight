@@ -22,7 +22,7 @@ namespace KiwiLight {
         UI_STREAM,
         UI_RUNNER,
         UI_EDITOR,
-        UI_QUTTING
+        UI_PAUSING
     };
 
     /**
@@ -35,9 +35,19 @@ namespace KiwiLight {
         static void Start();
 
         //UI accessors
-        static VideoCapture GetCamera();
         static Runner GetRunner();
         static ConfigEditor GetEditor();
+
+        //camera accessors
+        static Mat TakeImage();
+        static double GetCameraProperty(int propId);
+        static bool CameraOpen();
+
+        //camera mutators
+        static void SetCameraProperty(int propId, double value);
+
+        //general accessors 
+        static bool LastImageCaptureSuccessful();
 
         //misc. UI callbacks
         static void CloseEditor(bool saveFirst);
@@ -55,7 +65,7 @@ namespace KiwiLight {
         static MenuBar CreateMenuBar();
 
         //thread utilities
-        static void LaunchStreamingThread();
+        static void LaunchStreamingThread(UIMode newMode);
         static void StopStreamingThread();
 
         //UI constant callbacks
@@ -76,15 +86,16 @@ namespace KiwiLight {
         static void ShowHelpWindow();
 
         //essential objects
-        static VideoCapture camera;
         static Runner runner;
         static ConfigEditor configeditor;
+        static VideoCapture camera;
         static GThread *streamingThread;
 
         //utilities
         static UIMode mode;
-        static bool lastFrameGrabSuccessful;
+        static bool lastImageGrabSuccessful;
         static bool udpEnabled;
+        static bool streamThreadEnabled;
         static Mat lastFrameGrabImage;
 
         //ui widgets

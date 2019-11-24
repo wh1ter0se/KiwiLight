@@ -196,9 +196,7 @@ setup:
 #UNINSTALL
 clean:
 	$(info Uninstalling KiwiLight Executables...)
-	rm bin/ui/*
-	rm bin/util/*
-	rm bin/runner/*
-	rm lib/*
-	rm bin/KiwiLight.o
+	rm -r bin
+	rm -r lib
+	make setup
 	rm KiwiLight

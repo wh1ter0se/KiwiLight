@@ -11,7 +11,7 @@ using namespace KiwiLight;
 /**
  * Create a new Settings menu.
  */
-Settings::Settings(VideoCapture cap, XMLDocument doc) {
+Settings::Settings(XMLDocument doc) {
 
     std::vector<XMLTag> docSettings = 
         doc.GetTagsByName("camera")[0]
@@ -37,14 +37,12 @@ Settings::Settings(VideoCapture cap, XMLDocument doc) {
 
         //frame width
         int realFrameWidth = std::stoi(Util::SearchCameraSettingsByID(docSettings, CAP_PROP_FRAME_WIDTH).Content());
-        cap.set(CAP_PROP_FRAME_WIDTH, (double) realFrameWidth);
         CameraSetting frameWidth = CameraSetting("Width: ", CAP_PROP_FRAME_WIDTH, 100, 2000, realFrameWidth);
         this->settings.push_back(frameWidth);
             editor.Pack_start(frameWidth.GetWidget(), true, true, 0);
 
         //frame height
         int realFrameHeight = std::stoi(Util::SearchCameraSettingsByID(docSettings, CAP_PROP_FRAME_HEIGHT).Content());
-        cap.set(CAP_PROP_FRAME_HEIGHT, (double) realFrameHeight);
         CameraSetting frameHeight = CameraSetting("Height: ", CAP_PROP_FRAME_HEIGHT, 100, 2000, realFrameHeight);
         this->settings.push_back(frameHeight);
             editor.Pack_start(frameHeight.GetWidget(), true, true, 0);

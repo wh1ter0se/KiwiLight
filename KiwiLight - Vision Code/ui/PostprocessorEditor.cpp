@@ -18,7 +18,7 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
     } else {
         std::cout << "The postprocessor editor was unable to find HOME" << std::endl;
     }
-    this->storageRunner = Runner(genericFileLocation, true, false);
+    this->storageRunner = Runner(genericFileLocation, true);
     this->lastDesiredContour = 0;
 
     //init the values in the storage runner because they are all generic right now
@@ -125,8 +125,8 @@ int PostprocessorEditor::GetNumContours() {
 }
 
 
-void PostProcessorEditor::SetNumContours(int contours) {
-    this->runner.
+void PostprocessorEditor::SetNumContours(int contours) {
+    
 }
 
 /**
