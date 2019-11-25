@@ -196,10 +196,12 @@ MenuBar KiwiLightApp::CreateMenuBar() {
  * Starts the thread that constantly updates KiwiLight's streams.
  */
 void KiwiLightApp::LaunchStreamingThread(UIMode newMode) {
-    streamThreadEnabled = true;
-    KiwiLightApp::mode = newMode;
-    std::cout << "Starting Stream Thread..." << std::endl;
-    KiwiLightApp::streamingThread = g_thread_new("stream monitor", GThreadFunc(KiwiLightApp::UpdateStreamsConstantly), NULL);
+    if(newMode != UIMode::UI_PAUSING) {
+        streamThreadEnabled = true;
+        KiwiLightApp::mode = newMode;
+        std::cout << "Starting Stream Thread..." << std::endl;
+        KiwiLightApp::streamingThread = g_thread_new("stream monitor", GThreadFunc(KiwiLightApp::UpdateStreamsConstantly), NULL);
+    }
 }
 
 /**
@@ -208,10 +210,8 @@ void KiwiLightApp::LaunchStreamingThread(UIMode newMode) {
 void KiwiLightApp::StopStreamingThread() {
     if(streamThreadEnabled) {
         streamThreadEnabled = false;
-        // UIMode currentMode = KiwiLightApp::mode;
         KiwiLightApp::mode = UIMode::UI_PAUSING;
         g_thread_join(KiwiLightApp::streamingThread);
-        // KiwiLightApp::mode = currentMode;
     }
 }
 
@@ -227,8 +227,6 @@ void KiwiLightApp::CloseEditor(bool saveFirst) {
     
     KiwiLightApp::configeditor.Close();
     OpenConfigurationFromFile(KiwiLightApp::configeditor.GetFileName());
-
-    std::cout << "close launch" << std::endl;
     LaunchStreamingThread(UI_RUNNER);
 }
 
@@ -265,7 +263,6 @@ void KiwiLightApp::EditorConnectUDPFromOverview() {
  */
 void KiwiLightApp::OpenNewCameraOnIndex(int index) {
     UIMode currentMode = KiwiLightApp::mode;
-
     StopStreamingThread();
 
     KiwiLightApp::camera.~VideoCapture();
@@ -288,20 +285,16 @@ void KiwiLightApp::OpenNewCameraOnIndex(int index) {
         KiwiLightApp::configeditor.SetCameraIndexBoxes(index);
     }
 
-    //if the stream was running before call to this method, restart it. Otherwise, it is in the hands of another method.
-    if(currentMode != UIMode::UI_PAUSING) {
-        std::cout << "oncoi launch" << std::endl;
-        LaunchStreamingThread(currentMode);
-    }
+    LaunchStreamingThread(currentMode);
 }
 
 /**
  * Causes the editor to apply all camera settings to the video stream.
  */
 void KiwiLightApp::EditorApplyCameraSettings() {
-    //not worrying about stream handling here, it is handled in OpenNewCameraOnIndex()
+    StopStreamingThread();
     KiwiLightApp::configeditor.ApplyCameraSettings();
-    std::cout << "eacs launch" << std::endl;    
+    LaunchStreamingThread(UIMode::UI_EDITOR);
 }
 
 /**
@@ -331,9 +324,7 @@ void KiwiLightApp::UpdateApp() {
             KiwiLightApp::cameraStatusLabel.SetText("Camera Error!");
             KiwiLightApp::cameraFailures++;
 
-            std::cout << "errors: " << KiwiLightApp::cameraFailures << std::endl;
             if(KiwiLightApp::cameraFailures > 50) {
-                std::cout << "restarting stream due to errors." << std::endl;
                 //attempt to reconnect the camera stream
                 OpenNewCameraFromMainIndex();
                 KiwiLightApp::cameraFailures = 0;
@@ -350,15 +341,9 @@ void KiwiLightApp::UpdateApp() {
  * Updates the streams nonstop until mode is set to UI_QUITTING
  */
 void KiwiLightApp::UpdateStreamsConstantly() {
-    std::cout << "stream enterring" << std::endl;
-    std::cout << "mode: " << mode << std::endl;
     while(KiwiLightApp::mode != UIMode::UI_PAUSING && streamThreadEnabled) {
         KiwiLightApp::UpdateStreams();
     }
-    
-    std::cout << "stream terminated!" << std::endl;
-
-    // g_thread_exit(0);
 }
 
 /**
@@ -461,11 +446,7 @@ void KiwiLightApp::EditConfiguration() {
     } else if(currentMode == UIMode::UI_PAUSING) {
         std::cout << "WARNING: UI mode unclear. Make sure EditConfiguration() is called before stream thread is terminated" << std::endl;
     }
-
-    std::cout << "file path: " << pathToOpen << std::endl;
     KiwiLightApp::configeditor = ConfigEditor(pathToOpen);
-
-    std::cout << "edit launch" << std::endl;
     LaunchStreamingThread(UIMode::UI_EDITOR);
 }
 
@@ -473,33 +454,21 @@ void KiwiLightApp::EditConfiguration() {
  * Causes KiwiLight to open a new configuration.
  */
 void KiwiLightApp::OpenConfiguration() {
-    std::cout << "oc1" << std::endl;
     StopStreamingThread();
-    std::cout << "oc2" << std::endl;
     FileChooser chooser = FileChooser(false, "");
     std::string fileToOpen = chooser.Show();
-
-    std::cout << "oc3" << std::endl;
     
     OpenConfigurationFromFile(fileToOpen);
-
-    std::cout << "oc4" << std::endl;
-
-    std::cout << "open launch" << std::endl;
     LaunchStreamingThread(UIMode::UI_RUNNER);
-
-    std::cout << "oc5" << std::endl;
 }
 
 /**
  * Causes KiwiLight to open the configuration specified by the file
  */
 void KiwiLightApp::OpenConfigurationFromFile(std::string fileName) {
-    std::cout << "ocf1a" << std::endl;
     StopStreamingThread();
-    std::cout << "ocf1b" << std::endl;
     XMLDocument newDoc = XMLDocument(fileName);
-    std::cout << "ocf2" << std::endl;
+    UIMode newMode = UIMode::UI_STREAM;
     if(newDoc.HasContents()) {
         KiwiLightApp::confInfo.LoadConfig(newDoc);
         KiwiLightApp::runner = Runner(fileName, true);
@@ -507,17 +476,12 @@ void KiwiLightApp::OpenConfigurationFromFile(std::string fileName) {
         //open the specified camera
         int camIndex = std::stoi(newDoc.GetTagsByName("camera")[0].GetAttributesByName("index")[0].Value());
         OpenNewCameraOnIndex(camIndex);
-
-        KiwiLightApp::mode = UIMode::UI_RUNNER;
+        newMode = UIMode::UI_RUNNER;
     } else {
         std::cout << "New Document either empty or not specified. Taking no action." << std::endl;
     }
 
-    std::cout << "ocf3" << std::endl;
-
-    std::cout << "ocf launch" << std::endl;
-    LaunchStreamingThread(UIMode::UI_RUNNER);
-    std::cout << "ocf4" << std::endl;
+    LaunchStreamingThread(newMode);
 }
 
 /**
@@ -528,7 +492,6 @@ void KiwiLightApp::CloseConfiguration() {
     KiwiLightApp::confInfo.Clear();
     KiwiLightApp::mode = UIMode::UI_STREAM;
 
-    std::cout << "close launch" << std::endl;
     LaunchStreamingThread(UIMode::UI_STREAM);
 }
 

@@ -18,6 +18,19 @@ PostProcessor::PostProcessor(std::vector<ExampleTarget> targets, bool debugging)
     ExampleTarget targ = this->targets[0];
 }
 
+void PostProcessor::SetTarget(int id, ExampleTarget target) {
+    //find the id to replace
+    for(int i=0; i<this->targets.size(); i++) {
+        if(this->targets[i].ID() == id) {
+            this->targets[i] = target;
+        }
+    }
+}
+
+int PostProcessor::NumberOfContours(int target) {
+    return this->targets[target].Contours().size();
+}
+
 /**
  * Processes the given image (from the preprocessor) and returns a vector containing any 
  * targets it finds.

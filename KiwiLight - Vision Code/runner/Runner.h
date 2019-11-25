@@ -246,7 +246,9 @@ namespace KiwiLight {
         public:
         PostProcessor() {};
         PostProcessor(std::vector<ExampleTarget> targets, bool debugging);
-        int NumTargets() { return this->targets.size(); };
+        void SetTarget(int id, ExampleTarget target)
+        int NumberOfTargets() { return this->targets.size(); };
+        int NumberOfContours(int target);
         void SetTargetContourProperty(int contour, TargetProperty prop, SettingPair values);
         SettingPair GetTargetContourProperty(int contour, TargetProperty prop);
         void SetRunnerProperty(RunnerProperty prop, double value);
@@ -297,7 +299,8 @@ namespace KiwiLight {
         void ReconnectUDP(std::string udpAddr, int udpPort);
         void SendOverUDP(std::string message);
         std::string Iterate();
-        int GetNumberOfTargets() { return this->postprocessor.NumTargets(); };
+        int GetNumberOfTargets() { return this->postprocessor.NumberOfTargets(); };
+        int GetNumberOfContours(int target);
         bool GetLastFrameSuccessful() { return this->lastIterationSuccessful; };
         std::vector<Target> GetLastFrameTargets() { return this->lastFrameTargets; };
         Target GetClosestTargetToCenter() { return this->closestTarget; };

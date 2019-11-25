@@ -14,25 +14,19 @@ const std::string Runner::NULL_MESSAGE = ":-1,-1,-1,180,180;";
  * Creates a new runner which runs the configuration described by the given file
  */
 Runner::Runner(std::string fileName, bool debugging) {
-    std::cout << "r1" << std::endl;
     this->src = fileName;
     this->debug = debugging;
     this->postProcessorTargets = std::vector<ExampleTarget>();
     this->lastIterationSuccessful = false;
     XMLDocument file = XMLDocument(fileName);
-    std::cout << "r2" << std::endl;
     if(file.HasContents()) {
         this->parseDocument(file);
     } else {
         std::cout << "sorry! the file " << fileName << " could not be found. " << std::endl;
     }
-    std::cout << "r3a" << std::endl;
     this->applySettings();
-    std::cout << "r3b" << std::endl;
     this->SetResolution(this->cameraResolution);
-    std::cout << "r3c" << std::endl;
     this->stop = false;
-    std::cout << "r4" << std::endl;
 }
 
 void Runner::SetImageResize(Size sz) {
@@ -233,6 +227,11 @@ std::string Runner::Iterate() {
     return rioMessage;
 }
 
+
+int Runner::GetNumberOfContours(int target) {
+    return this->postprocessor.NumberOfContours(target);
+}
+
 /**
  * Returns the example target at the given id. Returns the 0th exampletarget if id is out of bounds.
  */
@@ -241,12 +240,7 @@ ExampleTarget Runner::GetExampleTargetByID(int id) {
 }
 
 void Runner::SetExampleTarget(int contourID, ExampleTarget target) {
-    for(int i=0; i<this->postProcessorTargets.size(); i++) {
-        if(this->postProcessorTargets[i].ID() == contourID) {
-            this->postProcessorTargets[i] = target;
-            return;
-        }
-    }
+    this->postprocessor.SetTarget(contourID, target);
 }
 
 void Runner::ReconnectUDP(std::string udpAddr, int udpPort) {

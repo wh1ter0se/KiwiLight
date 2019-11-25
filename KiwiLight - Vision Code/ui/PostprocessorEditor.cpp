@@ -40,6 +40,9 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
             this->contourchooser = NumberBox(0, 10, 0);
                 contourChooserPanel.Pack_start(this->contourchooser.GetWidget(), true, true, 0);
             
+            this->totalContours = Label(std::string("/ ") + std::to_string(this->storageRunner.GetNumberOfContours(0)));
+                contourChooserPanel.Pack_start(totalContours.GetWidget(), true, true, 0);
+            
             editor.Pack_start(contourChooserPanel.GetWidget(), true, true, 0);
 
         //distance editor
@@ -124,9 +127,16 @@ int PostprocessorEditor::GetNumContours() {
     return this->storageRunner.GetExampleTargetByID(0).Contours().size();
 }
 
-
+/**
+ * Clears all contours in the target so far and sets the number of contours to contours.
+ */
 void PostprocessorEditor::SetNumContours(int contours) {
-    
+    //create a new exampletarget
+    std::vector<ExampleContour> newContours;
+    for(int i=0; i<newContours.size(); i++) {
+        
+        newContours.push_back()
+    }
 }
 
 /**
@@ -174,7 +184,9 @@ void PostprocessorEditor::Update() {
     //set min area
     SettingPair minAreaPair = SettingPair(this->minimumArea.GetValue(), 0);
         this->storageRunner.SetPostProcessorContourProperty(currentContour, TargetProperty::MINIMUM_AREA, minAreaPair);
-        
+
+    //set the label with total number of contours
+    this->totalContours.SetText(std::string("/ ") + std::to_string(this->storageRunner.GetNumberOfContours(0)));    
 }
 
 /**

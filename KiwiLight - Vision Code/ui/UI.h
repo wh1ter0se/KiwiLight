@@ -605,6 +605,8 @@ namespace KiwiLight {
             solidityErr,
             minimumArea;
 
+        Label totalContours;
+
         Runner storageRunner;
 
         GtkWidget *postprocessoreditor;
