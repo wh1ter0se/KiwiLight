@@ -334,6 +334,9 @@ void KiwiLightApp::UpdateApp() {
         std::cout << "An OpenCv Exception was encountered while running the Main thread!" << std::endl;
         std::cout << "ex.what(): " << ex.what() << std::endl;
         KiwiLightApp::lastImageGrabSuccessful = false;
+    } catch(std::invalid_argument ex) {
+        std::cout << "A std::invalid_argument Exception was encountered while running the Main thread!" << std::endl;
+        std::cout << "ex.what(): " << ex.what() << std::endl;
     }
 }
 
@@ -392,6 +395,9 @@ void KiwiLightApp::UpdateStreams() {
         std::cout << "An OpenCv Exception was encountered while running the Streaming thread!" << std::endl;
         std::cout << "ex.what(): " << ex.what() << std::endl;
         KiwiLightApp::lastImageGrabSuccessful = false;
+    } catch(std::invalid_argument ex) {
+        std::cout << "A std::invalid_argument Exception was encountered while running the Streaming thread!" << std::endl;
+        std::cout << "ex.what(): " << ex.what() << std::endl;
     }
 }
 

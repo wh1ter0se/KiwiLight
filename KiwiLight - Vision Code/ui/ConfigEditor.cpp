@@ -206,6 +206,7 @@ void ConfigEditor::Update() {
         this->serviceMonitor.SetText("No Service Running.");
         this->serviceLabel.SetText("");
     }
+    
 }
 
 
@@ -228,21 +229,22 @@ bool ConfigEditor::UpdateImageOnly() {
                 int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
                 ExampleTarget newTarget = this->learner.StopLearning(minimumArea);
                 std::vector<ExampleContour> newContours = newTarget.Contours();
-
-                //prepare the editor for the contours
-                this->postprocessorSettings.SetNumContours(newContours.size());
-                this->runner.SetExampleTarget(0, newTarget);
-
-                for(int i=0; i<newContours.size(); i++) {
-                    this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_X, newContours[i].DistX());
-                    this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_Y, newContours[i].DistY());
-                    this->postprocessorSettings.SetProperty(i, TargetProperty::ANGLE, newContours[i].Angle());
-                    this->postprocessorSettings.SetProperty(i, TargetProperty::SOLIDITY, newContours[i].Solidity());
-                    this->postprocessorSettings.SetProperty(i, TargetProperty::ASPECT_RATIO, newContours[i].AspectRatio());
-                    this->postprocessorSettings.SetProperty(i, TargetProperty::MINIMUM_AREA, SettingPair(newContours[i].MinimumArea(), 0));
-                }
-
                 this->learnerActivated = false;
+
+                if(newContours.size() > 0) {
+                    //prepare the editor for the contours
+                    this->postprocessorSettings.SetNumContours(newContours.size());
+                    this->runner.SetExampleTarget(0, newTarget);
+    
+                    for(int i=0; i<newContours.size(); i++) {
+                        this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_X, newContours[i].DistX());
+                        this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_Y, newContours[i].DistY());
+                        this->postprocessorSettings.SetProperty(i, TargetProperty::ANGLE, newContours[i].Angle());
+                        this->postprocessorSettings.SetProperty(i, TargetProperty::SOLIDITY, newContours[i].Solidity());
+                        this->postprocessorSettings.SetProperty(i, TargetProperty::ASPECT_RATIO, newContours[i].AspectRatio());
+                        this->postprocessorSettings.SetProperty(i, TargetProperty::MINIMUM_AREA, SettingPair(newContours[i].MinimumArea(), 0));
+                    }
+                }
             }
 
             if(this->learner.GetHasFailed()) {
@@ -268,7 +270,6 @@ bool ConfigEditor::UpdateImageOnly() {
             this->distanceLearnerRunning = false;
         }
     }
-    
     return retval;
 }
 
@@ -290,7 +291,7 @@ void ConfigEditor::Save() {
         XMLTag camera = XMLTag("camera");
             XMLTagAttribute cameraIndex = XMLTagAttribute("index", std::to_string(this->cameraSettings.GetCameraIndex()));
                 camera.AddAttribute(cameraIndex);
-                
+                                
             /**
              * <camera>
              *  <resolution>
@@ -303,7 +304,7 @@ void ConfigEditor::Save() {
                     resolution.AddTag(resolutionHeight);
 
                 camera.AddTag(resolution);
-                
+                                
             /**
              * <camera>
              *  <settings>
@@ -312,14 +313,14 @@ void ConfigEditor::Save() {
                 camera.AddTag(settings);
             
             doc.AddTag(camera);
-            
+                        
         /**
          * <configuration>
          */
         XMLTag configuration = XMLTag("configuration");
             XMLTagAttribute configurationName = XMLTagAttribute("name", this->configOverview.GetConfigName());
                 configuration.AddAttribute(configurationName);
-                
+                                
             /**
              * <configuration>
              *  <cameraOffset>
@@ -332,7 +333,7 @@ void ConfigEditor::Save() {
                     cameraOffset.AddTag(verticalOffset);
 
                 configuration.AddTag(cameraOffset);
-                
+                                
             /**
              * <configuration>
              *  <constantResize>
@@ -345,7 +346,7 @@ void ConfigEditor::Save() {
                     constantResize.AddTag(resizeHeight);
 
                 configuration.AddTag(constantResize);
-                
+                                
             /**
              * <configuration>
              *  <preprocessor>
@@ -353,15 +354,15 @@ void ConfigEditor::Save() {
             XMLTag preprocessor = XMLTag("preprocessor");
                 XMLTagAttribute preprocessorType = XMLTagAttribute("type", (this->preprocessorSettings.GetProperty(PreProcessorProperty::IS_FULL) == 1.0 ? "full" : "partial"));
                     preprocessor.AddAttribute(preprocessorType);
-
+                    
                 //<threshold>
                 XMLTag threshold = XMLTag("threshold", std::to_string((int) this->preprocessorSettings.GetProperty(PreProcessorProperty::THRESHOLD)));
                     preprocessor.AddTag(threshold);
-
+                    
                 //<erosion>
                 XMLTag erosion = XMLTag("erosion", std::to_string((int) this->preprocessorSettings.GetProperty(PreProcessorProperty::EROSION)));
                     preprocessor.AddTag(erosion);
-
+                    
                 //<dilation>
                 XMLTag dilation = XMLTag("dilation", std::to_string((int) this->preprocessorSettings.GetProperty(PreProcessorProperty::DILATION)));
                     preprocessor.AddTag(dilation);
@@ -374,7 +375,7 @@ void ConfigEditor::Save() {
                 XMLTag targetColor = XMLTag("targetColor");
                     XMLTagAttribute targetColorError = XMLTagAttribute("error", std::to_string((int) this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_ERROR)));
                         targetColor.AddAttribute(targetColorError);
-
+                
                     //<h>
                     XMLTag h = XMLTag("h", std::to_string((int) this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_HUE)));
                         targetColor.AddTag(h);
@@ -399,7 +400,7 @@ void ConfigEditor::Save() {
                 XMLTag target = XMLTag("target");
                     XMLTagAttribute targetID = XMLTagAttribute("id", "0"); //this remains constant for now until multiple target support is added.
                         target.AddAttribute(targetID);
-                        
+                    
                     for(int i=0; i<this->postprocessorSettings.GetNumContours(); i++) {
                         /**
                          * <configuration>

@@ -20,9 +20,19 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
     }
     this->storageRunner = Runner(genericFileLocation, true);
     this->lastDesiredContour = 0;
-
+    
+    std::cout << "PPE construct: " << postprocessor.NumberOfContours(0) << " Contours." << std::endl;
+    //set storage runner for number of contours
+    std::vector<ExampleContour> newContours;
+    for(int i=0; i<postprocessor.NumberOfContours(0); i++) {
+        ExampleContour newContour = ExampleContour(i);
+        newContours.push_back(newContour);
+    }
+    ExampleTarget newTarget = ExampleTarget(0, newContours, 0, 0, 0, 0);
+    this->storageRunner.SetExampleTarget(0, newTarget);
+    
     //init the values in the storage runner because they are all generic right now
-    for(int i=0; i<postprocessor.GetExampleTargetByID(0).Contours().size(); i++) {
+    for(int i=0; i<postprocessor.NumberOfContours(0); i++) {
         this->storageRunner.SetPostProcessorContourProperty(i, TargetProperty::DIST_X, postprocessor.GetTargetContourProperty(i, TargetProperty::DIST_X));
         this->storageRunner.SetPostProcessorContourProperty(i, TargetProperty::DIST_Y, postprocessor.GetTargetContourProperty(i, TargetProperty::DIST_Y));
         this->storageRunner.SetPostProcessorContourProperty(i, TargetProperty::ANGLE, postprocessor.GetTargetContourProperty(i, TargetProperty::ANGLE));

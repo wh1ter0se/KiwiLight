@@ -361,6 +361,8 @@ void Runner::parseDocument(XMLDocument doc) {
             for(int i=0; i<targets.size(); i++) {
                 XMLTag targetTag = targets[i];
                 std::vector<XMLTag> targContours = targetTag.GetTagsByName("contour");
+                
+                std::cout << "contours: " << targContours.size() << std::endl;
 
                 int targetId = std::stoi(targetTag.GetAttributesByName("id")[0].Value());
                 std::vector<ExampleContour> contours;
