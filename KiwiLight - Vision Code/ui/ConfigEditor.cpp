@@ -150,8 +150,20 @@ void ConfigEditor::Update() {
     this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_VALUE, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_VALUE));
     this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_ERROR, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_ERROR));
 
-    //apply all contour settings to the runner
-    for(int i=0; i<this->postprocessorSettings.GetNumContours(); i++) {
+    //apply all contour settings to the runner. First, make sure we have all contours needed.
+    int numberOfContours = this->postprocessorSettings.GetNumContours();
+    if(this->runner.GetNumberOfContours(0) != numberOfContours) {
+        std::cout << "Redefining Target." << std::endl;
+        std::vector<ExampleContour> newContours;
+        for(int i=0; i<numberOfContours; i++) {
+            ExampleContour newContour = ExampleContour(i);
+            newContours.push_back(newContour);
+        }
+        ExampleTarget newTarget = ExampleTarget(0, newContours, 0.0, 0.0, 0.0, 0.0);
+        this->runner.SetExampleTarget(0, newTarget);
+    }
+
+    for(int i=0; i<numberOfContours; i++) {
         this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_X, this->postprocessorSettings.GetProperty(i, TargetProperty::DIST_X));
         this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_Y, this->postprocessorSettings.GetProperty(i, TargetProperty::DIST_Y));
         this->runner.SetPostProcessorContourProperty(i, TargetProperty::ANGLE, this->postprocessorSettings.GetProperty(i, TargetProperty::ANGLE));
@@ -169,6 +181,30 @@ void ConfigEditor::Update() {
     this->runner.SetRunnerProperty(RunnerProperty::PERCEIVED_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::PERCEIVED_WIDTH));
     this->runner.SetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE, this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE));
     this->runner.SetRunnerProperty(RunnerProperty::ERROR_CORRECTION, this->runnerSettings.GetProperty(RunnerProperty::ERROR_CORRECTION));
+
+    //set service labels
+    if(this->learnerActivated) {
+        this->serviceMonitor.SetText("Learning Target");
+
+        std::string progressString = "Capturing Frames (" +
+                                  std::to_string(this->learner.GetFramesLearned()) +
+                                  "/" +
+                                  std::to_string(LEARNER_FRAMES) + 
+                                  ")";
+        
+        this->serviceLabel.SetText(progressString);
+    } else if(this->distanceLearnerRunning) {
+        this->serviceMonitor.SetText("Learning Distance Constants");
+
+        std::string progressString = "Capturing Frames (" +
+                                  std::to_string(this->distanceLearner.GetFramesLearned()) +
+                                  "/" +
+                                  std::to_string(LEARNER_FRAMES) + 
+                                  ")";
+    } else {
+        this->serviceMonitor.SetText("No Service Running.");
+        this->serviceLabel.SetText("");
+    }
 }
 
 
@@ -180,26 +216,22 @@ bool ConfigEditor::UpdateImageOnly() {
     bool retval = this->runner.GetLastFrameSuccessful();
     this->out = this->runner.GetOutputImage();
     this->original = this->runner.GetOriginalImage();
-        
+
     if(this->learnerActivated) {
         int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
         this->learner.FeedImage(this->original, minimumArea);
         this->out = this->learner.GetOutputImageFromLastFeed();
 
         if(this->learner.GetLearning()) {
-            std::string progressString = "Capturing Frames (" +
-                                      std::to_string(this->learner.GetFramesLearned()) +
-                                      "/" +
-                                      std::to_string(LEARNER_FRAMES) + 
-                                      ")";
-            
-            this->serviceLabel.SetText(progressString);
-
             if(this->learner.GetFramesLearned() >= LEARNER_FRAMES) {
                 int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
                 ExampleTarget newTarget = this->learner.StopLearning(minimumArea);
-
                 std::vector<ExampleContour> newContours = newTarget.Contours();
+
+                //prepare the editor for the contours
+                this->postprocessorSettings.SetNumContours(newContours.size());
+                this->runner.SetExampleTarget(0, newTarget);
+
                 for(int i=0; i<newContours.size(); i++) {
                     this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_X, newContours[i].DistX());
                     this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_Y, newContours[i].DistY());
@@ -209,16 +241,10 @@ bool ConfigEditor::UpdateImageOnly() {
                     this->postprocessorSettings.SetProperty(i, TargetProperty::MINIMUM_AREA, SettingPair(newContours[i].MinimumArea(), 0));
                 }
 
-                this->serviceMonitor.SetText("No Service Running.");
-                this->serviceLabel.SetText("");
                 this->learnerActivated = false;
             }
 
             if(this->learner.GetHasFailed()) {
-                this->serviceMonitor.SetText("No Service Running.");
-                this->serviceLabel.SetText("");
-                this->learnerActivated = false;
-
                 //alert the user
                 ConfirmationDialog alert = ConfirmationDialog(
                     std::string("The utility has failed due to a video error.\n") +
@@ -232,24 +258,11 @@ bool ConfigEditor::UpdateImageOnly() {
     if(this->distanceLearnerRunning) {
         this->distLearner.FeedTarget(this->runner.GetClosestTargetToCenter());
 
-        std::string distProgressString = "Capturing Frames (" +
-                                         std::to_string(this->distanceLearner.GetFramesLearned()) +
-                                         "/" +
-                                         std::to_string(LEARNER_FRAMES) +
-                                         ")";
-        
-        this->serviceLabel.SetText(distProgressString);
-
         if(this->distLearner.GetFramesLearned() >= LEARNER_FRAMES) {
             double trueDistance = this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE);
             double trueWidth = this->runnerSettings.GetProperty(RunnerProperty::TRUE_WIDTH);
             double newFocalWidth = this->distLearner.GetFocalWidth(trueDistance, trueWidth);
             this->runnerSettings.SetProperty(RunnerProperty::PERCEIVED_WIDTH, newFocalWidth);
-
-            //reset the labels
-            this->serviceMonitor.SetText("No Service Running.");
-            this->serviceLabel.SetText("");
-            this->distanceLearnerRunning = false;
         }
     }
     

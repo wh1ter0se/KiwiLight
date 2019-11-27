@@ -240,6 +240,7 @@ ExampleTarget Runner::GetExampleTargetByID(int id) {
 }
 
 void Runner::SetExampleTarget(int contourID, ExampleTarget target) {
+    std::cout << "r: setting example target: " << target.Contours().size() << " Contours." << std::endl;
     this->postprocessor.SetTarget(contourID, target);
 }
 
@@ -410,23 +411,15 @@ void Runner::parseDocument(XMLDocument doc) {
  * Applies the camera settings via shell.
  */
 void Runner::applySettings() {
-    std::cout << "as1" << std::endl;
     XMLDocument document = XMLDocument(this->GetFileName());
     std::vector<XMLTag> camSettings =
         document.GetTagsByName("camera")[0]
         .GetTagsByName("settings")[0]
         .GetTagsByName("setting");
-    std::cout << "as2" << std::endl;
     for(int i=0; i<camSettings.size(); i++) {
-        std::cout << "as3a" << std::endl;
         XMLTag setting = camSettings[i];
-        std::cout << "as3b" << std::endl;
         int settingID = std::stoi(setting.GetAttributesByName("id")[0].Value());
-        std::cout << "as3c" << std::endl;
         double settingValue = std::stod(setting.Content());
-        std::cout << "as3d" << std::endl;
         KiwiLightApp::SetCameraProperty(settingID, settingValue);
-        std::cout << "as3e" << std::endl;
     }
-    std::cout << "as4" << std::endl;
 }

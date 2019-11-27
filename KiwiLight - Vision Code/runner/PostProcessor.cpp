@@ -19,16 +19,26 @@ PostProcessor::PostProcessor(std::vector<ExampleTarget> targets, bool debugging)
 }
 
 void PostProcessor::SetTarget(int id, ExampleTarget target) {
+    std::cout << "pp: setting target " << id << ". " << target.Contours().size() << " Contours." << std::endl;
     //find the id to replace
     for(int i=0; i<this->targets.size(); i++) {
         if(this->targets[i].ID() == id) {
+            std::cout << "pp: found target to replace." << std::endl;
             this->targets[i] = target;
+            return;
         }
     }
 }
 
 int PostProcessor::NumberOfContours(int target) {
-    return this->targets[target].Contours().size();
+    //find the target with the id, and return its contour count
+    for(int i=0; i<targets.size(); i++) {
+        if(this->targets[i].ID() == target) {
+            return this->targets[i].Contours().size();
+        }
+    }
+
+    return -1;
 }
 
 /**

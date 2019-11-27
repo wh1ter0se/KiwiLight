@@ -9,6 +9,19 @@ using namespace cv;
 using namespace KiwiLight;
 
 /**
+ * Creates an instance of the default ExampleContour, a square.
+ */
+ExampleContour::ExampleContour(int id) {
+    this->id = id;
+    this->distX = SettingPair(0, 0.25);
+    this->distY = SettingPair(0, 0.25);
+    this->angle = SettingPair(0, 90);
+    this->aspectRatio = SettingPair(1, 0.25);
+    this->solidity = SettingPair(1, 0.125);
+    this->minimumArea = 500;
+}
+
+/**
  * Creates an ExampleContour to model a real contour using the given information.
  */
 ExampleContour::ExampleContour(int id, SettingPair distX, SettingPair distY, SettingPair angle,SettingPair aspectRatio,SettingPair solidity,int minimumArea) {

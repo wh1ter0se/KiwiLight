@@ -124,19 +124,24 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
 
 
 int PostprocessorEditor::GetNumContours() {
-    return this->storageRunner.GetExampleTargetByID(0).Contours().size();
+    return this->storageRunner.GetNumberOfContours(0);
 }
 
 /**
  * Clears all contours in the target so far and sets the number of contours to contours.
  */
 void PostprocessorEditor::SetNumContours(int contours) {
+    std::cout << "ppe: setting contour count to " << contours << std::endl;
     //create a new exampletarget
     std::vector<ExampleContour> newContours;
-    for(int i=0; i<newContours.size(); i++) {
-        
-        newContours.push_back()
+    for(int i=0; i<contours; i++) {
+        ExampleContour newContour = ExampleContour(i);
+        newContours.push_back(newContour);
     }
+
+    ExampleTarget newTarg = ExampleTarget(0, newContours, 0.0, 0.0, 0.0, 0.0);
+    std::cout << "ppe: setting target. " << newTarg.Contours().size() << " Contours." << std::endl;
+    this->storageRunner.SetExampleTarget(0, newTarg);
 }
 
 /**
@@ -147,18 +152,22 @@ void PostprocessorEditor::Update() {
     
     if(currentContour != this->lastDesiredContour) {
         //the user has requested to see values for a new contour, show them
-        this->distX.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::DIST_X).Value());
-        this->distXErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::DIST_X).Error());
-        this->distY.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::DIST_Y).Value());
-        this->distYErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::DIST_Y).Error());
-        this->angle.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::ANGLE).Value());
-        this->angleErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::ANGLE).Error());
-        this->ar.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::ASPECT_RATIO).Value());
-        this->arErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::ASPECT_RATIO).Error());
-        this->solidity.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::SOLIDITY).Value());
-        this->solidityErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::SOLIDITY).Error());
-        this->minimumArea.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::MINIMUM_AREA).Value());
-        this->lastDesiredContour = currentContour;
+        if(currentContour < this->storageRunner.GetNumberOfContours(0)) {
+            this->distX.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::DIST_X).Value());
+            this->distXErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::DIST_X).Error());
+            this->distY.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::DIST_Y).Value());
+            this->distYErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::DIST_Y).Error());
+            this->angle.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::ANGLE).Value());
+            this->angleErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::ANGLE).Error());
+            this->ar.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::ASPECT_RATIO).Value());
+            this->arErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::ASPECT_RATIO).Error());
+            this->solidity.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::SOLIDITY).Value());
+            this->solidityErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::SOLIDITY).Error());
+            this->minimumArea.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::MINIMUM_AREA).Value());
+            this->lastDesiredContour = currentContour;
+        } else {
+            this->contourchooser.SetValue(this->lastDesiredContour);
+        }
     }
 
     //set dist x

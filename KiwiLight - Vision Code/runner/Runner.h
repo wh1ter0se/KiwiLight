@@ -108,6 +108,7 @@ namespace KiwiLight {
     class ExampleContour {
         public:
         ExampleContour() {};
+        ExampleContour(int id);
         ExampleContour(int id,
                        SettingPair distX,
                        SettingPair distY,
@@ -246,7 +247,7 @@ namespace KiwiLight {
         public:
         PostProcessor() {};
         PostProcessor(std::vector<ExampleTarget> targets, bool debugging);
-        void SetTarget(int id, ExampleTarget target)
+        void SetTarget(int id, ExampleTarget target);
         int NumberOfTargets() { return this->targets.size(); };
         int NumberOfContours(int target);
         void SetTargetContourProperty(int contour, TargetProperty prop, SettingPair values);
