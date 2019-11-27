@@ -183,7 +183,7 @@ void ConfigEditor::Update() {
     this->runner.SetRunnerProperty(RunnerProperty::ERROR_CORRECTION, this->runnerSettings.GetProperty(RunnerProperty::ERROR_CORRECTION));
 
     //set service labels
-    if(this->learnerActivated) {
+    if(this->learnerActivated && this->learner.GetLearning()) {
         this->serviceMonitor.SetText("Learning Target");
 
         std::string progressString = "Capturing Frames (" +
@@ -201,6 +201,7 @@ void ConfigEditor::Update() {
                                   "/" +
                                   std::to_string(LEARNER_FRAMES) + 
                                   ")";
+        this->serviceLabel.SetText(progressString);
     } else {
         this->serviceMonitor.SetText("No Service Running.");
         this->serviceLabel.SetText("");
@@ -251,18 +252,20 @@ bool ConfigEditor::UpdateImageOnly() {
                     std::string("Is the camera plugged in?")
                 );
                 alert.ShowAndGetResponse();
+                this->learnerActivated = false;
             }
         }
     }
     
     if(this->distanceLearnerRunning) {
-        this->distLearner.FeedTarget(this->runner.GetClosestTargetToCenter());
+        this->distanceLearner.FeedTarget(this->runner.GetClosestTargetToCenter());
 
-        if(this->distLearner.GetFramesLearned() >= LEARNER_FRAMES) {
+        if(this->distanceLearner.GetFramesLearned() >= LEARNER_FRAMES) {
             double trueDistance = this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE);
             double trueWidth = this->runnerSettings.GetProperty(RunnerProperty::TRUE_WIDTH);
-            double newFocalWidth = this->distLearner.GetFocalWidth(trueDistance, trueWidth);
+            double newFocalWidth = this->distanceLearner.GetFocalWidth(trueDistance, trueWidth);
             this->runnerSettings.SetProperty(RunnerProperty::PERCEIVED_WIDTH, newFocalWidth);
+            this->distanceLearnerRunning = false;
         }
     }
     

@@ -681,7 +681,6 @@ namespace KiwiLight {
         TargetDistanceLearner distanceLearner;
         bool distanceLearnerRunning;
 
-        TargetDistanceLearner distLearner;
         TargetTroubleshooter troubleshooter;
         
         Label serviceMonitor;
