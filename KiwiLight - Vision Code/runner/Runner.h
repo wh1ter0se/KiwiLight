@@ -295,7 +295,6 @@ namespace KiwiLight {
         PostProcessor GetPostProcessor() { return this->postprocessor; };
         int GetCameraIndex() { return this->cameraIndex; };
         void SetImageResize(Size sz);
-        void SetResolution(Size sz);
         void Loop();
         void ReconnectUDP(std::string udpAddr, int udpPort);
         void SendOverUDP(std::string message);
@@ -321,12 +320,12 @@ namespace KiwiLight {
 
         private:
         void parseDocument(XMLDocument doc);
-        void applySettings();
+        void applySettings(XMLDocument document);
 
         PreProcessor preprocessor;
         PostProcessor postprocessor;
-        Size constantResize,
-             cameraResolution;
+        Size constantResize;
+
         Target closestTarget;
 
         std::string src,

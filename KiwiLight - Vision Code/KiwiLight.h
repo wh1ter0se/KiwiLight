@@ -98,6 +98,7 @@ namespace KiwiLight {
         static bool udpEnabled;
         static bool streamThreadEnabled;
         static Mat lastFrameGrabImage;
+        static int currentCameraIndex;
 
         //ui widgets
         static Window win;

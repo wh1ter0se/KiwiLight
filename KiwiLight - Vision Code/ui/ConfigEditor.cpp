@@ -660,14 +660,6 @@ void ConfigEditor::OpenNewCameraFromOverview() {
 }
 
 
-void ConfigEditor::ResetRunnerResolution() {
-    int camResX = this->cameraSettings.GetSettingValueFromID(CAP_PROP_FRAME_WIDTH);
-    int camResY = this->cameraSettings.GetSettingValueFromID(CAP_PROP_FRAME_HEIGHT);
-    Size newRes = Size(camResX, camResY);
-    this->runner.SetResolution(newRes);
-}
-
-
 void ConfigEditor::SetName(std::string name) {
     gtk_widget_set_name(this->configeditor, name.c_str());
 }

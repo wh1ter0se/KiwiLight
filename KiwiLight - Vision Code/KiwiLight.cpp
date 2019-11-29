@@ -25,14 +25,16 @@ Label        KiwiLightApp::cameraStatusLabel;
 Image        KiwiLightApp::outputImage;
 Button       KiwiLightApp::toggleUDPButton;
 int          KiwiLightApp::cameraFailures;
+int          KiwiLightApp::currentCameraIndex;
 
 /**
  * Initializes GTK and builds KiwiLight
  */
 void KiwiLightApp::Create(int argc, char *argv[]) {
-    KiwiLightApp::mode = UIMode::UI_STREAM;
+    KiwiLightApp::mode = UIMode::UI_PAUSING;
     KiwiLightApp::cameraFailures = 0;
-
+    KiwiLightApp:currentCameraIndex = 100; //just to define index. Camera will only open if currentCameraindex != 100
+    
     gtk_init(&argc, &argv);
     win = Window(GTK_WINDOW_TOPLEVEL);
         Panel content = Panel(false, 0);
@@ -90,7 +92,7 @@ void KiwiLightApp::Create(int argc, char *argv[]) {
     win.SetCSS("ui/Style.css");
     win.SetOnAppClosed(KiwiLightApp::Quit);
     win.SetInterval(75, KiwiLightApp::UpdateApp);
-
+    
     OpenNewCameraOnIndex(0);
 }
 
@@ -118,12 +120,14 @@ ConfigEditor KiwiLightApp::GetEditor() { return configeditor; }
  */
 Mat KiwiLightApp::TakeImage() {
     Mat img;
-    bool success = KiwiLightApp::camera.read(img);
-    KiwiLightApp::lastImageGrabSuccessful = success;
-    
-    //additionally...
-    if(img.empty()) {
-        lastImageGrabSuccessful = false;
+    if(KiwiLightApp::camera.isOpened()) {
+        bool success = KiwiLightApp::camera.read(img);
+        KiwiLightApp::lastImageGrabSuccessful = success;
+        
+        //additionally...
+        if(img.empty()) {
+            lastImageGrabSuccessful = false;
+        }
     }
 
     return img;
@@ -262,30 +266,38 @@ void KiwiLightApp::EditorConnectUDPFromOverview() {
  * Causes KiwiLight to open a new camera on the given index.
  */
 void KiwiLightApp::OpenNewCameraOnIndex(int index) {
-    UIMode currentMode = KiwiLightApp::mode;
-    StopStreamingThread();
-
-    KiwiLightApp::camera.~VideoCapture();
-    KiwiLightApp::camera = VideoCapture(index);
+    if(KiwiLightApp::currentCameraIndex != index) {
+        KiwiLightApp::currentCameraIndex = index;
+        UIMode currentMode = KiwiLightApp::mode;
+        //StopStreamingThread();
     
-    //set the auto exposure menu in shell because opencv cant do it
-    //if this is not set then exposure cannot be set
-    std::cout << "Configuring Auto Exposure setting on new camera" << std::endl;
-    Shell::ExecuteCommand(
-        std::string("v4l2-ctl -d ") + 
-        std::to_string(index) + 
-        std::string(" --set-ctrl=exposure_auto=1")
-    );
-
-    //set the text box on main UI
-    KiwiLightApp::cameraIndexBox.SetValue((double) index);
-
-    //set editor text boxes if necessary
-    if(currentMode == UIMode::UI_EDITOR) {
-        KiwiLightApp::configeditor.SetCameraIndexBoxes(index);
+        if(KiwiLightApp::camera.isOpened()) {
+            KiwiLightApp::camera.~VideoCapture();
+        }
+        
+        KiwiLightApp::camera = VideoCapture(index);
+        
+        //set the auto exposure menu in shell because opencv cant do it
+        //if this is not set then exposure cannot be set
+        std::cout << "Configuring Auto Exposure setting on new camera" << std::endl;
+        Shell::ExecuteCommand(
+            std::string("v4l2-ctl -d ") + 
+            std::to_string(index) + 
+            std::string(" --set-ctrl=exposure_auto=1")
+        );
+    
+        //set the text box on main UI
+        KiwiLightApp::cameraIndexBox.SetValue((double) index);
+    
+        //set editor text boxes if necessary
+        if(currentMode == UIMode::UI_EDITOR) {
+            KiwiLightApp::configeditor.SetCameraIndexBoxes(index);
+        }
+        
+        //if(mode != UIMode::UI_PAUSING) {
+            //LaunchStreamingThread(currentMode);
+        //}
     }
-
-    LaunchStreamingThread(currentMode);
 }
 
 /**
@@ -383,8 +395,6 @@ void KiwiLightApp::UpdateStreams() {
                     }
                 }
                 break;
-            default:
-                std::cout << "I don't know what I am, I just kinda vibin" << std::endl;
         }
 
         // if successful, update the display image

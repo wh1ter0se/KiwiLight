@@ -663,7 +663,6 @@ namespace KiwiLight {
         void SetCameraIndexBoxes(int index);
         void ReconnectUDPFromOverview();
         void OpenNewCameraFromOverview();
-        void ResetRunnerResolution();
         std::string GetFileName() { return this->fileName; };
         cv::Mat GetOutputImage() { return this->out; };
         GtkWidget *GetWidget() { return this->configeditor; };

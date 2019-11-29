@@ -24,19 +24,12 @@ Runner::Runner(std::string fileName, bool debugging) {
     } else {
         std::cout << "sorry! the file " << fileName << " could not be found. " << std::endl;
     }
-    this->applySettings();
-    this->SetResolution(this->cameraResolution);
+    this->applySettings(file);
     this->stop = false;
 }
 
 void Runner::SetImageResize(Size sz) {
     this->constantResize = sz;
-}
-
-
-void Runner::SetResolution(Size sz) {
-    KiwiLightApp::SetCameraProperty(CAP_PROP_FRAME_WIDTH, sz.width);
-    KiwiLightApp::SetCameraProperty(CAP_PROP_FRAME_HEIGHT, sz.height);
 }
 
 /**
@@ -323,10 +316,6 @@ void Runner::parseDocument(XMLDocument doc) {
             camera.GetTagsByName("settings")[0]
             .GetTagsByName("setting");
 
-            int camResX = std::stoi(Util::SearchCameraSettingsByID(camSettings, CAP_PROP_FRAME_WIDTH).Content());
-            int camResY = std::stoi(Util::SearchCameraSettingsByID(camSettings, CAP_PROP_FRAME_HEIGHT).Content());
-            this->cameraResolution = Size(camResX, camResY);
-
     XMLTag config = doc.GetTagsByName("configuration")[0];
         this->configName = doc.GetTagsByName("configuration")[0].GetAttributesByName("name")[0].Value();
 
@@ -412,8 +401,7 @@ void Runner::parseDocument(XMLDocument doc) {
 /**
  * Applies the camera settings via shell.
  */
-void Runner::applySettings() {
-    XMLDocument document = XMLDocument(this->GetFileName());
+void Runner::applySettings(XMLDocument document) {
     std::vector<XMLTag> camSettings =
         document.GetTagsByName("camera")[0]
         .GetTagsByName("settings")[0]
@@ -422,6 +410,7 @@ void Runner::applySettings() {
         XMLTag setting = camSettings[i];
         int settingID = std::stoi(setting.GetAttributesByName("id")[0].Value());
         double settingValue = std::stod(setting.Content());
+        std::cout << "setting " << settingID << " to " << settingValue << std::endl;
         KiwiLightApp::SetCameraProperty(settingID, settingValue);
     }
 }
