@@ -274,6 +274,7 @@ namespace KiwiLight {
         int NumberOfContours() { return this->seenTarget.Contours().size(); };
         std::vector<Contour> GetContoursGrouped();
         std::vector<Contour> GetContours() { return this->seenTarget.Contours(); };
+        int PositionValue(Contour contour);
         Distance GetContourDistance(Contour contour);
 
         private:

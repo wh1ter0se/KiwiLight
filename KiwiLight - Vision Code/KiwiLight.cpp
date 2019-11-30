@@ -377,7 +377,7 @@ void KiwiLightApp::UpdateStreamsConstantly() {
 void KiwiLightApp::UpdateStreams() {
     try {
         //attempt to loop the things
-        Mat displayImage = KiwiLightApp::TakeImage();
+        Mat displayImage;
         switch(KiwiLightApp::mode) {
             case UIMode::UI_STREAM:
                 displayImage = KiwiLightApp::TakeImage();
