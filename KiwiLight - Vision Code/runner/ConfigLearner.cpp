@@ -12,6 +12,7 @@ using namespace KiwiLight;
 ConfigLearner::ConfigLearner(PreProcessor preprocessor) {
     this->preprocessor = preprocessor;
     this->currentlyLearning = false;
+    this->failedFrames = 0;
 }
 
 
@@ -23,6 +24,12 @@ void ConfigLearner::StartLearning() {
  * Feeds an unprocessed image into the learner for possible processing.
  */
 void ConfigLearner::FeedImage(Mat img, int minimumContourArea) {
+    //if the camera grab has failed and the image doesn't exist...
+    if(img.empty()) {
+        failedFrames++;
+        return;
+    }
+
     img.copyTo(this->original);
     Mat preprocessed = this->preprocessor.ProcessImage(img);
     preprocessed.copyTo(this->out);
@@ -72,19 +79,17 @@ ExampleTarget ConfigLearner::StopLearning(int minimumContourArea) {
 
     //create a sorted list of the number of contours in each image (it is double because DataUtils sorts doubles)
     std::vector<double> numberContoursList;
-    std::vector <std::vector <Contour> > groupedContours; //vector of contours grouped by their distance from target center
     for(int i=0; i<this->currentFrames.size(); i++) {
-        groupedContours.push_back(this->currentFrames[i].GetContoursGrouped());
-        numberContoursList.push_back((double) this->currentFrames[i].NumberOfContours());
+        numberContoursList.push_back(this->currentFrames[i].GetContoursGrouped().size());
     }
 
     double regularNumberOfContours = DataUtils::MostCommonValue(numberContoursList);
 
-    //discard any frame that does not have the same contours as regularNumberOfContours
+    std::vector <std::vector <Contour> > groupedContours; //vector of contours grouped by their distance from target center
     for(int i=0; i<this->currentFrames.size(); i++) {
-        if(this->currentFrames[i].NumberOfContours() != regularNumberOfContours) {
-            this->currentFrames.erase(this->currentFrames.begin() + i);
-            i--;
+        if(currentFrames[i].GetContoursGrouped().size() == regularNumberOfContours) {
+            groupedContours.push_back(this->currentFrames[i].GetContoursGrouped());
+            numberContoursList.push_back((double) this->currentFrames[i].NumberOfContours());
         }
     }
 
@@ -99,6 +104,10 @@ ExampleTarget ConfigLearner::StopLearning(int minimumContourArea) {
 
         for(int k=0; k<groupedContours.size(); k++) {
             //gather and format contour data
+
+            // std::cout << "grouped contours dimensions: " << k << " x " << i << std::endl;
+            // std::cout << "i: " << i << std::endl;
+            // std::cout << "k: " << k << std::endl;
 
             Contour contourToAnalyze = groupedContours[k][i];
             Distance contourDistToCenter = this->currentFrames[k].GetContourDistance(contourToAnalyze);

@@ -24,6 +24,11 @@ void Window::SetOnAppClosed(void(*onAppClosed)()) {
     Window::onAppClosed = onAppClosed;
 }
 
+void Window::SetOnWindowClosed(void(*onWindowClosed)()) {
+    g_signal_connect(this->window, "delete-event", G_CALLBACK(onWindowClosed), NULL);
+    g_signal_connect(this->window, "destroy", G_CALLBACK(onWindowClosed), NULL);
+}
+
 /**
  * Creates a new window.
  */

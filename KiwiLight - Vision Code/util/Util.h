@@ -88,8 +88,6 @@ namespace KiwiLight {
         UDP(std::string this_ip, std::string dest_ip, int port, bool blockUntilConnected);
         bool AttemptToConnect();
         bool Connected() { return this->connected; };
-        void SetEnabled(bool enabled);
-        bool IsEnabled() { return this->enabled; };
         void Send(std::string msg);
         std::string Recieve();
         void Close();
@@ -101,7 +99,6 @@ namespace KiwiLight {
         sockaddr_in client_address; //address of the server
 
         bool connected;
-        bool enabled;
 
         std::string address;
         int port;
@@ -170,6 +167,14 @@ namespace KiwiLight {
         std::string fileName;
         bool hasContents;
         std::vector<XMLTag> children;
+    };
+
+    /**
+     * General util class containing useful methods used by multiple classes
+     */
+    class Util {
+        public:
+        static XMLTag SearchCameraSettingsByID(std::vector<XMLTag> settings, int id);
     };
 
     /**

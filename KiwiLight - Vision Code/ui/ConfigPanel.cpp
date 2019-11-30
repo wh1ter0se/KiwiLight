@@ -11,7 +11,7 @@ extern void EditSelected(); //from Main.cpp
 extern void ToggleUDP(); //from Main.cpp
 
 
-ConfigPanel::ConfigPanel(XMLDocument file, bool withButtons, bool withDynamicName) {
+ConfigPanel::ConfigPanel(XMLDocument file) {
     this->panel = Panel(false, 5);
 
         this->configFile = "(none)";
@@ -40,26 +40,10 @@ ConfigPanel::ConfigPanel(XMLDocument file, bool withButtons, bool withDynamicNam
         }
 
         this->configNameString = configName;
-
-        if(withDynamicName) {
-            //dynamic name mode selected; the name of the config will be able to be changed in the panel.
-            this->dynamicName = true;
-            
-            Panel headerPanel = Panel(true, 0);
-                this->header = Label("Configuration: ");
-                    this->header.SetName("header");
-                    headerPanel.Pack_start(this->header.GetWidget(), false, false, 0);
-
-                this->configName = TextBox(configName);
-                    headerPanel.Pack_start(this->configName.GetWidget(), false, false, 0);
-
-                this->panel.Pack_start(headerPanel.GetWidget(), false, false, 0);
-        } else {
-            this->dynamicName = false;
-            this->header = Label("Configuration: " + configName);
-                this->header.SetName("header");
-                this->panel.Pack_start(this->header.GetWidget(), false, false, 0);
-        }
+       
+        this->header = Label("Configuration: " + configName);
+            this->header.SetName("header");
+            this->panel.Pack_start(this->header.GetWidget(), false, false, 0);
 
         Panel filePanel = Panel(true, 0);
             Label filePanelHeader = Label("File: ");
@@ -111,33 +95,7 @@ ConfigPanel::ConfigPanel(XMLDocument file, bool withButtons, bool withDynamicNam
         
             this->panel.Pack_start(udpPortPanel.GetWidget(), false, false, 0);
 
-        if(withButtons) {
-            Separator sep = Separator(true);
-                this->panel.Pack_start(sep.GetWidget(), false, false, 5);
-
-            this->buttonPanel = Panel(true, 0);
-                this->editConfig = Button("Edit", EditSelected);
-                    this->buttonPanel.Pack_start(editConfig.GetWidget(), true, true, 0);
-
-                this->toggleUDP = Button("Enable UDP", ToggleUDP);
-                    this->buttonPanel.Pack_start(toggleUDP.GetWidget(), true, true, 0);
-
-                this->panel.Pack_start(this->buttonPanel.GetWidget(), false, false, 0);
-            
-        }
-
     this->configPanel = this->panel.GetWidget();
-}
-
-/**
- * Sets the UI based on whether or not the UDP is enabled.
- */
-void ConfigPanel::SetUDPEnabled(bool enabled) {
-    if(enabled) {
-        this->toggleUDP.SetText("Disable UDP");
-    } else {
-        this->toggleUDP.SetText("Enable UDP");
-    }
 }
 
 
@@ -163,11 +121,11 @@ void ConfigPanel::LoadConfig(XMLDocument file) {
 
     //set the label texts for the informational panel with the found information
     this->header.SetText("Configuration: " + name);
-    this->fileLabel.SetText("File: " + file.FileName());
-    this->PreProcessorLabel.SetText("Preprocessor: " + preProcessorType);
-    this->TargetLabel.SetText("Contours: " + numContours);
-    this->UDPAddressLabel.SetText("UDP Address: " + udpAddress);
-    this->UDPPortLabel.SetText("UDP Port: " + udpPort);
+    this->fileLabel.SetText(file.FileName());
+    this->PreProcessorLabel.SetText(preProcessorType);
+    this->TargetLabel.SetText(numContours);
+    this->UDPAddressLabel.SetText(udpAddress);
+    this->UDPPortLabel.SetText(udpPort);
 
     this->configNameString = name;
 }
@@ -175,29 +133,12 @@ void ConfigPanel::LoadConfig(XMLDocument file) {
 
 void ConfigPanel::Clear() {
     this->header.SetText("Configuration: (none loaded)");
-    this->fileLabel.SetText("File: (none)");
-    this->PreProcessorLabel.SetText("Preprocessor: (none)");
-    this->TargetLabel.SetText("Targets: (none)");
-    this->UDPAddressLabel.SetText("UDP Address: (none)");
-    this->UDPPortLabel.SetText("UDP Port: (none)");
+    this->fileLabel.SetText("(none)");
+    this->PreProcessorLabel.SetText("(none)");
+    this->TargetLabel.SetText("(none)");
+    this->UDPAddressLabel.SetText("(none)");
+    this->UDPPortLabel.SetText("(none)");
 }
-
-
-void ConfigPanel::SetConfigurationName(std::string newName) {
-    if(this->dynamicName) {
-        this->configName.SetText(newName);
-    }
-}
-
-
-std::string ConfigPanel::GetConfigurationName() {
-    if(this->dynamicName) {
-        return this->configName.GetText();
-    }
-
-    return this->configNameString;
-}
-
 
 void ConfigPanel::SetName(std::string name) {
     gtk_widget_set_name(this->configPanel, name.c_str());

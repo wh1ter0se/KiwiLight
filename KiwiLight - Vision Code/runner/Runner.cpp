@@ -1,4 +1,4 @@
-#include "Runner.h"
+#include "../KiwiLight.h"
 
 /**
  * Source file for the Runner class.
@@ -8,6 +8,8 @@
 using namespace cv;
 using namespace KiwiLight;
 
+const std::string Runner::NULL_MESSAGE = ":-1,-1,-1,180,180;";
+
 /**
  * Creates a new runner which runs the configuration described by the given file
  */
@@ -15,66 +17,19 @@ Runner::Runner(std::string fileName, bool debugging) {
     this->src = fileName;
     this->debug = debugging;
     this->postProcessorTargets = std::vector<ExampleTarget>();
+    this->lastIterationSuccessful = false;
     XMLDocument file = XMLDocument(fileName);
     if(file.HasContents()) {
         this->parseDocument(file);
     } else {
         std::cout << "sorry! the file " << fileName << " could not be found. " << std::endl;
     }
-
-    this->applySettings();
-    this->cap = VideoCapture(this->cameraIndex);
-    this->SetResolution(this->cameraResolution);
+    this->applySettings(file);
     this->stop = false;
 }
-
-
-Runner::Runner(std::string fileName, bool debugging, bool openNewVideoStream) {
-    this->src = fileName;
-    this->debug = debugging;
-    this->postProcessorTargets = std::vector<ExampleTarget>();
-    XMLDocument file = XMLDocument(fileName);
-    if(file.HasContents()) {
-        this->parseDocument(file);
-    } else {
-        std::cout << "sorry! the file " << fileName << " could not be found. " << std::endl;
-    }
-
-    if(openNewVideoStream) {
-        this->applySettings();
-        this->cap = VideoCapture(this->cameraIndex);
-        this->SetResolution(this->cameraResolution);
-    }
-    this->stop = false;
-}
-
-
-Runner::Runner(std::string fileName, bool debugging, VideoCapture cap) {
-    this->src = fileName;
-    this->debug = debugging;
-    this->postProcessorTargets = std::vector<ExampleTarget>();
-    XMLDocument file = XMLDocument(fileName);
-    if(file.HasContents()) {
-        this->parseDocument(file);
-    } else {
-        std::cout << "sorry! the file " << fileName << " could not be found. " << std::endl;
-    }
-
-    this->applySettings();
-    this->cap = cap;
-    this->SetResolution(this->cameraResolution);
-    this->stop = false;
-}
-
 
 void Runner::SetImageResize(Size sz) {
     this->constantResize = sz;
-}
-
-
-void Runner::SetResolution(Size sz) {
-    this->cap.set(CAP_PROP_FRAME_WIDTH, sz.width);
-    this->cap.set(CAP_PROP_FRAME_HEIGHT, sz.height);
 }
 
 /**
@@ -86,8 +41,9 @@ void Runner::Loop() {
     std::cout << std::endl;
     std::cout << "------------------------------------" << std::endl;
     std::cout << "KiwiLight Runner starting..." << std::endl;
-    std::cout << "  Mode: " << (this->debug? "Debug" : "Running") << std::endl;
+    std::cout << "  Mode: " << (this->debug ? "Debug" : "Running") << std::endl;
     std::cout << "  Configuration Name: " << this->configName << std::endl;
+    std::cout << "  Camera Index: " << this->cameraIndex << std::endl;
     std::cout << "  Preprocessor: " << (this->preprocessor.GetProperty(PreProcessorProperty::IS_FULL) == 1.0 ? "FULL" : "PARTIAL") << std::endl;
     std::cout << "  Postprocessor: FULL" << std::endl;
     std::cout << "    Number of Contours: " << this->postProcessorTargets[0].Contours().size() << std::endl;
@@ -107,8 +63,14 @@ void Runner::Loop() {
 
     //loops a lot until stopped
     while(!stop) {
-        //run algorithm and get the udp message to send to rio
-        this->Iterate();
+        try {
+            //run algorithm and get the udp message to send to rio
+            std::string output = this->Iterate();
+            this->udp.Send(output);
+        } catch(cv::Exception ex) {
+            std::cout << "An OpenCv Exception was encountered in the Loop!" << std::endl;
+            std::cout << "ex.what(): " << ex.what() << std::endl;
+        }
     }
 }
 
@@ -119,15 +81,17 @@ std::string Runner::Iterate() {
     cv::Mat img;
     cv::Mat out; //output image we draw on for debugging
     if(RunnerSettings::USE_CAMERA) {
-        bool success = this->cap.read(img);
-        if(!success) {
-            //oops we shall exit now
-            return "";
+        img = KiwiLightApp::TakeImage();
+
+        if(img.empty()) {
+            //oops we shall exit now because there be nothing in image
+            return NULL_MESSAGE;
         }
     } else {
+        this->lastIterationSuccessful = true;
         img = cv::imread(RunnerSettings::IMAGE_TO_USE);
     }
-
+    
     resize(img, img, this->constantResize);
     img.copyTo(this->originalImage);
     img = this->preprocessor.ProcessImage(img);
@@ -253,19 +217,12 @@ std::string Runner::Iterate() {
         out.copyTo(this->outputImage);
     }
 
-    //enabled the UDP if it was disabled and runner is not in debug mode
-    if(!this->debug) {
-        this->udp.SetEnabled(true);
-    }
-
-    //send the message to the RIO
-    if(this->udp.IsEnabled()) {
-        //send the UDP if it is enabled or running mode is enabled.
-        this->udp.AttemptToConnect();
-        this->udp.Send(rioMessage);
-    }
-
     return rioMessage;
+}
+
+
+int Runner::GetNumberOfContours(int target) {
+    return this->postprocessor.NumberOfContours(target);
 }
 
 /**
@@ -275,65 +232,17 @@ ExampleTarget Runner::GetExampleTargetByID(int id) {
     return this->postprocessor.GetExampleTargetByID(id);
 }
 
-
-void Runner::SetUDPEnabled(bool enabled) {
-    this->udp.SetEnabled(enabled);
-}
-
-
-bool Runner::GetUDPEnabled() {
-    return this->udp.IsEnabled();
-}
-
-
 void Runner::SetExampleTarget(int contourID, ExampleTarget target) {
-    for(int i=0; i<this->postProcessorTargets.size(); i++) {
-        if(this->postProcessorTargets[i].ID() == contourID) {
-            this->postProcessorTargets[i] = target;
-            return;
-        }
-    }
+    this->postprocessor.SetTarget(contourID, target);
 }
-
-/**
- * Stops runner and releases camera. Camera function will not be granted to anything else
- * unless this method is called.
- */
-void Runner::Stop() {
-    this->cap.~VideoCapture();
-    this->stop = true;
-}
-
-/**
- * Stops the loop if one is happening, but does not close the camera stream.
- */
-void Runner::StopLoopOnly() {
-    this->stop = true;
-}
-
-/**
- * If Stop() or StopLoopOnly() has been called to stop the main loop, UnlockLoop() must be called
- * to allow a new loop to start.
- */
-void Runner::UnlockLoop() {
-    this->stop = false;
-}
-
-/**
- * Restarts the camera stream associated with this runner.
- * This should only be called if Stop() has been called.
- * NOTE: THIS METHOD DOES NOT CALL LOOP(). Loop() must be called separately.
- */
-void Runner::Start() {
-    this->cap = VideoCapture(this->cameraIndex);
-    this->stop = false;
-}
-
 
 void Runner::ReconnectUDP(std::string udpAddr, int udpPort) {
     this->udp = UDP(udpAddr, udpPort);
 }
 
+void Runner::SendOverUDP(std::string message) {
+    this->udp.Send(message);
+}
 
 void Runner::SetPreprocessorProperty(PreProcessorProperty prop, double value) {
     if(this->debug) {
@@ -402,17 +311,16 @@ void Runner::parseDocument(XMLDocument doc) {
     XMLTag camera = doc.GetTagsByName("camera")[0];
         this->cameraIndex = std::stoi(camera.GetAttributesByName("index")[0].Value());
         
-        XMLTag camRes = camera.GetTagsByName("resolution")[0];
-            int camResX = std::stoi(camRes.GetTagsByName("width")[0].Content());
-            int camResY = std::stoi(camRes.GetTagsByName("height")[0].Content());
-            this->cameraResolution = Size(camResX, camResY);
+        std::vector<XMLTag> camSettings = 
+            camera.GetTagsByName("settings")[0]
+            .GetTagsByName("setting");
 
     XMLTag config = doc.GetTagsByName("configuration")[0];
+        this->configName = doc.GetTagsByName("configuration")[0].GetAttributesByName("name")[0].Value();
 
         XMLTag cameraOffset = config.GetTagsByName("cameraOffset")[0];
             this->centerOffsetX = std::stod(cameraOffset.GetTagsByName("horizontal")[0].Content());
             this->centerOffsetY = std::stod(cameraOffset.GetTagsByName("vertical")[0].Content());
-
 
         XMLTag constResize = config.GetTagsByName("constantResize")[0];
             int resizeX = std::stoi(constResize.GetTagsByName("width")[0].Content());
@@ -441,7 +349,7 @@ void Runner::parseDocument(XMLDocument doc) {
             for(int i=0; i<targets.size(); i++) {
                 XMLTag targetTag = targets[i];
                 std::vector<XMLTag> targContours = targetTag.GetTagsByName("contour");
-
+                
                 int targetId = std::stoi(targetTag.GetAttributesByName("id")[0].Value());
                 std::vector<ExampleContour> contours;
 
@@ -490,21 +398,19 @@ void Runner::parseDocument(XMLDocument doc) {
 /**
  * Applies the camera settings via shell.
  */
-void Runner::applySettings() {
-    XMLDocument document = XMLDocument(this->GetFileName());
-    XMLTag cameraTag = document.GetTagsByName("camera")[0];
-        XMLTag resolutionTag = cameraTag.GetTagsByName("resolution")[0];
-            int resWidth = std::stoi(resolutionTag.GetTagsByName("width")[0].Content());
-            int resHeight = std::stoi(resolutionTag.GetTagsByName("height")[0].Content());
-            this->cameraResolution = Size(resWidth, resHeight);
-    
-    std::vector<XMLTag> camSettings = cameraTag.GetTagsByName("settings")[0].GetTagsByName("setting");
+void Runner::applySettings(XMLDocument document) {
+    std::vector<XMLTag> camSettings =
+        document.GetTagsByName("camera")[0]
+        .GetTagsByName("settings")[0]
+        .GetTagsByName("setting");
+        
+    int camIndex = std::stoi(document.GetTagsByName("camera")[0].GetAttributesByName("index")[0].Value());
+    KiwiLightApp::OpenNewCameraOnIndex(camIndex);
+
     for(int i=0; i<camSettings.size(); i++) {
-        //find basic information for the setting and format it into a shell command 
         XMLTag setting = camSettings[i];
-        std::string settingName = setting.GetAttributesByName("name")[0].Value();
-        std::string settingValue = setting.Content();
-        std::string command = "v4l2-ctl --set-ctrl=" + settingName + "=" + settingValue;
-        Shell::ExecuteCommand(command);
+        int settingID = std::stoi(setting.GetAttributesByName("id")[0].Value());
+        double settingValue = std::stod(setting.Content());
+        KiwiLightApp::SetCameraProperty(settingID, settingValue);
     }
 }

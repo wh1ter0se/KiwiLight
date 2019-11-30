@@ -17,6 +17,11 @@ TargetDistanceLearner::TargetDistanceLearner(PreProcessor preprocessor, PostProc
 
 
 void TargetDistanceLearner::FeedImage(Mat image) {
+    if(image.empty()) {
+        failedFrames++;
+        return;
+    }
+    
     Mat img(image);
     img = this->preprocessor.ProcessImage(img);
     std::vector<Target> frameTargs = this->postprocessor.ProcessImage(img);

@@ -27,7 +27,7 @@ Image::Image(ImageColorspace colorspace) {
 /**
  * Updates and redraws the widget with newImage.
  */
-void Image::Update(cv::Mat newImage) {
+void Image::Update(cv::Mat newImage) {    
     if(!this->declaredAsStaticImage) {
         //convert the newImage to RGB colorspace
         cv::Mat newImageCopy; //copy the image so that changes arent made to the argument image

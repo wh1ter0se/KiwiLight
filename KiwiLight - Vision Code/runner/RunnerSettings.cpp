@@ -5,4 +5,5 @@
  * Written By: Brach Knutson
  */
 
-const std::string KiwiLight::RunnerSettings::IMAGE_TO_USE = "runner/dual.png";
+const bool        KiwiLight::RunnerSettings::USE_CAMERA   = true;
+const std::string KiwiLight::RunnerSettings::IMAGE_TO_USE = "sized.png";

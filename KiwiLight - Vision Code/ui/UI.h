@@ -84,6 +84,7 @@ namespace KiwiLight {
         Window(GtkWindowType type);
         Window(GtkWindowType type, bool terminateOnClose);
         static void SetOnAppClosed(void(*onAppClosed)());
+        void SetOnWindowClosed(void(*onWindowClosed)());
         void SetPane(Panel pane);
         void Show();
         void SetSize(int w, int h);
@@ -414,9 +415,10 @@ namespace KiwiLight {
     class CameraSetting : public Widget {
         public:
         CameraSetting() {};
-        CameraSetting(std::string name, int min, int max, int value);
-        int GetValue();
-        void SetValue(int newValue);
+        CameraSetting(std::string name, int valueName, double min, double max, double value);
+        double GetValue();
+        int GetValueName();
+        void SetValue(double newValue);
         void Destroy();
         std::string GetName() { return name; };
         GtkWidget *GetWidget() { return this->camerasetting; };
@@ -428,10 +430,13 @@ namespace KiwiLight {
         Label  nameLabel;
         NumberBox input;
 
-        std::string name,
-                    type;
+        std::string 
+            name,
+            type;
 
-        int min, 
+        int 
+            valueName,
+            min, 
             max,
             value;
     };
@@ -442,38 +447,72 @@ namespace KiwiLight {
     class ConfigPanel : public Widget {
         public:
         ConfigPanel() {};
-        ConfigPanel(std::string configFilePath) : ConfigPanel(XMLDocument(configFilePath), true, false) {};
-        ConfigPanel(std::string configFilePath, bool withButtons) : ConfigPanel(XMLDocument(configFilePath), withButtons, false) {};
-        ConfigPanel(XMLDocument doc, bool withButtons, bool withDynamicName);
-        void SetUDPEnabled(bool enabled);
+        ConfigPanel(std::string fileName) : ConfigPanel(XMLDocument(fileName)) {};
+        ConfigPanel(XMLDocument doc);
         void LoadConfig(std::string fileName);
         void LoadConfig(XMLDocument file);
         void Clear();
-        void SetConfigurationName(std::string newName);
-        std::string GetConfigurationName();
-        std::string GetConfig() { return this->configFile; };
+        std::string GetConfigurationName() { return this->configNameString; };
+        std::string GetConfigFile() { return this->configFile; };
         GtkWidget *GetWidget() { return this->configPanel; };
         void SetName(std::string name);
 
         private:
         Panel panel;
-        Panel informationPanel;
-        Panel buttonPanel;
-        Label header,
-              fileLabel,
-              PreProcessorLabel,
-              TargetLabel,
-              UDPAddressLabel,
-              UDPPortLabel;
-        Button editConfig;
-        Button toggleUDP;
+        Label
+            header,
+            fileLabel,
+            PreProcessorLabel,
+            TargetLabel,
+            UDPAddressLabel,
+            UDPPortLabel;
 
-        bool dynamicName; //when true textbox below will be defined
-        TextBox configName;
+        std::string 
+            configFile,
+            configNameString;
 
-        std::string configFile,
-                    configNameString;
         GtkWidget *configPanel;
+    };
+
+    class OverviewPanel : public Widget {
+        public:
+        OverviewPanel() {};
+        OverviewPanel(XMLDocument doc);
+        void Update();
+        void SetConfigName(std::string name);
+        std::string GetConfigName();
+        void SetTargetInformationLabels(
+            bool targetSpotted,
+            int targetImgX,
+            int targetImgY,
+            double targetDist,
+            double targetHAngle,
+            double targetVAngle
+        );
+        void SetCameraIndex(int index);
+        int GetCameraIndex();
+        void SetUDPAddr(std::string addr);
+        std::string GetUDPAddr();
+        void SetUDPPort(int port);
+        int GetUDPPort();
+        void SetTargetInformationLabelsFromString(std::string iterOutput);
+        GtkWidget *GetWidget() { return overviewpanel; };
+        void SetName(std::string name);
+
+        private:
+        TextBox configName;
+        TextBox udpAddr;
+        NumberBox udpPort;
+        NumberBox cameraIndex;
+
+        Label
+            targetSpotted,
+            targetImageLocation,
+            targetDist,
+            targetHAngle,
+            targetVAngle;
+
+        GtkWidget *overviewpanel;
     };
 
     /**
@@ -482,24 +521,22 @@ namespace KiwiLight {
     class Settings : public Widget {
         public:
         Settings() {};
-        Settings(int index, VideoCapture cap);
+        Settings(XMLDocument doc);
         void Update();
         void UpdateValue();
         void Show() { gtk_widget_show_all(this->settingsWidget); };
-        int GetWidth() { return camWidth; };
-        int GetHeight() { return camHeight; };
         XMLTag GetFinishedTag();
+        void SetSettingValueFromID(int id, double value);
+        double GetSettingValueFromID(int id);
+        void SetCameraIndex(int index);
+        int GetCameraIndex();
+        std::vector<int> GetSettingIDs();
         GtkWidget *GetWidget() { return settingsWidget; };
         void SetName(std::string name);
 
         private:
-        static void ScheduleApplySettings();
-        int searchAndReturnValue(std::string searchString, std::string term);
-        CameraSetting frameWidth,
-                      frameHeight;
+        NumberBox cameraIndex;
         std::vector<CameraSetting> settings;
-        int camWidth,
-            camHeight;
         GtkWidget *settingsWidget;
     };
 
@@ -516,19 +553,22 @@ namespace KiwiLight {
 
         private:
         bool lastIsFull;
-        CheckBox isFull,
-                 isPartial;
+        CheckBox 
+            isFull,
+            isPartial;
         
-        NumberBox colorH,
-                  colorS,
-                  colorV;
+        NumberBox 
+            colorH,
+            colorS,
+            colorV;
 
         Image colorPreview;
 
-        LabeledSlider colorError,
-                      threshold,
-                      erosion,
-                      dilation;
+        LabeledSlider 
+            colorError,
+            threshold,
+            erosion,
+            dilation;
         
         GtkWidget *preprocessoreditor;
     };
@@ -540,6 +580,7 @@ namespace KiwiLight {
         PostprocessorEditor(PostProcessor postprocessor);
         void Update();
         int GetNumContours();
+        void SetNumContours(int contours);
         SettingPair GetProperty(int contour, TargetProperty prop);
         void SetProperty(int contour, TargetProperty prop, SettingPair value);
         GtkWidget *GetWidget() { return this->postprocessoreditor; };
@@ -548,19 +589,23 @@ namespace KiwiLight {
         private:
         int lastDesiredContour;
         
-        NumberBox contourchooser,
-                  distX,
-                  distY;
+        NumberBox 
+            contourchooser,
+            distX,
+            distY;
 
-        LabeledSlider distXErr,
-                      distYErr,
-                      angle,
-                      angleErr,
-                      ar,
-                      arErr,
-                      solidity,
-                      solidityErr,
-                      minimumArea;
+        LabeledSlider 
+            distXErr,
+            distYErr,
+            angle,
+            angleErr,
+            ar,
+            arErr,
+            solidity,
+            solidityErr,
+            minimumArea;
+
+        Label totalContours;
 
         Runner storageRunner;
 
@@ -588,14 +633,15 @@ namespace KiwiLight {
         TextBox udpAddress;
         NumberBox udpPort;
 
-        LabeledSlider offsetX,
-                      offsetY,
-                      imageWidth,
-                      imageHeight,
-                      targetTrueWidth,
-                      targetPercievedWidth,
-                      targetCalibratedDistance,
-                      targetErrorCorrection;
+        LabeledSlider 
+            offsetX,
+            offsetY,
+            imageWidth,
+            imageHeight,
+            targetTrueWidth,
+            targetPercievedWidth,
+            targetCalibratedDistance,
+            targetErrorCorrection;
 
         GtkWidget *runnereditor;
     };
@@ -603,24 +649,30 @@ namespace KiwiLight {
     class ConfigEditor : public Widget {
         public:
         ConfigEditor() {};
-        ConfigEditor(std::string fileName, VideoCapture cap);
+        ConfigEditor(std::string fileName);
         void Update();
-        void UpdateImageOnly();
+        bool UpdateImageOnly();
+        std::string GetLastFrameResult();
         void Save();
         void Close();
-        void SetUDPEnabled(bool enabled);
-        bool GetUDPEnabled();
-        void ResetRunnerResolution();
+        void StartLearningTarget();
+        void StartLearningDistance();
+        void ReconnectUDPFromEditor();
+        void SendOverUDP(std::string message);
+        void ApplyCameraSettings();
+        void SetCameraIndexBoxes(int index);
+        void ReconnectUDPFromOverview();
+        void OpenNewCameraFromOverview();
         std::string GetFileName() { return this->fileName; };
-        VideoCapture GetVideoCapture() { return this->runner.GetVideoStream(); };
         cv::Mat GetOutputImage() { return this->out; };
         GtkWidget *GetWidget() { return this->configeditor; };
         void SetName(std::string name);
 
         private:
+        static void Closed();
         void UpdateImage();
 
-        //universal config learnign utility
+        //universal config learning utility
         ConfigLearner learner;
         bool learnerActivated;
 
@@ -628,7 +680,6 @@ namespace KiwiLight {
         TargetDistanceLearner distanceLearner;
         bool distanceLearnerRunning;
 
-        TargetDistanceLearner distLearner;
         TargetTroubleshooter troubleshooter;
         
         Label serviceMonitor;
@@ -637,11 +688,14 @@ namespace KiwiLight {
         //runtime things
         Runner runner;
         XMLDocument currentDoc;
-        std::string fileName;
-        std::string confName;
+        std::string 
+                fileName,
+                confName;
+                
+        std::string lastIterationResult;
 
         TabView tabs;
-        ConfigPanel configOverview;
+        OverviewPanel configOverview;
         Settings cameraSettings;
         PreprocessorEditor preprocessorSettings;
         PostprocessorEditor postprocessorSettings;

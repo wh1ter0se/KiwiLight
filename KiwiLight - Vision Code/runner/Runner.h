@@ -108,6 +108,7 @@ namespace KiwiLight {
     class ExampleContour {
         public:
         ExampleContour() {};
+        ExampleContour(int id);
         ExampleContour(int id,
                        SettingPair distX,
                        SettingPair distY,
@@ -246,7 +247,9 @@ namespace KiwiLight {
         public:
         PostProcessor() {};
         PostProcessor(std::vector<ExampleTarget> targets, bool debugging);
-        int NumTargets() { return this->targets.size(); };
+        void SetTarget(int id, ExampleTarget target);
+        int NumberOfTargets() { return this->targets.size(); };
+        int NumberOfContours(int target);
         void SetTargetContourProperty(int contour, TargetProperty prop, SettingPair values);
         SettingPair GetTargetContourProperty(int contour, TargetProperty prop);
         void SetRunnerProperty(RunnerProperty prop, double value);
@@ -271,6 +274,7 @@ namespace KiwiLight {
         int NumberOfContours() { return this->seenTarget.Contours().size(); };
         std::vector<Contour> GetContoursGrouped();
         std::vector<Contour> GetContours() { return this->seenTarget.Contours(); };
+        int PositionValue(Contour contour);
         Distance GetContourDistance(Contour contour);
 
         private:
@@ -283,33 +287,29 @@ namespace KiwiLight {
      */
     class Runner {
         public:
+
+        static const std::string NULL_MESSAGE;
+
         Runner() {};
         Runner(std::string filename, bool debugging);
-        Runner(std::string filename, bool debugging, bool openNewVideoStream);
-        Runner(std::string filename, bool debugging, VideoCapture cap);
         PreProcessor GetPreProcessor() { return this->preprocessor; };
         PostProcessor GetPostProcessor() { return this->postprocessor; };
         int GetCameraIndex() { return this->cameraIndex; };
         void SetImageResize(Size sz);
-        void SetResolution(Size sz);
         void Loop();
-        void Stop();
-        void StopLoopOnly();
-        void UnlockLoop();
-        void Start();
         void ReconnectUDP(std::string udpAddr, int udpPort);
+        void SendOverUDP(std::string message);
         std::string Iterate();
-        int GetNumberOfTargets() { return this->postprocessor.NumTargets(); };
+        int GetNumberOfTargets() { return this->postprocessor.NumberOfTargets(); };
+        int GetNumberOfContours(int target);
+        bool GetLastFrameSuccessful() { return this->lastIterationSuccessful; };
         std::vector<Target> GetLastFrameTargets() { return this->lastFrameTargets; };
         Target GetClosestTargetToCenter() { return this->closestTarget; };
         std::string GetFileName() { return this->src; };
         cv::Mat GetOriginalImage() { return this->originalImage; };
-        cv::Mat GetOutputImage() { return this->outputImage; imshow("out", this->outputImage); };
-        cv::VideoCapture GetVideoStream() { return this->cap; };
+        cv::Mat GetOutputImage() { return this->outputImage; };
         Size GetConstantSize() { return this->constantResize; };
         ExampleTarget GetExampleTargetByID(int id);
-        void SetUDPEnabled(bool enabled);
-        bool GetUDPEnabled();
         UDP GetUDP() { return this->udp; };
         void SetExampleTarget(int targetID, ExampleTarget target);
         void SetPreprocessorProperty(PreProcessorProperty prop, double value);
@@ -321,13 +321,12 @@ namespace KiwiLight {
 
         private:
         void parseDocument(XMLDocument doc);
-        void applySettings();
+        void applySettings(XMLDocument document);
 
-        VideoCapture cap;
         PreProcessor preprocessor;
         PostProcessor postprocessor;
-        Size constantResize,
-             cameraResolution;
+        Size constantResize;
+
         Target closestTarget;
 
         std::string src,
@@ -340,6 +339,7 @@ namespace KiwiLight {
 
         std::vector<ExampleTarget> postProcessorTargets;
         std::vector<Target> lastFrameTargets;
+        bool lastIterationSuccessful;
         bool stop,
              debug;
 
@@ -360,6 +360,7 @@ namespace KiwiLight {
         void FeedImage(Mat img, int minimumContourArea);
         ExampleTarget StopLearning(int minimumContourArea);
         bool GetLearning() { return this->currentlyLearning; };
+        bool GetHasFailed() { return this->failedFrames > 10; };
         int GetFramesLearned();
         Mat GetOutputImageFromLastFeed() { return this->out; };
         Mat GetOriginalImageFromLastFeed() { return this->original; };
@@ -369,6 +370,8 @@ namespace KiwiLight {
 
         bool currentlyLearning;
         std::vector<CameraFrame> currentFrames;
+
+        int failedFrames;
 
         Mat out,
             original;
@@ -384,10 +387,12 @@ namespace KiwiLight {
         void FeedImage(Mat img);
         void FeedTarget(Target targ);
         int GetFramesLearned();
+        bool GetHasFailed() { return this->failedFrames > 10; };
         double GetFocalWidth(double trueDistance, double trueWidth);
 
         private:
         int frames;
+        int failedFrames;
         PreProcessor preprocessor;
         PostProcessor postprocessor;
         std::vector<double> targetWidths;

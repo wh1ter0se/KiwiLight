@@ -18,6 +18,27 @@ PostProcessor::PostProcessor(std::vector<ExampleTarget> targets, bool debugging)
     ExampleTarget targ = this->targets[0];
 }
 
+void PostProcessor::SetTarget(int id, ExampleTarget target) {
+    //find the id to replace
+    for(int i=0; i<this->targets.size(); i++) {
+        if(this->targets[i].ID() == id) {
+            this->targets[i] = target;
+            return;
+        }
+    }
+}
+
+int PostProcessor::NumberOfContours(int target) {
+    //find the target with the id, and return its contour count
+    for(int i=0; i<targets.size(); i++) {
+        if(this->targets[i].ID() == target) {
+            return this->targets[i].Contours().size();
+        }
+    }
+
+    return -1;
+}
+
 /**
  * Processes the given image (from the preprocessor) and returns a vector containing any 
  * targets it finds.
@@ -40,8 +61,6 @@ std::vector<Target> PostProcessor::ProcessImage(cv::Mat img) {
 
     for(int k=0; k<this->targets.size(); k++) {
         std::vector<Target> targs = this->targets[k].GetTargets(objects);
-
-        // std::cout << "targets: " << targs.size() << std::endl;
 
         // add results to our found targets 
         for(int a=0; a<targs.size(); a++) {

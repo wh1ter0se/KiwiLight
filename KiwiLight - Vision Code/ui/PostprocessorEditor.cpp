@@ -14,15 +14,24 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
     //find home so we can get the generic configuration from KiwiLightData
     char *home = getenv("HOME");
     if(home != NULL) {
-        genericFileLocation = std::string(home) + "/KiwiLightData/confs/generic.xml";
+        genericFileLocation = std::string(home) + std::string("/KiwiLightData/confs/generic.xml");
     } else {
         std::cout << "The postprocessor editor was unable to find HOME" << std::endl;
     }
-    this->storageRunner = Runner(genericFileLocation, true, false);
+    this->storageRunner = Runner(genericFileLocation, true);
     this->lastDesiredContour = 0;
-
+    
+    //set storage runner for number of contours
+    std::vector<ExampleContour> newContours;
+    for(int i=0; i<postprocessor.NumberOfContours(0); i++) {
+        ExampleContour newContour = ExampleContour(i);
+        newContours.push_back(newContour);
+    }
+    ExampleTarget newTarget = ExampleTarget(0, newContours, 0, 0, 0, 0);
+    this->storageRunner.SetExampleTarget(0, newTarget);
+    
     //init the values in the storage runner because they are all generic right now
-    for(int i=0; i<postprocessor.GetExampleTargetByID(0).Contours().size(); i++) {
+    for(int i=0; i<postprocessor.NumberOfContours(0); i++) {
         this->storageRunner.SetPostProcessorContourProperty(i, TargetProperty::DIST_X, postprocessor.GetTargetContourProperty(i, TargetProperty::DIST_X));
         this->storageRunner.SetPostProcessorContourProperty(i, TargetProperty::DIST_Y, postprocessor.GetTargetContourProperty(i, TargetProperty::DIST_Y));
         this->storageRunner.SetPostProcessorContourProperty(i, TargetProperty::ANGLE, postprocessor.GetTargetContourProperty(i, TargetProperty::ANGLE));
@@ -39,6 +48,9 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
 
             this->contourchooser = NumberBox(0, 10, 0);
                 contourChooserPanel.Pack_start(this->contourchooser.GetWidget(), true, true, 0);
+            
+            this->totalContours = Label(std::string("/ ") + std::to_string(this->storageRunner.GetNumberOfContours(0)));
+                contourChooserPanel.Pack_start(totalContours.GetWidget(), true, true, 0);
             
             editor.Pack_start(contourChooserPanel.GetWidget(), true, true, 0);
 
@@ -85,7 +97,7 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
                 anglePanel.Pack_start(this->angle.GetWidget(), true, true, 0);
 
             double realAngleErr = postprocessor.GetTargetContourProperty(0, TargetProperty::ANGLE).Error();
-            this->angleErr = LabeledSlider("Range", -90.0, 90.0, 0.05, realAngleErr);
+            this->angleErr = LabeledSlider("Range", 0.0, 90.0, 0.05, realAngleErr);
                 anglePanel.Pack_start(this->angleErr.GetWidget(), true, true, 0);
 
             editor.Pack_start(anglePanel.GetWidget(), true, true, 0);
@@ -121,7 +133,24 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
 
 
 int PostprocessorEditor::GetNumContours() {
-    return this->storageRunner.GetExampleTargetByID(0).Contours().size();
+    return this->storageRunner.GetNumberOfContours(0);
+}
+
+/**
+ * Clears all contours in the target so far and sets the number of contours to contours.
+ */
+void PostprocessorEditor::SetNumContours(int contours) {
+    std::cout << "ppe: setting contour count to " << contours << std::endl;
+    //create a new exampletarget
+    std::vector<ExampleContour> newContours;
+    for(int i=0; i<contours; i++) {
+        ExampleContour newContour = ExampleContour(i);
+        newContours.push_back(newContour);
+    }
+
+    ExampleTarget newTarg = ExampleTarget(0, newContours, 0.0, 0.0, 0.0, 0.0);
+    std::cout << "ppe: setting target. " << newTarg.Contours().size() << " Contours." << std::endl;
+    this->storageRunner.SetExampleTarget(0, newTarg);
 }
 
 /**
@@ -132,18 +161,22 @@ void PostprocessorEditor::Update() {
     
     if(currentContour != this->lastDesiredContour) {
         //the user has requested to see values for a new contour, show them
-        this->distX.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::DIST_X).Value());
-        this->distXErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::DIST_X).Error());
-        this->distY.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::DIST_Y).Value());
-        this->distYErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::DIST_Y).Error());
-        this->angle.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::ANGLE).Value());
-        this->angleErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::ANGLE).Error());
-        this->ar.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::ASPECT_RATIO).Value());
-        this->arErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::ASPECT_RATIO).Error());
-        this->solidity.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::SOLIDITY).Value());
-        this->solidityErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::SOLIDITY).Error());
-        this->minimumArea.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::MINIMUM_AREA).Value());
-        this->lastDesiredContour = currentContour;
+        if(currentContour < this->storageRunner.GetNumberOfContours(0)) {
+            this->distX.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::DIST_X).Value());
+            this->distXErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::DIST_X).Error());
+            this->distY.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::DIST_Y).Value());
+            this->distYErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::DIST_Y).Error());
+            this->angle.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::ANGLE).Value());
+            this->angleErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::ANGLE).Error());
+            this->ar.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::ASPECT_RATIO).Value());
+            this->arErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::ASPECT_RATIO).Error());
+            this->solidity.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::SOLIDITY).Value());
+            this->solidityErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::SOLIDITY).Error());
+            this->minimumArea.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::MINIMUM_AREA).Value());
+            this->lastDesiredContour = currentContour;
+        } else {
+            this->contourchooser.SetValue(this->lastDesiredContour);
+        }
     }
 
     //set dist x
@@ -169,7 +202,9 @@ void PostprocessorEditor::Update() {
     //set min area
     SettingPair minAreaPair = SettingPair(this->minimumArea.GetValue(), 0);
         this->storageRunner.SetPostProcessorContourProperty(currentContour, TargetProperty::MINIMUM_AREA, minAreaPair);
-        
+
+    //set the label with total number of contours
+    this->totalContours.SetText(std::string("/ ") + std::to_string(this->storageRunner.GetNumberOfContours(0)));    
 }
 
 /**
