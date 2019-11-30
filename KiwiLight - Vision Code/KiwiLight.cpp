@@ -201,6 +201,7 @@ MenuBar KiwiLightApp::CreateMenuBar() {
  */
 void KiwiLightApp::LaunchStreamingThread(UIMode newMode) {
     if(newMode != UIMode::UI_PAUSING) {
+        usleep(500000); //sleep for .5 seconds
         streamThreadEnabled = true;
         KiwiLightApp::mode = newMode;
         std::cout << "Starting Stream Thread..." << std::endl;
@@ -322,15 +323,13 @@ void KiwiLightApp::EditorOpenNewCameraFromOverview(){
  */
 void KiwiLightApp::UpdateApp() {
     try {
-        KiwiLightApp::outputImage.Update(KiwiLightApp::lastFrameGrabImage);
-        // KiwiLightApp::cameraFailures = 0;
-
         if(KiwiLightApp::mode == UIMode::UI_EDITOR) {
             KiwiLightApp::configeditor.Update();
         }
 
         //update the camera error label based on how successful thread is being
         if(lastImageGrabSuccessful) {
+            KiwiLightApp::outputImage.Update(KiwiLightApp::lastFrameGrabImage);
             KiwiLightApp::cameraStatusLabel.SetText(""); 
         } else {
             KiwiLightApp::cameraStatusLabel.SetText("Camera Error!");

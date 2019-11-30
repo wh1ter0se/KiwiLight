@@ -21,7 +21,6 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
     this->storageRunner = Runner(genericFileLocation, true);
     this->lastDesiredContour = 0;
     
-    std::cout << "PPE construct: " << postprocessor.NumberOfContours(0) << " Contours." << std::endl;
     //set storage runner for number of contours
     std::vector<ExampleContour> newContours;
     for(int i=0; i<postprocessor.NumberOfContours(0); i++) {

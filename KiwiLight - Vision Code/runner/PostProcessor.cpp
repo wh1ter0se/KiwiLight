@@ -19,11 +19,9 @@ PostProcessor::PostProcessor(std::vector<ExampleTarget> targets, bool debugging)
 }
 
 void PostProcessor::SetTarget(int id, ExampleTarget target) {
-    std::cout << "pp: setting target " << id << ". " << target.Contours().size() << " Contours." << std::endl;
     //find the id to replace
     for(int i=0; i<this->targets.size(); i++) {
         if(this->targets[i].ID() == id) {
-            std::cout << "pp: found target to replace." << std::endl;
             this->targets[i] = target;
             return;
         }
@@ -63,8 +61,6 @@ std::vector<Target> PostProcessor::ProcessImage(cv::Mat img) {
 
     for(int k=0; k<this->targets.size(); k++) {
         std::vector<Target> targs = this->targets[k].GetTargets(objects);
-
-        // std::cout << "targets: " << targs.size() << std::endl;
 
         // add results to our found targets 
         for(int a=0; a<targs.size(); a++) {

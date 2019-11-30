@@ -351,8 +351,6 @@ void Runner::parseDocument(XMLDocument doc) {
                 XMLTag targetTag = targets[i];
                 std::vector<XMLTag> targContours = targetTag.GetTagsByName("contour");
                 
-                std::cout << "contours: " << targContours.size() << std::endl;
-
                 int targetId = std::stoi(targetTag.GetAttributesByName("id")[0].Value());
                 std::vector<ExampleContour> contours;
 
@@ -410,7 +408,6 @@ void Runner::applySettings(XMLDocument document) {
         XMLTag setting = camSettings[i];
         int settingID = std::stoi(setting.GetAttributesByName("id")[0].Value());
         double settingValue = std::stod(setting.Content());
-        std::cout << "setting " << settingID << " to " << settingValue << std::endl;
         KiwiLightApp::SetCameraProperty(settingID, settingValue);
     }
 }
