@@ -228,14 +228,12 @@ void KiwiLightApp::StopStreamingThread() {
  * @param saveFirst when true, causes the editor to save the open configuration to file.
  */
 void KiwiLightApp::CloseEditor(bool saveFirst) {
-    StopStreamingThread();
     if(saveFirst) {
         KiwiLightApp::configeditor.Save();
     }
     
     KiwiLightApp::configeditor.Close();
     OpenConfigurationFromFile(KiwiLightApp::configeditor.GetFileName());
-    LaunchStreamingThread(UI_RUNNER);
 }
 
 /**
@@ -273,7 +271,6 @@ void KiwiLightApp::OpenNewCameraOnIndex(int index) {
     if(KiwiLightApp::currentCameraIndex != index || !KiwiLightApp::camera.isOpened()) {
         KiwiLightApp::currentCameraIndex = index;
         UIMode currentMode = KiwiLightApp::mode;
-        //StopStreamingThread();
     
         if(KiwiLightApp::camera.isOpened()) {
             KiwiLightApp::camera.~VideoCapture();
@@ -298,10 +295,6 @@ void KiwiLightApp::OpenNewCameraOnIndex(int index) {
         if(currentMode == UIMode::UI_EDITOR) {
             KiwiLightApp::configeditor.SetCameraIndexBoxes(index);
         }
-        
-        //if(mode != UIMode::UI_PAUSING) {
-            //LaunchStreamingThread(currentMode);
-        //}
     }
 }
 
@@ -309,9 +302,9 @@ void KiwiLightApp::OpenNewCameraOnIndex(int index) {
  * Causes the editor to apply all camera settings to the video stream.
  */
 void KiwiLightApp::EditorApplyCameraSettings() {
-    StopStreamingThread();
+    KiwiLightApp::StopStreamingThread();
     KiwiLightApp::configeditor.ApplyCameraSettings();
-    LaunchStreamingThread(UIMode::UI_EDITOR);
+    KiwiLightApp::LaunchStreamingThread(UIMode::UI_EDITOR);
 }
 
 /**
@@ -359,6 +352,20 @@ void KiwiLightApp::UpdateApp() {
  * Updates the streams nonstop until mode is set to UI_QUITTING
  */
 void KiwiLightApp::UpdateStreamsConstantly() {
+    //now because some cameras like the jevois take a little longer for the stream to start, we will wait until it gives us a good frame
+    //to avoid the VIDIOC_QBUF: Invalid Argument barage.
+    bool retrieveSuccess = false;
+    while(!retrieveSuccess) {
+        usleep(250000); //give camera some time to adjust and do things
+        bool grabSuccess = KiwiLightApp::camera.grab();
+        if(grabSuccess) {
+            Mat img;
+            retrieveSuccess = KiwiLightApp::camera.retrieve(img);
+        }
+    }
+
+    std::cout << "Camera Stream confirmed." << std::endl;
+
     while(KiwiLightApp::mode != UIMode::UI_PAUSING && streamThreadEnabled) {
         KiwiLightApp::UpdateStreams();
     }
@@ -445,10 +452,10 @@ void KiwiLightApp::NewConfiguration() {
  * @param currentMode The UIMode active when callback was triggered
  */
 void KiwiLightApp::EditConfiguration() {
+    //since this is a callback, close streamer
     UIMode currentMode = KiwiLightApp::mode;
-
-    StopStreamingThread();
     std::string pathToOpen = "";
+    StopStreamingThread();
 
     if(currentMode == UIMode::UI_STREAM) {
         //find generic.xml (in /home/user/KiwiLightData/confs)
@@ -472,7 +479,7 @@ void KiwiLightApp::EditConfiguration() {
 /**
  * Causes KiwiLight to open a new configuration.
  */
-void KiwiLightApp::OpenConfiguration() {
+void KiwiLightApp::OpenConfiguration() {    
     StopStreamingThread();
     FileChooser chooser = FileChooser(false, "");
     std::string fileToOpen = chooser.Show();
@@ -485,7 +492,6 @@ void KiwiLightApp::OpenConfiguration() {
  * Causes KiwiLight to open the configuration specified by the file
  */
 void KiwiLightApp::OpenConfigurationFromFile(std::string fileName) {
-    StopStreamingThread();
     XMLDocument newDoc = XMLDocument(fileName);
     UIMode newMode = UIMode::UI_STREAM;
     if(newDoc.HasContents()) {
@@ -499,19 +505,14 @@ void KiwiLightApp::OpenConfigurationFromFile(std::string fileName) {
     } else {
         std::cout << "New Document either empty or not specified. Taking no action." << std::endl;
     }
-
-    LaunchStreamingThread(newMode);
 }
 
 /**
  * Causes KiwiLight to close the currently opened configuration.
  */
 void KiwiLightApp::CloseConfiguration() {
-    StopStreamingThread();    
     KiwiLightApp::confInfo.Clear();
     KiwiLightApp::mode = UIMode::UI_STREAM;
-
-    LaunchStreamingThread(UIMode::UI_STREAM);
 }
 
 /**

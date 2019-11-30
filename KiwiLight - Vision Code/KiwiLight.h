@@ -61,13 +61,13 @@ namespace KiwiLight {
         static void EditorOpenNewCameraFromOverview();
         static void OpenNewCameraOnIndex(int index);
 
-        private:
-        //menu bar utility
-        static MenuBar CreateMenuBar();
-
         //thread utilities
         static void LaunchStreamingThread(UIMode newMode);
         static void StopStreamingThread();
+
+        private:
+        //menu bar utility
+        static MenuBar CreateMenuBar();
 
         //UI constant callbacks
         static void UpdateApp();

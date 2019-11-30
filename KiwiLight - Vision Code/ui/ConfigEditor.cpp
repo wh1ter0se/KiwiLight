@@ -19,11 +19,15 @@ static void LearnDistanceButtonPressed() {
 }
 
 static void JustCloseButtonPressed() {
+    KiwiLightApp::StopStreamingThread();
     KiwiLightApp::CloseEditor(false);
+    KiwiLightApp::LaunchStreamingThread(UIMode::UI_RUNNER);
 }
 
 static void SaveAndCloseButtonPressed() {
+    KiwiLightApp::StopStreamingThread();
     KiwiLightApp::CloseEditor(true);
+    KiwiLightApp::LaunchStreamingThread(UIMode::UI_RUNNER);
 }
 
 /**

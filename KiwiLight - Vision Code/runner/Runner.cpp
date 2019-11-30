@@ -233,7 +233,6 @@ ExampleTarget Runner::GetExampleTargetByID(int id) {
 }
 
 void Runner::SetExampleTarget(int contourID, ExampleTarget target) {
-    std::cout << "r: setting example target: " << target.Contours().size() << " Contours." << std::endl;
     this->postprocessor.SetTarget(contourID, target);
 }
 
