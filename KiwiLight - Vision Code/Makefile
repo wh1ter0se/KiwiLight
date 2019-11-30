@@ -188,6 +188,7 @@ KiwiLight: Main.cpp bin/KiwiLight.o lib/UI.a lib/Util.a lib/Runner.a
 #SET UP THE FILES AND FOLDERS
 setup:
 	mkdir lib
+	mkdir bin
 	mkdir bin/ui
 	mkdir bin/util
 	mkdir bin/runner
@@ -195,9 +196,7 @@ setup:
 #UNINSTALL
 clean:
 	$(info Uninstalling KiwiLight Executables...)
-	rm bin/ui/*
-	rm bin/util/*
-	rm bin/runner/*
-	rm lib/*
-	rm bin/KiwiLight.o
+	rm -r bin
+	rm -r lib
+	make setup
 	rm KiwiLight

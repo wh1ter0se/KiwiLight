@@ -11,7 +11,7 @@ using namespace KiwiLight;
 /**
  * Creates a new CameraSetting widget, using the given std::string from V4L
  */
-CameraSetting::CameraSetting(std::string name, int valueName, int min, int max, int value) {
+CameraSetting::CameraSetting(std::string name, int valueName, double min, double max, double value) {
     this->name = name;
     this->valueName = valueName;
     this->min = min;
@@ -22,7 +22,7 @@ CameraSetting::CameraSetting(std::string name, int valueName, int min, int max, 
     //create the widget
     std::string boundString = 
         "Min: " + std::to_string(min) + 
-        ",  Max: " + std::to_string(max) +
+        ", Max: " + std::to_string(max) +
         ", ID: " + std::to_string(valueName);
 
     std::string nameString = this->name + " (" + boundString + ")";
@@ -30,7 +30,7 @@ CameraSetting::CameraSetting(std::string name, int valueName, int min, int max, 
     Panel main = Panel(true, 0);
         this->nameLabel = Label(nameString);
             main.Pack_start(nameLabel.GetWidget(), true, true, 0);
-        this->input = NumberBox(min, max, value);
+        this->input = NumberBox(min, max, 0.01, value);
             main.Pack_start(this->input.GetWidget(), true, true, 0);
 
     this->camerasetting = main.GetWidget();
@@ -39,8 +39,8 @@ CameraSetting::CameraSetting(std::string name, int valueName, int min, int max, 
 /**
  * Gets and returns the value of the widget.
  */
-int CameraSetting::GetValue() {
-    return (int) this->input.GetValue();
+double CameraSetting::GetValue() {
+    return this->input.GetValue();
 }
 
 /**
@@ -53,9 +53,9 @@ int CameraSetting::GetValueName() {
 /**
  * Sets the value of the setting to newValue.
  */
-void CameraSetting::SetValue(int newValue) {
+void CameraSetting::SetValue(double newValue) {
     this->value = newValue;
-    this->input.SetValue((double) value);
+    this->input.SetValue(value);
 }
 
 

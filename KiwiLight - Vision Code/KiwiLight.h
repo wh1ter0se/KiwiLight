@@ -22,7 +22,7 @@ namespace KiwiLight {
         UI_STREAM,
         UI_RUNNER,
         UI_EDITOR,
-        UI_QUTTING
+        UI_PAUSING
     };
 
     /**
@@ -35,9 +35,20 @@ namespace KiwiLight {
         static void Start();
 
         //UI accessors
-        static VideoCapture GetCamera();
         static Runner GetRunner();
         static ConfigEditor GetEditor();
+
+        //camera accessors
+        static Mat TakeImage();
+        static double GetCameraProperty(int propId);
+        static bool CameraOpen();
+
+        //camera mutators
+        static void SetCameraProperty(int propId, double value);
+
+        //general accessors 
+        static bool LastImageCaptureSuccessful();
+        static UIMode CurrentMode();
 
         //misc. UI callbacks
         static void CloseEditor(bool saveFirst);
@@ -47,13 +58,16 @@ namespace KiwiLight {
         static void EditorSetImageResolutionFromOverview();
         static void EditorConnectUDPFromOverview();
         static void EditorApplyCameraSettings();
+        static void EditorOpenNewCameraFromOverview();
+        static void OpenNewCameraOnIndex(int index);
+
+        //thread utilities
+        static void LaunchStreamingThread(UIMode newMode);
+        static void StopStreamingThread();
 
         private:
         //menu bar utility
         static MenuBar CreateMenuBar();
-
-        //streaming thread launcher
-        static void LaunchStreamingThread();
 
         //UI constant callbacks
         static void UpdateApp();
@@ -61,26 +75,30 @@ namespace KiwiLight {
         static void UpdateStreams();
 
         //UI button callbacks
-        static void OpenNewCamera();
+        static void OpenNewCameraFromMainIndex();
         static void ToggleUDP();
         static void NewConfiguration();
         static void EditConfiguration();
         static void OpenConfiguration();
+        static void OpenConfigurationFromFile(std::string fileName);
         static void CloseConfiguration();
         static void Quit();
         static void ShowAboutWindow();
         static void ShowHelpWindow();
 
         //essential objects
-        static VideoCapture camera;
         static Runner runner;
         static ConfigEditor configeditor;
+        static VideoCapture camera;
+        static GThread *streamingThread;
 
         //utilities
         static UIMode mode;
-        static bool lastFrameGrabSuccessful;
+        static bool lastImageGrabSuccessful;
         static bool udpEnabled;
+        static bool streamThreadEnabled;
         static Mat lastFrameGrabImage;
+        static int currentCameraIndex;
 
         //ui widgets
         static Window win;
@@ -89,6 +107,9 @@ namespace KiwiLight {
         static Label cameraStatusLabel;
         static Image outputImage;
         static Button toggleUDPButton;
+        
+        //counters
+        static int cameraFailures;
     };
 
 }

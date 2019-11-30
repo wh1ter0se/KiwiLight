@@ -35,8 +35,8 @@ cv::Mat PreProcessor::ProcessImage(cv::Mat img) {
         cv::Mat erodeKernel = cv::getStructuringElement(cv::MORPH_RECT,
                                                         cv::Size(this->erode, this->erode));
         
-        // cv::erode(img, img, erodeKernel);
-        // cv::dilate(img, img, dilateKernel);
+        cv::erode(img, img, erodeKernel);
+        cv::dilate(img, img, dilateKernel);
         cv::cvtColor(img, img, cv::COLOR_BGR2HSV);
         cv::inRange(img, this->targetColor.GetLowerBound(), this->targetColor.GetUpperBound(), out);
     } else {

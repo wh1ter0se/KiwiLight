@@ -47,6 +47,22 @@ OverviewPanel::OverviewPanel(XMLDocument doc) {
 
             editor.Pack_start(targetInformationPanel.GetWidget(), true, true, 0);
 
+        Label cameraHeader = Label("Camera");
+            cameraHeader.SetName("subHeader");
+            editor.Pack_start(cameraHeader.GetWidget(), true, true, 0);
+
+        Panel cameraPanel = Panel(true, 0);
+            Label cameraIndexHeader = Label("Camera Index:");
+                cameraPanel.Pack_start(cameraIndexHeader.GetWidget(), true, true, 0);
+
+            int realCameraIndex = std::stoi(doc.GetTagsByName("camera")[0].GetAttributesByName("index")[0].Value());
+            this->cameraIndex = NumberBox(0, 100, 1, realCameraIndex);
+                cameraPanel.Pack_start(this->cameraIndex.GetWidget(), true, true, 0);
+
+            Button applyIndexButton = Button("Open", KiwiLightApp::EditorOpenNewCameraFromOverview);
+                cameraPanel.Pack_start(applyIndexButton.GetWidget(), true, true, 0);
+            editor.Pack_start(cameraPanel.GetWidget(), true, true, 0);
+
         Label udpHeader = Label("UDP");
             udpHeader.SetName("subHeader");
             editor.Pack_start(udpHeader.GetWidget(), true, true, 0);
@@ -99,21 +115,6 @@ std::string OverviewPanel::GetConfigName() {
     return this->configName.GetText();
 }
 
-void OverviewPanel::SetUDPAddr(std::string addr) {
-    this->udpAddr.SetText(addr);
-}
-
-std::string OverviewPanel::GetUDPAddr() {
-    return this->udpAddr.GetText();
-}
-
-void OverviewPanel::SetUDPPort(int port) {
-    this->udpPort.SetValue(port);
-}
-
-int OverviewPanel::GetUDPPort() {
-    return (int) this->udpPort.GetValue();
-}
 
 void OverviewPanel::SetTargetInformationLabels(bool targetSpotted, int targetImgX, int targetImgY, double targetDist, double targetHAngle, double targetVAngle) {
     this->targetSpotted.SetText(std::string("Target Spotted: ") + (targetSpotted ? std::string("YES") : std::string("NO")));
@@ -135,6 +136,33 @@ void OverviewPanel::SetTargetInformationLabels(bool targetSpotted, int targetImg
     this->targetDist.SetText("Target Distance: " + targetDistString);
     this->targetHAngle.SetText("Target Horizontal Angle: " + targetHAngleString);
     this->targetVAngle.SetText("Target Vertical Angle: " + targetVAngleString);
+}
+
+
+void OverviewPanel::SetCameraIndex(int index) {
+    this->cameraIndex.SetValue((double) index);
+}
+
+
+int OverviewPanel::GetCameraIndex() {
+    return this->cameraIndex.GetValue();
+}
+
+
+void OverviewPanel::SetUDPAddr(std::string addr) {
+    this->udpAddr.SetText(addr);
+}
+
+std::string OverviewPanel::GetUDPAddr() {
+    return this->udpAddr.GetText();
+}
+
+void OverviewPanel::SetUDPPort(int port) {
+    this->udpPort.SetValue(port);
+}
+
+int OverviewPanel::GetUDPPort() {
+    return (int) this->udpPort.GetValue();
 }
 
 

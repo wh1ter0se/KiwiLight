@@ -13,7 +13,6 @@ using namespace KiwiLight;
  * Precondition: "img" is already preprocessed.
  */
 CameraFrame::CameraFrame(Mat img, int minimumArea) {
-
     img.copyTo(this->image);
     
     //find the contours
@@ -34,7 +33,7 @@ CameraFrame::CameraFrame(Mat img, int minimumArea) {
 }
 
 /**
- * TODO: IMPLEMENT THIS METHOD
+ * Groups the contours by their position in the image.
  */
 std::vector<Contour> CameraFrame::GetContoursGrouped() {
     std::vector<Contour> contours = this->seenTarget.Contours();
@@ -43,9 +42,10 @@ std::vector<Contour> CameraFrame::GetContoursGrouped() {
     for(int i=0; i<contours.size(); i++) {
         //get the contour to insert
         Contour contourToInsert = contours[i];
+        int insertPosValue = PositionValue(contourToInsert);
 
-        //if the contour has a smaller horizontal distance than the first in the group, or if ther is nothing in the group so far
-        if(groupedContours.size() == 0 || GetContourDistance(groupedContours[0]).x > GetContourDistance(contourToInsert).x) {
+        //if the contour has a smaller horizontal distance than the first in the group, or if there is nothing in the group so far
+        if(groupedContours.size() == 0 || PositionValue(groupedContours[0]) > insertPosValue) {
             groupedContours.push_back(contourToInsert);
         } else {
             //find a place in the vector to insert the contour
@@ -53,17 +53,17 @@ std::vector<Contour> CameraFrame::GetContoursGrouped() {
             for(int k=1; k<groupedContours.size(); k++) {
                 Contour contourBeforeK = groupedContours[k - 1];
                 Contour contourAtK = groupedContours[k];
-
-                if(GetContourDistance(contourBeforeK).x < GetContourDistance(contourToInsert).x &&
-                   GetContourDistance(contourAtK).x >= GetContourDistance(contourToInsert).x) {
+            
+                if(PositionValue(contourBeforeK) < insertPosValue &&
+                   PositionValue(contourAtK) >= insertPosValue) {
                     
                     //insert HERE
                     groupedContours.emplace(groupedContours.begin() + k);
                     objectInserted = true;
-                    break;
                 }
             }
-
+            
+            //if the contour does not belong anywhere else...
             if(!objectInserted) {
                 groupedContours.emplace(groupedContours.end(), contourToInsert);
             }
@@ -71,6 +71,14 @@ std::vector<Contour> CameraFrame::GetContoursGrouped() {
     }
 
     return groupedContours;
+}
+
+
+int CameraFrame::PositionValue(Contour contour) {
+    int imgWidth = this->image.cols;
+    
+    int pointValue = (contour.Center().y * imgWidth) + contour.Center().x;
+    return pointValue;
 }
 
 

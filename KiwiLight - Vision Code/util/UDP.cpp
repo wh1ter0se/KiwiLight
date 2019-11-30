@@ -157,8 +157,8 @@ bool UDP::AttemptToConnect() {
  * @param msg a string containing the message to send
  */
 void UDP::Send(std::string msg) {
-    std::cout << "sending " << msg << std::endl;
     const char *buffer = msg.c_str();
+    //std::cout << msg << std::endl;
     int send_result = send(this->sock, buffer, strlen(buffer), 0); //the big send
 }
 

@@ -179,9 +179,12 @@ ExampleContour ExampleTarget::GetExampleContourByID(int id) {
 void ExampleTarget::SetContourProperty(int contour, TargetProperty prop, SettingPair values) {  
     //get the index of the contour we want to change, that way we directly set the values instead of taking a reference
         
-    //make sure we have a contour with the id "contour"
-    while(contour >= this->contours.size()) {
-        this->AddGenericContour();
+    // //make sure we have a contour with the id "contour"
+    // while(contour >= this->contours.size()) {
+    //     this->AddGenericContour();
+    // }
+    if(contour > this->contours.size()) {
+        return;
     }
 
     int contourIndex = 0;

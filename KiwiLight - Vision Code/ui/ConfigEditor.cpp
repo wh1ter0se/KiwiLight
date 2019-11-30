@@ -19,26 +19,30 @@ static void LearnDistanceButtonPressed() {
 }
 
 static void JustCloseButtonPressed() {
+    KiwiLightApp::StopStreamingThread();
     KiwiLightApp::CloseEditor(false);
+    KiwiLightApp::LaunchStreamingThread(UIMode::UI_RUNNER);
 }
 
 static void SaveAndCloseButtonPressed() {
+    KiwiLightApp::StopStreamingThread();
     KiwiLightApp::CloseEditor(true);
+    KiwiLightApp::LaunchStreamingThread(UIMode::UI_RUNNER);
 }
 
 /**
  * Creates a window to edit the bassed file.
  */
-ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
+ConfigEditor::ConfigEditor(std::string fileName) {
     this->learnerActivated = false;
     this->distanceLearnerRunning = false;
-    this->runner = Runner(fileName, true, cap);
+    this->runner = Runner(fileName, true);
     this->currentDoc = XMLDocument(fileName);
     this->fileName = fileName;
     this->lastIterationResult = "";
     this->out = Mat(Size(50, 50), CV_8UC3);
     this->confName = this->currentDoc.GetTagsByName("configuration")[0].GetAttributesByName("name")[0].Value();
-
+    
     this->window = Window(GTK_WINDOW_TOPLEVEL, false);
         this->content = Panel(true, 0);
             Panel overviewPanel = Panel(false, 5);
@@ -67,7 +71,7 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
                 Label cameraSettingsHeader = Label("Camera Settings");
                     cameraSettingsHeader.SetName("header");
                     cameraSettingsPanel.Pack_start(cameraSettingsHeader.GetWidget(), true, true, 0);
-                this->cameraSettings = Settings(cap, this->currentDoc);
+                this->cameraSettings = Settings(this->currentDoc);
                     cameraSettingsPanel.Pack_start(this->cameraSettings.GetWidget(), true, false, 0);
             
             Panel preprocessorSettingsPanel = Panel(false, 5);
@@ -113,6 +117,7 @@ ConfigEditor::ConfigEditor(std::string fileName, VideoCapture cap) {
                 
                 this->content.Pack_start(imageAndServicePanel.GetWidget(), false, false, 0);
 
+
         this->window.SetPane(this->content);
     this->window.SetOnWindowClosed(ConfigEditor::Closed);
     this->window.SetCSS("ui/Style.css");
@@ -132,7 +137,8 @@ void ConfigEditor::Update() {
         this->outputImage.Update(displayable);
     } catch(cv::Exception ex) {
     }
-    
+    //update the different tabs
+    this->configOverview.SetTargetInformationLabelsFromString(this->lastIterationResult);
     this->cameraSettings.Update();
     this->preprocessorSettings.Update();
     this->postprocessorSettings.Update();
@@ -148,8 +154,20 @@ void ConfigEditor::Update() {
     this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_VALUE, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_VALUE));
     this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_ERROR, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_ERROR));
 
-    //apply all contour settings to the runner
-    for(int i=0; i<this->postprocessorSettings.GetNumContours(); i++) {
+    //apply all contour settings to the runner. First, make sure we have all contours needed.
+    int numberOfContours = this->postprocessorSettings.GetNumContours();
+    if(this->runner.GetNumberOfContours(0) != numberOfContours) {
+        std::cout << "Redefining Target." << std::endl;
+        std::vector<ExampleContour> newContours;
+        for(int i=0; i<numberOfContours; i++) {
+            ExampleContour newContour = ExampleContour(i);
+            newContours.push_back(newContour);
+        }
+        ExampleTarget newTarget = ExampleTarget(0, newContours, 0.0, 0.0, 0.0, 0.0);
+        this->runner.SetExampleTarget(0, newTarget);
+    }
+
+    for(int i=0; i<numberOfContours; i++) {
         this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_X, this->postprocessorSettings.GetProperty(i, TargetProperty::DIST_X));
         this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_Y, this->postprocessorSettings.GetProperty(i, TargetProperty::DIST_Y));
         this->runner.SetPostProcessorContourProperty(i, TargetProperty::ANGLE, this->postprocessorSettings.GetProperty(i, TargetProperty::ANGLE));
@@ -167,6 +185,32 @@ void ConfigEditor::Update() {
     this->runner.SetRunnerProperty(RunnerProperty::PERCEIVED_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::PERCEIVED_WIDTH));
     this->runner.SetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE, this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE));
     this->runner.SetRunnerProperty(RunnerProperty::ERROR_CORRECTION, this->runnerSettings.GetProperty(RunnerProperty::ERROR_CORRECTION));
+
+    //set service labels
+    if(this->learnerActivated && this->learner.GetLearning()) {
+        this->serviceMonitor.SetText("Learning Target");
+
+        std::string progressString = "Capturing Frames (" +
+                                  std::to_string(this->learner.GetFramesLearned()) +
+                                  "/" +
+                                  std::to_string(LEARNER_FRAMES) + 
+                                  ")";
+        
+        this->serviceLabel.SetText(progressString);
+    } else if(this->distanceLearnerRunning) {
+        this->serviceMonitor.SetText("Learning Distance Constants");
+
+        std::string progressString = "Capturing Frames (" +
+                                  std::to_string(this->distanceLearner.GetFramesLearned()) +
+                                  "/" +
+                                  std::to_string(LEARNER_FRAMES) + 
+                                  ")";
+        this->serviceLabel.SetText(progressString);
+    } else {
+        this->serviceMonitor.SetText("No Service Running.");
+        this->serviceLabel.SetText("");
+    }
+    
 }
 
 
@@ -179,81 +223,57 @@ bool ConfigEditor::UpdateImageOnly() {
     this->out = this->runner.GetOutputImage();
     this->original = this->runner.GetOriginalImage();
 
-    //update overview panel
-    this->configOverview.SetTargetInformationLabelsFromString(this->lastIterationResult);
-        
     if(this->learnerActivated) {
         int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
         this->learner.FeedImage(this->original, minimumArea);
         this->out = this->learner.GetOutputImageFromLastFeed();
 
         if(this->learner.GetLearning()) {
-            std::string progressString = "Capturing Frames (" +
-                                      std::to_string(this->learner.GetFramesLearned()) +
-                                      "/" +
-                                      std::to_string(LEARNER_FRAMES) + 
-                                      ")";
-            
-            this->serviceLabel.SetText(progressString);
-
             if(this->learner.GetFramesLearned() >= LEARNER_FRAMES) {
                 int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
                 ExampleTarget newTarget = this->learner.StopLearning(minimumArea);
-
                 std::vector<ExampleContour> newContours = newTarget.Contours();
-                for(int i=0; i<newContours.size(); i++) {
-                    this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_X, newContours[i].DistX());
-                    this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_Y, newContours[i].DistY());
-                    this->postprocessorSettings.SetProperty(i, TargetProperty::ANGLE, newContours[i].Angle());
-                    this->postprocessorSettings.SetProperty(i, TargetProperty::SOLIDITY, newContours[i].Solidity());
-                    this->postprocessorSettings.SetProperty(i, TargetProperty::ASPECT_RATIO, newContours[i].AspectRatio());
-                    this->postprocessorSettings.SetProperty(i, TargetProperty::MINIMUM_AREA, SettingPair(newContours[i].MinimumArea(), 0));
-                }
-
-                this->serviceMonitor.SetText("No Service Running.");
-                this->serviceLabel.SetText("");
                 this->learnerActivated = false;
+
+                if(newContours.size() > 0) {
+                    //prepare the editor for the contours
+                    this->postprocessorSettings.SetNumContours(newContours.size());
+                    this->runner.SetExampleTarget(0, newTarget);
+    
+                    for(int i=0; i<newContours.size(); i++) {
+                        this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_X, newContours[i].DistX());
+                        this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_Y, newContours[i].DistY());
+                        this->postprocessorSettings.SetProperty(i, TargetProperty::ANGLE, newContours[i].Angle());
+                        this->postprocessorSettings.SetProperty(i, TargetProperty::SOLIDITY, newContours[i].Solidity());
+                        this->postprocessorSettings.SetProperty(i, TargetProperty::ASPECT_RATIO, newContours[i].AspectRatio());
+                        this->postprocessorSettings.SetProperty(i, TargetProperty::MINIMUM_AREA, SettingPair(newContours[i].MinimumArea(), 0));
+                    }
+                }
             }
 
             if(this->learner.GetHasFailed()) {
-                this->serviceMonitor.SetText("No Service Running.");
-                this->serviceLabel.SetText("");
-                this->learnerActivated = false;
-
                 //alert the user
                 ConfirmationDialog alert = ConfirmationDialog(
                     std::string("The utility has failed due to a video error.\n") +
                     std::string("Is the camera plugged in?")
                 );
                 alert.ShowAndGetResponse();
+                this->learnerActivated = false;
             }
         }
     }
     
     if(this->distanceLearnerRunning) {
-        this->distLearner.FeedTarget(this->runner.GetClosestTargetToCenter());
+        this->distanceLearner.FeedTarget(this->runner.GetClosestTargetToCenter());
 
-        std::string distProgressString = "Capturing Frames (" +
-                                         std::to_string(this->distanceLearner.GetFramesLearned()) +
-                                         "/" +
-                                         std::to_string(LEARNER_FRAMES) +
-                                         ")";
-        
-        this->serviceLabel.SetText(distProgressString);
-
-        if(this->distLearner.GetFramesLearned() >= LEARNER_FRAMES) {
+        if(this->distanceLearner.GetFramesLearned() >= LEARNER_FRAMES) {
             double trueDistance = this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE);
             double trueWidth = this->runnerSettings.GetProperty(RunnerProperty::TRUE_WIDTH);
-            double newFocalWidth = this->distLearner.GetFocalWidth(trueDistance, trueWidth);
+            double newFocalWidth = this->distanceLearner.GetFocalWidth(trueDistance, trueWidth);
             this->runnerSettings.SetProperty(RunnerProperty::PERCEIVED_WIDTH, newFocalWidth);
-
-            //reset the labels
-            this->serviceMonitor.SetText("No Service Running.");
-            this->serviceLabel.SetText("");
             this->distanceLearnerRunning = false;
         }
     }
-    
     return retval;
 }
 
@@ -273,9 +293,9 @@ void ConfigEditor::Save() {
     
         //<camera>
         XMLTag camera = XMLTag("camera");
-            XMLTagAttribute cameraIndex = XMLTagAttribute("index", std::to_string(this->runner.GetCameraIndex()));
+            XMLTagAttribute cameraIndex = XMLTagAttribute("index", std::to_string(this->cameraSettings.GetCameraIndex()));
                 camera.AddAttribute(cameraIndex);
-                
+                                
             /**
              * <camera>
              *  <resolution>
@@ -288,7 +308,7 @@ void ConfigEditor::Save() {
                     resolution.AddTag(resolutionHeight);
 
                 camera.AddTag(resolution);
-                
+                                
             /**
              * <camera>
              *  <settings>
@@ -297,14 +317,14 @@ void ConfigEditor::Save() {
                 camera.AddTag(settings);
             
             doc.AddTag(camera);
-            
+                        
         /**
          * <configuration>
          */
         XMLTag configuration = XMLTag("configuration");
             XMLTagAttribute configurationName = XMLTagAttribute("name", this->configOverview.GetConfigName());
                 configuration.AddAttribute(configurationName);
-                
+                                
             /**
              * <configuration>
              *  <cameraOffset>
@@ -317,7 +337,7 @@ void ConfigEditor::Save() {
                     cameraOffset.AddTag(verticalOffset);
 
                 configuration.AddTag(cameraOffset);
-                
+                                
             /**
              * <configuration>
              *  <constantResize>
@@ -330,7 +350,7 @@ void ConfigEditor::Save() {
                     constantResize.AddTag(resizeHeight);
 
                 configuration.AddTag(constantResize);
-                
+                                
             /**
              * <configuration>
              *  <preprocessor>
@@ -338,15 +358,15 @@ void ConfigEditor::Save() {
             XMLTag preprocessor = XMLTag("preprocessor");
                 XMLTagAttribute preprocessorType = XMLTagAttribute("type", (this->preprocessorSettings.GetProperty(PreProcessorProperty::IS_FULL) == 1.0 ? "full" : "partial"));
                     preprocessor.AddAttribute(preprocessorType);
-
+                    
                 //<threshold>
                 XMLTag threshold = XMLTag("threshold", std::to_string((int) this->preprocessorSettings.GetProperty(PreProcessorProperty::THRESHOLD)));
                     preprocessor.AddTag(threshold);
-
+                    
                 //<erosion>
                 XMLTag erosion = XMLTag("erosion", std::to_string((int) this->preprocessorSettings.GetProperty(PreProcessorProperty::EROSION)));
                     preprocessor.AddTag(erosion);
-
+                    
                 //<dilation>
                 XMLTag dilation = XMLTag("dilation", std::to_string((int) this->preprocessorSettings.GetProperty(PreProcessorProperty::DILATION)));
                     preprocessor.AddTag(dilation);
@@ -359,7 +379,7 @@ void ConfigEditor::Save() {
                 XMLTag targetColor = XMLTag("targetColor");
                     XMLTagAttribute targetColorError = XMLTagAttribute("error", std::to_string((int) this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_ERROR)));
                         targetColor.AddAttribute(targetColorError);
-
+                
                     //<h>
                     XMLTag h = XMLTag("h", std::to_string((int) this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_HUE)));
                         targetColor.AddTag(h);
@@ -384,7 +404,7 @@ void ConfigEditor::Save() {
                 XMLTag target = XMLTag("target");
                     XMLTagAttribute targetID = XMLTagAttribute("id", "0"); //this remains constant for now until multiple target support is added.
                         target.AddAttribute(targetID);
-                        
+                    
                     for(int i=0; i<this->postprocessorSettings.GetNumContours(); i++) {
                         /**
                          * <configuration>
@@ -482,6 +502,7 @@ void ConfigEditor::Save() {
     if(fileParts[fileParts.size() - 1] == "generic.xml") {
         FileChooser chooser = FileChooser(true, "config.xml");
         fileToSave = chooser.Show();
+        this->fileName = fileToSave;
     }
     
     doc.WriteFile(fileToSave);
@@ -494,7 +515,7 @@ void ConfigEditor::Close() {
 
 
 void ConfigEditor::StartLearningTarget() {
-    if(this->runner.GetVideoStream().isOpened()) {
+    if(KiwiLightApp::CameraOpen()) {
         //reinstantiate the learner to apply the preprocessor settings
         this->learner = ConfigLearner(this->runner.GetPreProcessor());
         this->learnerActivated = true;
@@ -525,7 +546,7 @@ void ConfigEditor::StartLearningTarget() {
 
 void ConfigEditor::StartLearningDistance() {
     //check for video errors
-    if(this->runner.GetVideoStream().isOpened()) {
+    if(KiwiLightApp::CameraOpen()) {
         ConfirmationDialog informationDialog = ConfirmationDialog("Learn Distance");
         Panel dialogPanel = Panel(false, 0);
             Panel trueWidthPanel = Panel(true, 0);
@@ -577,10 +598,18 @@ void ConfigEditor::StartLearningDistance() {
 }
 
 
-void ConfigEditor::RecheckUDP() {
+void ConfigEditor::ReconnectUDPFromEditor() {
     std::string newUDPAddr = this->runnerSettings.GetUDPAddr();
     int newUDPPort = this->runnerSettings.GetUDPPort();
     this->runner.ReconnectUDP(newUDPAddr, newUDPPort);
+
+    //set the things in the overview panel
+    this->configOverview.SetUDPAddr(newUDPAddr);
+    this->configOverview.SetUDPPort(newUDPPort);
+}
+
+void ConfigEditor::SendOverUDP(std::string message) {
+    this->runner.SendOverUDP(message);
 }
 
 /**
@@ -588,20 +617,30 @@ void ConfigEditor::RecheckUDP() {
  */
 void ConfigEditor::ApplyCameraSettings() {
     std::vector<int> settingIDs = this->cameraSettings.GetSettingIDs();
+    int newCameraIndex = this->cameraSettings.GetCameraIndex();
+
+    //open a new camera because the user wants to
+    KiwiLightApp::OpenNewCameraOnIndex(newCameraIndex);
     
     //tell the runner to apply each setting
     for(int i=0; i<settingIDs.size(); i++) {
         int id = settingIDs[i];
         double value = this->cameraSettings.GetSettingValueFromID(id);
-        this->runner.SetCameraProperty(id, value);
+        KiwiLightApp::SetCameraProperty(id, value);
     }
     
     //get the settings and apply them to the menu to tell the user if they were rejected or not
     for(int i=0; i<settingIDs.size(); i++) {
         int id = settingIDs[i];
-        double value = this->runner.GetCameraProperty(id);
+        double value = KiwiLightApp::GetCameraProperty(id);
         this->cameraSettings.SetSettingValueFromID(id, value);
     }
+}
+
+
+void ConfigEditor::SetCameraIndexBoxes(int index) {
+    this->configOverview.SetCameraIndex(index);
+    this->cameraSettings.SetCameraIndex(index);
 }
 
 
@@ -615,11 +654,13 @@ void ConfigEditor::ReconnectUDPFromOverview() {
     this->runnerSettings.SetUDPPort(newPort);
 }
 
-void ConfigEditor::ResetRunnerResolution() {
-    int camResX = this->cameraSettings.GetSettingValueFromID(CAP_PROP_FRAME_WIDTH);
-    int camResY = this->cameraSettings.GetSettingValueFromID(CAP_PROP_FRAME_HEIGHT);
-    Size newRes = Size(camResX, camResY);
-    this->runner.SetResolution(newRes);
+
+void ConfigEditor::OpenNewCameraFromOverview() {
+    int newCameraIndex = this->configOverview.GetCameraIndex();
+
+    //the camera needs to be reconnected because indexes are different
+    this->cameraSettings.SetCameraIndex(newCameraIndex); //set real index
+    KiwiLightApp::OpenNewCameraOnIndex(newCameraIndex);
 }
 
 

@@ -415,10 +415,10 @@ namespace KiwiLight {
     class CameraSetting : public Widget {
         public:
         CameraSetting() {};
-        CameraSetting(std::string name, int valueName, int min, int max, int value);
-        int GetValue();
+        CameraSetting(std::string name, int valueName, double min, double max, double value);
+        double GetValue();
         int GetValueName();
-        void SetValue(int newValue);
+        void SetValue(double newValue);
         void Destroy();
         std::string GetName() { return name; };
         GtkWidget *GetWidget() { return this->camerasetting; };
@@ -481,10 +481,6 @@ namespace KiwiLight {
         void Update();
         void SetConfigName(std::string name);
         std::string GetConfigName();
-        void SetUDPAddr(std::string addr);
-        std::string GetUDPAddr();
-        void SetUDPPort(int port);
-        int GetUDPPort();
         void SetTargetInformationLabels(
             bool targetSpotted,
             int targetImgX,
@@ -493,6 +489,12 @@ namespace KiwiLight {
             double targetHAngle,
             double targetVAngle
         );
+        void SetCameraIndex(int index);
+        int GetCameraIndex();
+        void SetUDPAddr(std::string addr);
+        std::string GetUDPAddr();
+        void SetUDPPort(int port);
+        int GetUDPPort();
         void SetTargetInformationLabelsFromString(std::string iterOutput);
         GtkWidget *GetWidget() { return overviewpanel; };
         void SetName(std::string name);
@@ -501,6 +503,7 @@ namespace KiwiLight {
         TextBox configName;
         TextBox udpAddr;
         NumberBox udpPort;
+        NumberBox cameraIndex;
 
         Label
             targetSpotted,
@@ -518,18 +521,21 @@ namespace KiwiLight {
     class Settings : public Widget {
         public:
         Settings() {};
-        Settings(VideoCapture cap, XMLDocument doc);
+        Settings(XMLDocument doc);
         void Update();
         void UpdateValue();
         void Show() { gtk_widget_show_all(this->settingsWidget); };
         XMLTag GetFinishedTag();
         void SetSettingValueFromID(int id, double value);
         double GetSettingValueFromID(int id);
+        void SetCameraIndex(int index);
+        int GetCameraIndex();
         std::vector<int> GetSettingIDs();
         GtkWidget *GetWidget() { return settingsWidget; };
         void SetName(std::string name);
 
         private:
+        NumberBox cameraIndex;
         std::vector<CameraSetting> settings;
         GtkWidget *settingsWidget;
     };
@@ -574,6 +580,7 @@ namespace KiwiLight {
         PostprocessorEditor(PostProcessor postprocessor);
         void Update();
         int GetNumContours();
+        void SetNumContours(int contours);
         SettingPair GetProperty(int contour, TargetProperty prop);
         void SetProperty(int contour, TargetProperty prop, SettingPair value);
         GtkWidget *GetWidget() { return this->postprocessoreditor; };
@@ -597,6 +604,8 @@ namespace KiwiLight {
             solidity,
             solidityErr,
             minimumArea;
+
+        Label totalContours;
 
         Runner storageRunner;
 
@@ -640,7 +649,7 @@ namespace KiwiLight {
     class ConfigEditor : public Widget {
         public:
         ConfigEditor() {};
-        ConfigEditor(std::string fileName, VideoCapture cap);
+        ConfigEditor(std::string fileName);
         void Update();
         bool UpdateImageOnly();
         std::string GetLastFrameResult();
@@ -648,12 +657,13 @@ namespace KiwiLight {
         void Close();
         void StartLearningTarget();
         void StartLearningDistance();
-        void RecheckUDP();
+        void ReconnectUDPFromEditor();
+        void SendOverUDP(std::string message);
         void ApplyCameraSettings();
+        void SetCameraIndexBoxes(int index);
         void ReconnectUDPFromOverview();
-        void ResetRunnerResolution();
+        void OpenNewCameraFromOverview();
         std::string GetFileName() { return this->fileName; };
-        VideoCapture GetVideoCapture() { return this->runner.GetVideoStream(); };
         cv::Mat GetOutputImage() { return this->out; };
         GtkWidget *GetWidget() { return this->configeditor; };
         void SetName(std::string name);
@@ -662,7 +672,7 @@ namespace KiwiLight {
         static void Closed();
         void UpdateImage();
 
-        //universal config learnign utility
+        //universal config learning utility
         ConfigLearner learner;
         bool learnerActivated;
 
@@ -670,7 +680,6 @@ namespace KiwiLight {
         TargetDistanceLearner distanceLearner;
         bool distanceLearnerRunning;
 
-        TargetDistanceLearner distLearner;
         TargetTroubleshooter troubleshooter;
         
         Label serviceMonitor;
