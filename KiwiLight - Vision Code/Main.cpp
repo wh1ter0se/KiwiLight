@@ -18,8 +18,8 @@ int main(int argc, char *argv[]) {
             std::string configPath = argv[2];
             std::cout << "Config Path: " << configPath << std::endl;
             //create the KiwiLight runner and camera
-            Runner runner = Runner(configPath, false);
-            KiwiLightApp::OpenNewCameraOnIndex(runner.GetCameraIndex());
+            KiwiLightApp::OpenNewCameraOnIndex(0);
+            Runner runner = Runner(configPath, true);
             runner.Loop();
         }
     }

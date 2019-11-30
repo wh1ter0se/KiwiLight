@@ -25,7 +25,7 @@ Label        KiwiLightApp::cameraStatusLabel;
 Image        KiwiLightApp::outputImage;
 Button       KiwiLightApp::toggleUDPButton;
 int          KiwiLightApp::cameraFailures;
-int          KiwiLightApp::currentCameraIndex;
+int          KiwiLightApp::currentCameraIndex = 100;
 
 /**
  * Initializes GTK and builds KiwiLight
@@ -121,7 +121,11 @@ ConfigEditor KiwiLightApp::GetEditor() { return configeditor; }
 Mat KiwiLightApp::TakeImage() {
     Mat img;
     if(KiwiLightApp::camera.isOpened()) {
-        bool success = KiwiLightApp::camera.read(img);
+        bool success = KiwiLightApp::camera.grab();
+        
+        if(success) {
+            success = KiwiLightApp::camera.retrieve(img);
+        }
         KiwiLightApp::lastImageGrabSuccessful = success;
         
         //additionally...
@@ -201,7 +205,6 @@ MenuBar KiwiLightApp::CreateMenuBar() {
  */
 void KiwiLightApp::LaunchStreamingThread(UIMode newMode) {
     if(newMode != UIMode::UI_PAUSING) {
-        usleep(500000); //sleep for .5 seconds
         streamThreadEnabled = true;
         KiwiLightApp::mode = newMode;
         std::cout << "Starting Stream Thread..." << std::endl;
@@ -267,7 +270,7 @@ void KiwiLightApp::EditorConnectUDPFromOverview() {
  * Causes KiwiLight to open a new camera on the given index.
  */
 void KiwiLightApp::OpenNewCameraOnIndex(int index) {
-    if(KiwiLightApp::currentCameraIndex != index) {
+    if(KiwiLightApp::currentCameraIndex != index || !KiwiLightApp::camera.isOpened()) {
         KiwiLightApp::currentCameraIndex = index;
         UIMode currentMode = KiwiLightApp::mode;
         //StopStreamingThread();
@@ -280,6 +283,7 @@ void KiwiLightApp::OpenNewCameraOnIndex(int index) {
         
         //set the auto exposure menu in shell because opencv cant do it
         //if this is not set then exposure cannot be set
+        
         std::cout << "Configuring Auto Exposure setting on new camera" << std::endl;
         Shell::ExecuteCommand(
             std::string("v4l2-ctl -d ") + 
@@ -366,7 +370,7 @@ void KiwiLightApp::UpdateStreamsConstantly() {
 void KiwiLightApp::UpdateStreams() {
     try {
         //attempt to loop the things
-        Mat displayImage;
+        Mat displayImage = KiwiLightApp::TakeImage();
         switch(KiwiLightApp::mode) {
             case UIMode::UI_STREAM:
                 displayImage = KiwiLightApp::TakeImage();

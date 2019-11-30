@@ -404,6 +404,9 @@ void Runner::applySettings(XMLDocument document) {
         document.GetTagsByName("camera")[0]
         .GetTagsByName("settings")[0]
         .GetTagsByName("setting");
+        
+    int camIndex = std::stoi(document.GetTagsByName("camera")[0].GetAttributesByName("index")[0].Value());
+    KiwiLightApp::OpenNewCameraOnIndex(camIndex);
     for(int i=0; i<camSettings.size(); i++) {
         XMLTag setting = camSettings[i];
         int settingID = std::stoi(setting.GetAttributesByName("id")[0].Value());
