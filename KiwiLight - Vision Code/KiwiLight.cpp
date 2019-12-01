@@ -17,6 +17,7 @@ UIMode       KiwiLightApp::mode = UIMode::UI_STREAM;
 bool         KiwiLightApp::lastImageGrabSuccessful = false;
 bool         KiwiLightApp::udpEnabled = false;
 bool         KiwiLightApp::streamThreadEnabled = true; //acts as a kind of "enable switch" for the streamthread because it seems to like starting when its not supposed to
+bool         KiwiLightApp::outImgInUse = false;
 Mat          KiwiLightApp::lastFrameGrabImage;
 Window       KiwiLightApp::win;
 ConfigPanel  KiwiLightApp::confInfo;
@@ -326,7 +327,13 @@ void KiwiLightApp::UpdateApp() {
 
         //update the camera error label based on how successful thread is being
         if(lastImageGrabSuccessful) {
+            //wait for the output image to be updated by other thread
+            while(KiwiLightApp::outImgInUse) {
+                usleep(10);
+            }
+            KiwiLightApp::outImgInUse = true;
             KiwiLightApp::outputImage.Update(KiwiLightApp::lastFrameGrabImage);
+            KiwiLightApp::outImgInUse = false;
             KiwiLightApp::cameraStatusLabel.SetText(""); 
         } else {
             KiwiLightApp::cameraStatusLabel.SetText("Camera Error!");
@@ -379,8 +386,9 @@ void KiwiLightApp::UpdateStreams() {
         //attempt to loop the things
         Mat displayImage;
         switch(KiwiLightApp::mode) {
-            case UIMode::UI_STREAM:
-                displayImage = KiwiLightApp::TakeImage();
+            case UIMode::UI_STREAM: {
+                    displayImage = KiwiLightApp::TakeImage();
+                }
                 break;
             case UIMode::UI_RUNNER: {
                     std::string output = KiwiLightApp::runner.Iterate();
@@ -406,10 +414,15 @@ void KiwiLightApp::UpdateStreams() {
                 }
                 break;
         }
-
         // if successful, update the display image
-        if(KiwiLightApp::lastImageGrabSuccessful) {
+        if(KiwiLightApp::lastImageGrabSuccessful) {            
+            //wait for out image to be used by other thread
+            while(KiwiLightApp::outImgInUse) {
+                usleep(10);
+            }
+            KiwiLightApp::outImgInUse = true;
             KiwiLightApp::lastFrameGrabImage = displayImage;
+            KiwiLightApp::outImgInUse = false;
         }
     } catch(cv::Exception ex) {
         std::cout << "An OpenCv Exception was encountered while running the Streaming thread!" << std::endl;
