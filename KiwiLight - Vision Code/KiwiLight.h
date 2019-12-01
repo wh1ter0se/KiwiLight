@@ -97,6 +97,7 @@ namespace KiwiLight {
         static bool lastImageGrabSuccessful;
         static bool udpEnabled;
         static bool streamThreadEnabled;
+        static bool outImgInUse;
         static Mat lastFrameGrabImage;
         static int currentCameraIndex;
 
