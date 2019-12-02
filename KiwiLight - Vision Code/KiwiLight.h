@@ -55,6 +55,7 @@ namespace KiwiLight {
         static void StartEditorLearningTarget();
         static void StartEditorLearningDistance();
         static void EditorReconnectUDP();
+        static void ToggleUDP();
         static void EditorSetImageResolutionFromOverview();
         static void EditorConnectUDPFromOverview();
         static void EditorApplyCameraSettings();
@@ -76,7 +77,6 @@ namespace KiwiLight {
 
         //UI button callbacks
         static void OpenNewCameraFromMainIndex();
-        static void ToggleUDP();
         static void NewConfiguration();
         static void EditConfiguration();
         static void OpenConfiguration();

@@ -46,6 +46,9 @@ RunnerEditor::RunnerEditor(Runner runner) {
             Button reconnectUDP = Button("Reconnect", ReconnectUDP);
                 udpPanel.Pack_start(reconnectUDP.GetWidget(), true, true, 0);
 
+            this->enableUDP = Button("Enable", KiwiLightApp::ToggleUDP);
+                udpPanel.Pack_start(this->enableUDP.GetWidget(), true, true, 0);
+
             editor.Pack_start(udpPanel.GetWidget(), true, true, 0);
                     
 
@@ -202,6 +205,10 @@ void RunnerEditor::SetUDPPort(int newPort) {
     this->udpPort.SetValue((double) newPort);
 }
 
+
+void RunnerEditor::SetUDPEnabledLabels(bool UDPEnabled) {
+    this->enableUDP.SetText((UDPEnabled ? "Disable" : "Enable"));
+}
 
 void RunnerEditor::SetName(std::string name) {
     gtk_widget_set_name(this->runnereditor, name.c_str());

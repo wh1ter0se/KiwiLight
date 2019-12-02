@@ -449,6 +449,11 @@ void KiwiLightApp::ToggleUDP() {
     
     //set the button text
     KiwiLightApp::toggleUDPButton.SetText((KiwiLightApp::udpEnabled ? "Disable UDP" : "Enable UDP"));
+
+    //set the buttons in the config editor if necessary
+    if(KiwiLightApp::mode == UIMode::UI_EDITOR) {
+        KiwiLightApp::configeditor.SetUDPEnabledLabels(KiwiLightApp::udpEnabled);
+    }
 }
 
 /**
