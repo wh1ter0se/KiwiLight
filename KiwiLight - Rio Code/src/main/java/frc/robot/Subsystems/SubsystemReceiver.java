@@ -52,7 +52,7 @@ public class SubsystemReceiver extends Subsystem {
   }
 
   public SubsystemReceiver() {
-    latestSegment = "-1,-1,-1,-1";
+    latestSegment = "-1,-1,-1,180, 180";
     latestTime    = System.currentTimeMillis();
 
     SmartDashboard.putString("RPi Data", latestSegment);
@@ -92,25 +92,18 @@ public class SubsystemReceiver extends Subsystem {
    *         {-1,-1,-1, 180} for no known location
    */
   public double[] getLastKnownData() {
-      double[] data = new double[]{-1,-1,-1,-1};
-      int[] indices = new int[]{2,5,8};
+      double[] data = new double[]{-1,-1,-1,180,180};
+
       try {
-        indices = IntStream.range(0, latestSegment.length() - 1)
-                  .filter(i -> latestSegment.charAt(i) == ',')
-                  .toArray();
-        data[0] = Integer.parseInt(latestSegment.substring(0, latestSegment.indexOf(",", indices[0])));
-        data[1] = Integer.parseInt(latestSegment.substring(latestSegment.indexOf(",", indices[0]) + 1, latestSegment.indexOf(",", indices[1])));
-        data[2] = Integer.parseInt(latestSegment.substring(latestSegment.indexOf(",", indices[1]) + 1, latestSegment.indexOf(",", indices[2])));
-        data[3] = Integer.parseInt(latestSegment.substring(latestSegment.indexOf(",", indices[2]) + 1));
-      } catch (NumberFormatException e) {
-        DriverStation.reportError("NUMBER FORMAT EXCEPTION", true); 
-        DriverStation.reportError("latestSegment = " + latestSegment, false);
-      } catch (StringIndexOutOfBoundsException e) {
-        DriverStation.reportError("STRING INDEX OUT OF BOUNDS EXCEPTION", true);
-        DriverStation.reportError("latestSegment = " + latestSegment, false);
-      } catch (ArrayIndexOutOfBoundsException e) {
-        DriverStation.reportError("ARRAY INDEX OUT OF BOUNDS EXCEPTION", true);
-        DriverStation.reportError("latestSegment = " + latestSegment, false);
+        String formattedLatestSegment = latestSegment.substring(1, latestSegment.length() - 1);
+        String[] latestStrings = formattedLatestSegment.split(",");
+        
+        //convert all numbers in string to int and add to data.
+        for(int i=0; i<5; i++) {
+          data[i] = Integer.parseInt(latestStrings[i]);
+        }
+      } catch(IndexOutOfBoundsException ex) {
+        DriverStation.reportError("String formatting error!", true);
       }
       return data;
   }
