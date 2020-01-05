@@ -495,6 +495,7 @@ namespace KiwiLight {
         std::string GetUDPAddr();
         void SetUDPPort(int port);
         int GetUDPPort();
+        void SetUDPEnabledLabels(bool UDPEnabled);
         void SetTargetInformationLabelsFromString(std::string iterOutput);
         GtkWidget *GetWidget() { return overviewpanel; };
         void SetName(std::string name);
@@ -504,6 +505,7 @@ namespace KiwiLight {
         TextBox udpAddr;
         NumberBox udpPort;
         NumberBox cameraIndex;
+        Button enableUDP;
 
         Label
             targetSpotted,
@@ -624,6 +626,7 @@ namespace KiwiLight {
         int GetUDPPort();
         void SetUDPAddr(std::string newAddr);
         void SetUDPPort(int newPort);
+        void SetUDPEnabledLabels(bool UDPEnabled);
         GtkWidget *GetWidget() { return this->runnereditor; };
         void SetName(std::string name);
 
@@ -632,6 +635,8 @@ namespace KiwiLight {
 
         TextBox udpAddress;
         NumberBox udpPort;
+
+        Button enableUDP;
 
         LabeledSlider 
             offsetX,
@@ -659,6 +664,7 @@ namespace KiwiLight {
         void StartLearningDistance();
         void ReconnectUDPFromEditor();
         void SendOverUDP(std::string message);
+        void SetUDPEnabledLabels(bool UDPEnabled);
         void ApplyCameraSettings();
         void SetCameraIndexBoxes(int index);
         void ReconnectUDPFromOverview();

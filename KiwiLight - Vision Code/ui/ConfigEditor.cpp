@@ -612,6 +612,12 @@ void ConfigEditor::SendOverUDP(std::string message) {
     this->runner.SendOverUDP(message);
 }
 
+
+void ConfigEditor::SetUDPEnabledLabels(bool UDPEnabled) {
+    this->configOverview.SetUDPEnabledLabels(UDPEnabled);
+    this->runnerSettings.SetUDPEnabledLabels(UDPEnabled);
+}
+
 /**
  * Applies the settings from the camera tab to the camera itself.
  */
