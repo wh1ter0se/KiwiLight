@@ -25,8 +25,6 @@ UDP::UDP(std::string dest_ip, int port) {
     this->address = dest_ip;
     this->port = port;
 
-    std::cout << "Setting up UDP..." << std::endl;
-
     this->sock = socket(AF_INET, SOCK_DGRAM, 0); //"0" for wildcard of what protocol is best
     if(this->sock < 0) //socket creation didnt be like that tho
         err("SOCKET FAILED");
@@ -57,8 +55,6 @@ UDP::UDP(std::string dest_ip, int port, bool blockUntilConnected) {
     this->address = dest_ip;
     this->port = port;
 
-    std::cout << "Setting up UDP..." << std::endl;
-
     this->sock = socket(AF_INET, SOCK_DGRAM, 0); //"0" for wildcard of what protocol is best
     if(this->sock < 0) //socket creation didnt be like that tho
         err("SOCKET FAILED");
@@ -73,24 +69,18 @@ UDP::UDP(std::string dest_ip, int port, bool blockUntilConnected) {
         err("PTON FAILED");
 
     //wait for the connect to succeed before we go
-    std::cout << "Waiting to connect..." << std::endl;
     while(true) {
         //now connect
         int connect_result = connect(this->sock, (sockaddr*) &this->client_address, sizeof(this->client_address));
         if(connect_result > -1 || !blockUntilConnected) //the connection was the big good
             break;
     }
-
-    std::cout << "Connection set up." << std::endl;
 }
 
 
 UDP::UDP(std::string this_ip, std::string dest_ip, int port, bool blockUntilConnected) {
     this->address = dest_ip;
-    this->port = port;
-
-    std::cout << "Setting up UDP..." << std::endl;
-    
+    this->port = port;    
 
     this->sock = socket(AF_INET, SOCK_DGRAM, 0); //"0" for wildcard of what protocol is best
     if(this->sock < 0) //socket creation didnt be like that tho

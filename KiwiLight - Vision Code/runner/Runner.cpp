@@ -33,48 +33,6 @@ void Runner::SetImageResize(Size sz) {
 }
 
 /**
- * Puts the runner in a constant loop, and sends finished UDP messages.
- * This method would be used in normal FRC situations
- */
-void Runner::Loop() {
-    //give some information to stdout about the config
-    std::cout << std::endl;
-    std::cout << "------------------------------------" << std::endl;
-    std::cout << "KiwiLight Runner starting..." << std::endl;
-    std::cout << "  Mode: " << (this->debug ? "Debug" : "Running") << std::endl;
-    std::cout << "  Configuration Name: " << this->configName << std::endl;
-    std::cout << "  Camera Index: " << this->cameraIndex << std::endl;
-    std::cout << "  Preprocessor: " << (this->preprocessor.GetProperty(PreProcessorProperty::IS_FULL) == 1.0 ? "FULL" : "PARTIAL") << std::endl;
-    std::cout << "  Postprocessor: FULL" << std::endl;
-    std::cout << "    Number of Contours: " << this->postProcessorTargets[0].Contours().size() << std::endl;
-    std::cout << "  UDP Destination Address: " << this->udp.GetAddress() << std::endl;
-    std::cout << "  UDP Port: " << std::to_string(this->udp.GetPort()) << std::endl;
-    std::cout << "------------------------------------" << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "Waiting for UDP to connect" << std::endl;
-    while(true) {
-        bool connectSuccess = this->udp.AttemptToConnect();
-        if(connectSuccess) {
-            std::cout << "UDP connected successfully." << std::endl;
-            break;
-        }
-    }
-
-    //loops a lot until stopped
-    while(!stop) {
-        try {
-            //run algorithm and get the udp message to send to rio
-            std::string output = this->Iterate();
-            this->udp.Send(output);
-        } catch(cv::Exception ex) {
-            std::cout << "An OpenCv Exception was encountered in the Loop!" << std::endl;
-            std::cout << "ex.what(): " << ex.what() << std::endl;
-        }
-    }
-}
-
-/**
  * Performs one iteration of the main loop, but does not send any file UDP messages.
  */
 std::string Runner::Iterate() {
@@ -136,6 +94,7 @@ std::string Runner::Iterate() {
     }
 
     this->closestTarget = bestTarget;
+    this->lastFrameCenterPoint = Point(robotCenterX, robotCenterY);
 
     //figure out which target to send and then send the target
     int coordX = -1,
@@ -236,13 +195,6 @@ void Runner::SetExampleTarget(int contourID, ExampleTarget target) {
     this->postprocessor.SetTarget(contourID, target);
 }
 
-void Runner::ReconnectUDP(std::string udpAddr, int udpPort) {
-    this->udp = UDP(udpAddr, udpPort);
-}
-
-void Runner::SendOverUDP(std::string message) {
-    this->udp.Send(message);
-}
 
 void Runner::SetPreprocessorProperty(PreProcessorProperty prop, double value) {
     if(this->debug) {
@@ -392,7 +344,7 @@ void Runner::parseDocument(XMLDocument doc) {
     //init the preprocessor and postprocessor here
     this->preprocessor = PreProcessor(preprocessorTypeIsFull, preprocessorColor, preprocessorThreshold, preprocessorErosion, preprocessorDilation, this->debug);
     this->postprocessor = PostProcessor(this->postProcessorTargets, this->debug);
-    this->udp = UDP(udpAddr, udpPort);
+    KiwiLightApp::ReconnectUDP(udpAddr, udpPort);
 }
 
 /**

@@ -28,7 +28,7 @@ RunnerEditor::RunnerEditor(Runner runner) {
                     Label udpAddressPanelHeader = Label("IPv4 Address: ");
                         udpAddressPanel.Pack_start(udpAddressPanelHeader.GetWidget(), true, true, 0);
 
-                    std::string realUDPAddress = runner.GetUDP().GetAddress();
+                    std::string realUDPAddress = KiwiLightApp::GetUDP().GetAddress();
                     this->udpAddress = TextBox(realUDPAddress);
                         udpAddressPanel.Pack_start(this->udpAddress.GetWidget(), true, true, 0);
 
@@ -38,7 +38,7 @@ RunnerEditor::RunnerEditor(Runner runner) {
                     Label udpPortPanelHeader = Label("Port: ");
                         udpPortPanel.Pack_start(udpPortPanelHeader.GetWidget(), true, true, 0);
 
-                    int realUDPPort = runner.GetUDP().GetPort();
+                    int realUDPPort = KiwiLightApp::GetUDP().GetPort();
                     this->udpPort = NumberBox(0.0, 9999.0, 1.0, (double) realUDPPort);
                         udpPortPanel.Pack_start(this->udpPort.GetWidget(), true, true, 0);
                     udpInputPanel.Pack_start(udpPortPanel.GetWidget(), true, true, 0);

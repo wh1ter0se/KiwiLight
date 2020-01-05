@@ -42,18 +42,29 @@ Install() {
     cd ../..
 
     echo "Preparing to compile KIWILIGHT"
-    mkdir bin
-    mkdir lib
+    make setup
 
     echo "Compiling KIWILIGHT"
     make -j2 KiwiLight
+
+    echo "Preparing KIWILIGHT"
+    #install the confs folder
+    currentDir = $PWD
+    cd
+    mkdir KiwiLightData
+    mkdir KiwiLightData/confs
+    mkdir KiwiLightData/tmp
+    cp $PWD/generic.xml KiwiLightData/confs/
+    echo "" >> KiwiLightData/tmp/shell_out.log
+
+    cd $currentDir
 
     echo "KIWILIGHT has been successfully installed."
 }
 
 
 echo "Welcome to the KiwiLight installer!"
-echo "Installing KiwiLight will download many packages and may take a long time."
+echo "Installing KiwiLight from the sources will download many packages and may take a long time."
 echo "Would you like to continue? [y/n]: "
 
 read -N1 confirm

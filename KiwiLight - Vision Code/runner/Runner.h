@@ -10,6 +10,8 @@
  * Written By: Brach Knutson
  */
 
+using namespace cv;
+
 namespace KiwiLight {
 
     /**
@@ -158,6 +160,7 @@ namespace KiwiLight {
         int HorizontalAngle(double distanceToTarget, int imageCenterX);
         int VerticalAngle(int imageCenterY);
         int VerticalAngle(double distanceToTarget, int imageCenterY);
+        int ObliqueAngle(int imageCenterX, int imageCenterY);
         double KnownWidth() { return this->knownHeight; };
         double FocalWidth() { return this->focalHeight; };
         double DistanceErrorCorrection() { return this->distErrorCorrect; };
@@ -265,7 +268,6 @@ namespace KiwiLight {
         std::vector<Contour> contoursFromLastFrame;
     };
 
-
     class CameraFrame {
         public:
         CameraFrame() {};
@@ -287,7 +289,6 @@ namespace KiwiLight {
      */
     class Runner {
         public:
-
         static const std::string NULL_MESSAGE;
 
         Runner() {};
@@ -296,21 +297,18 @@ namespace KiwiLight {
         PostProcessor GetPostProcessor() { return this->postprocessor; };
         int GetCameraIndex() { return this->cameraIndex; };
         void SetImageResize(Size sz);
-        void Loop();
-        void ReconnectUDP(std::string udpAddr, int udpPort);
-        void SendOverUDP(std::string message);
         std::string Iterate();
         int GetNumberOfTargets() { return this->postprocessor.NumberOfTargets(); };
         int GetNumberOfContours(int target);
         bool GetLastFrameSuccessful() { return this->lastIterationSuccessful; };
         std::vector<Target> GetLastFrameTargets() { return this->lastFrameTargets; };
         Target GetClosestTargetToCenter() { return this->closestTarget; };
+        Point GetLastFrameCenterPoint() { return this->lastFrameCenterPoint; };
         std::string GetFileName() { return this->src; };
         cv::Mat GetOriginalImage() { return this->originalImage; };
         cv::Mat GetOutputImage() { return this->outputImage; };
         Size GetConstantSize() { return this->constantResize; };
         ExampleTarget GetExampleTargetByID(int id);
-        UDP GetUDP() { return this->udp; };
         void SetExampleTarget(int targetID, ExampleTarget target);
         void SetPreprocessorProperty(PreProcessorProperty prop, double value);
         double GetPreprocessorProperty(PreProcessorProperty prop);
@@ -339,14 +337,13 @@ namespace KiwiLight {
 
         std::vector<ExampleTarget> postProcessorTargets;
         std::vector<Target> lastFrameTargets;
+        Point lastFrameCenterPoint;
         bool lastIterationSuccessful;
         bool stop,
              debug;
 
         double centerOffsetX,
                centerOffsetY;
-               
-        UDP udp;
     };
 
     /**
@@ -376,6 +373,7 @@ namespace KiwiLight {
         Mat out,
             original;
     };
+
 
     /**
      * A tool that calculates the constants needed for accurate distance calculation

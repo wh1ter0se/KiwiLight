@@ -663,7 +663,6 @@ namespace KiwiLight {
         void StartLearningTarget();
         void StartLearningDistance();
         void ReconnectUDPFromEditor();
-        void SendOverUDP(std::string message);
         void SetUDPEnabledLabels(bool UDPEnabled);
         void ApplyCameraSettings();
         void SetCameraIndexBoxes(int index);
@@ -675,7 +674,6 @@ namespace KiwiLight {
         void SetName(std::string name);
 
         private:
-        static void Closed();
         void UpdateImage();
 
         //universal config learning utility

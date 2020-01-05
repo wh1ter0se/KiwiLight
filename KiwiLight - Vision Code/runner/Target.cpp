@@ -129,6 +129,26 @@ int Target::VerticalAngle(int imageCenterY) {
     return this->VerticalAngle(this->Distance(), imageCenterY);
 }
 
+
+int Target::ObliqueAngle(int imageCenterX, int imageCenterY) {
+    double horizontalAngle = this->HorizontalAngle(imageCenterX) * (M_PI / 180); //convert angle from degrees to radians
+    double verticalAngle   = this->VerticalAngle(imageCenterY)   * (M_PI / 180);
+    double targetDistance  = this->Distance();
+
+    double horizontalOffset = targetDistance * tan(horizontalAngle);
+    double verticalOffset   = targetDistance * tan(verticalAngle);
+    double obliqueOffset = sqrt (
+        pow(horizontalOffset, 2) +
+        pow(verticalOffset, 2)
+    );
+
+    double obliqueAngle = atan(obliqueOffset / targetDistance);
+
+    //convert the angle back to degrees
+    obliqueAngle *= (180 / M_PI);
+    return obliqueAngle;
+}
+
 /**
  * Returns a rectangle that represents the bounds of the target.
  */

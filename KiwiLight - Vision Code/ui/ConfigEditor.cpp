@@ -119,7 +119,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
 
 
         this->window.SetPane(this->content);
-    this->window.SetOnWindowClosed(ConfigEditor::Closed);
+    this->window.SetOnWindowClosed(JustCloseButtonPressed);
     this->window.SetCSS("ui/Style.css");
     this->window.Show();
 
@@ -601,15 +601,11 @@ void ConfigEditor::StartLearningDistance() {
 void ConfigEditor::ReconnectUDPFromEditor() {
     std::string newUDPAddr = this->runnerSettings.GetUDPAddr();
     int newUDPPort = this->runnerSettings.GetUDPPort();
-    this->runner.ReconnectUDP(newUDPAddr, newUDPPort);
+    KiwiLightApp::ReconnectUDP(newUDPAddr, newUDPPort);
 
     //set the things in the overview panel
     this->configOverview.SetUDPAddr(newUDPAddr);
     this->configOverview.SetUDPPort(newUDPPort);
-}
-
-void ConfigEditor::SendOverUDP(std::string message) {
-    this->runner.SendOverUDP(message);
 }
 
 
@@ -653,7 +649,7 @@ void ConfigEditor::SetCameraIndexBoxes(int index) {
 void ConfigEditor::ReconnectUDPFromOverview() {
     std::string newAddr = this->configOverview.GetUDPAddr();
     int newPort = this->configOverview.GetUDPPort();
-    this->runner.ReconnectUDP(newAddr, newPort);
+    KiwiLightApp::ReconnectUDP(newAddr, newPort);
 
     //set the properties in the actual editor
     this->runnerSettings.SetUDPAddr(newAddr);
@@ -672,13 +668,6 @@ void ConfigEditor::OpenNewCameraFromOverview() {
 
 void ConfigEditor::SetName(std::string name) {
     gtk_widget_set_name(this->configeditor, name.c_str());
-}
-
-/**
- * Called when the X in the corner is pressed
- */
-void ConfigEditor::Closed() {
-    KiwiLightApp::CloseEditor(false);
 }
 
 

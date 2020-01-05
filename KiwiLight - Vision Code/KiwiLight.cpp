@@ -10,9 +10,10 @@ using namespace KiwiLight;
 
 //define some static vars for KiwiLightApp. Vars will be defined for real on call to Create();
 VideoCapture KiwiLightApp::camera;
+UDP          KiwiLightApp::udpSender;
 Runner       KiwiLightApp::runner;
 ConfigEditor KiwiLightApp::configeditor;
-GThread      *KiwiLightApp::streamingThread;
+GThread     *KiwiLightApp::streamingThread;
 UIMode       KiwiLightApp::mode = UIMode::UI_STREAM;
 bool         KiwiLightApp::lastImageGrabSuccessful = false;
 bool         KiwiLightApp::udpEnabled = false;
@@ -35,6 +36,8 @@ void KiwiLightApp::Create(int argc, char *argv[]) {
     KiwiLightApp::mode = UIMode::UI_PAUSING;
     KiwiLightApp::cameraFailures = 0;
     KiwiLightApp:currentCameraIndex = 100; //just to define index. Camera will only open if currentCameraindex != 100
+
+    KiwiLightApp::udpSender = UDP("127.0.0.1", 3695);
     
     gtk_init(&argc, &argv);
     win = Window(GTK_WINDOW_TOPLEVEL);
@@ -166,6 +169,9 @@ bool KiwiLightApp::LastImageCaptureSuccessful() {
     return KiwiLightApp::lastImageGrabSuccessful;
 }
 
+UDP KiwiLightApp::GetUDP() {
+    return KiwiLightApp::udpSender;
+}
 
 /**
  * Returns KiwiLight's menu bar
@@ -300,6 +306,36 @@ void KiwiLightApp::OpenNewCameraOnIndex(int index) {
 }
 
 /**
+ * This method is ONLY to be used if KiwiLight is working headless (no UI)!!!!!!!
+ * Opens new camera without updating UI elements
+ */
+void KiwiLightApp::InitCameraOnly(int index) {
+    std::cout << "Configuring Auto Exposure setting on new camera" << std::endl;
+    Shell::ExecuteCommand(
+        std::string("v4l2-ctl -d ") + 
+        std::to_string(index) + 
+        std::string(" --set-ctrl=exposure_auto=1")
+    );
+
+    KiwiLightApp::camera = VideoCapture(index);
+}
+
+
+void KiwiLightApp::ReconnectUDP(std::string newAddress, int newPort) {
+    KiwiLightApp::udpSender = UDP(newAddress, newPort);
+}
+
+
+void KiwiLightApp::ReconnectUDP(std::string newAddress, int newPort, bool block) {
+    KiwiLightApp::udpSender = UDP(newAddress, newPort, block);
+}
+
+
+void KiwiLightApp::SendOverUDP(std::string message) {
+    KiwiLightApp::udpSender.Send(message);
+}
+
+/**
  * Causes the editor to apply all camera settings to the video stream.
  */
 void KiwiLightApp::EditorApplyCameraSettings() {
@@ -362,7 +398,7 @@ void KiwiLightApp::UpdateStreamsConstantly() {
     //now because some cameras like the jevois take a little longer for the stream to start, we will wait until it gives us a good frame
     //to avoid the VIDIOC_QBUF: Invalid Argument barage.
     bool retrieveSuccess = false;
-    while(!retrieveSuccess) {
+    while(!retrieveSuccess && KiwiLightApp::mode != UIMode::UI_PAUSING && streamThreadEnabled) {
         usleep(250000); //give camera some time to adjust and do things
         bool grabSuccess = KiwiLightApp::camera.grab();
         if(grabSuccess) {
@@ -397,7 +433,7 @@ void KiwiLightApp::UpdateStreams() {
                     
                     //if the udp is enabled, send the message
                     if(KiwiLightApp::udpEnabled) {
-                        KiwiLightApp::runner.SendOverUDP(output);
+                        KiwiLightApp::udpSender.Send(output);
                     }
                 }
                 break;
@@ -409,7 +445,7 @@ void KiwiLightApp::UpdateStreams() {
                     
                     //send if udp enabled
                     if(KiwiLightApp::udpEnabled) {
-                        KiwiLightApp::configeditor.SendOverUDP(output);
+                        KiwiLightApp::udpSender.Send(output);
                     }
                 }
                 break;

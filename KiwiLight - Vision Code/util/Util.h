@@ -4,7 +4,6 @@
 #include <iostream>
 #include <stdlib.h>
 #include <fstream>
-#include "gtk-3.0/gtk/gtk.h"
 #include "opencv2/opencv.hpp"
 #include "netdb.h"
 #include "unistd.h"
