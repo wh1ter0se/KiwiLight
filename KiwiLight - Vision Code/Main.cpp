@@ -97,7 +97,7 @@ void RunConfigs(std::vector<std::string> filePaths) {
             
             message = ":" + x + "," + y + "," + d + "," + ha + "," + va + ";";
         }
-
+        
         KiwiLightApp::SendOverUDP(message);
     }
 }
