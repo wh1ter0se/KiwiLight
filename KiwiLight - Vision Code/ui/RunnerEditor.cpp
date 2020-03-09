@@ -13,14 +13,6 @@ static void ReconnectUDP() {
 
 RunnerEditor::RunnerEditor(Runner runner) {
     Panel editor = Panel(false, 0);
-        // OFFSET_X,
-        // OFFSET_Y,
-        // IMAGE_WIDTH,
-        // IMAGE_HEIGHT,
-        // TRUE_WIDTH,
-        // PERCEIVED_WIDTH,
-        // CALIBRATED_DISTANCE,
-        // ERROR_CORRECTION
 
         Panel udpPanel = Panel(true, 0);
             Panel udpInputPanel = Panel(false, 0);
@@ -94,6 +86,11 @@ RunnerEditor::RunnerEditor(Runner runner) {
             this->distanceLabel = Label("Calculated Distance: (no target!)");
                 this->distanceLabel.SetName("gray");
                 distancePanel.Pack_start(this->distanceLabel.GetWidget(), true, true, 0);
+
+            this->useHeight = CheckBox("Use Height to calculate distance", true);
+                bool realUseHeight = runner.GetRunnerProperty(RunnerProperty::CALC_DIST_BY_HEIGHT) == 1;
+                this->useHeight.SetState(realUseHeight);
+                distancePanel.Pack_start(this->useHeight.GetWidget(), true, true, 0);
             
             Panel imageConstantsPanel = Panel(true, 0);
                 double realTargetWidth = runner.GetRunnerProperty(RunnerProperty::TRUE_WIDTH);
@@ -150,6 +147,8 @@ double RunnerEditor::GetProperty(RunnerProperty prop) {
             return this->targetCalibratedDistance.GetValue();
         case RunnerProperty::ERROR_CORRECTION:
             return this->targetErrorCorrection.GetValue();
+        case RunnerProperty::CALC_DIST_BY_HEIGHT:
+            return (this->useHeight.GetState() ? 1 : 0);
     }
 }
 
@@ -181,6 +180,9 @@ void RunnerEditor::SetProperty(RunnerProperty prop, double value) {
             break;
         case RunnerProperty::ERROR_CORRECTION:
             this->targetErrorCorrection.SetValue(value);
+            break;
+        case RunnerProperty::CALC_DIST_BY_HEIGHT:
+            this->useHeight.SetState(value == 1);
             break;
     }
 }

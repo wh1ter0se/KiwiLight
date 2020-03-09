@@ -29,7 +29,7 @@ CameraFrame::CameraFrame(Mat img, int minimumArea) {
         }
     }
 
-    this->seenTarget = Target(0, targetContours, 0.0, 0.0, 0.0, 0.0);
+    this->seenTarget = Target(0, targetContours, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH);
 }
 
 /**

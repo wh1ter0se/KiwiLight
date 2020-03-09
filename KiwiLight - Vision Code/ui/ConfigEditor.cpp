@@ -164,7 +164,7 @@ void ConfigEditor::Update() {
             ExampleContour newContour = ExampleContour(i);
             newContours.push_back(newContour);
         }
-        ExampleTarget newTarget = ExampleTarget(0, newContours, 0.0, 0.0, 0.0, 0.0);
+        ExampleTarget newTarget = ExampleTarget(0, newContours, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH);
         this->runner.SetExampleTarget(0, newTarget);
     }
 
@@ -186,6 +186,7 @@ void ConfigEditor::Update() {
     this->runner.SetRunnerProperty(RunnerProperty::PERCEIVED_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::PERCEIVED_WIDTH));
     this->runner.SetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE, this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE));
     this->runner.SetRunnerProperty(RunnerProperty::ERROR_CORRECTION, this->runnerSettings.GetProperty(RunnerProperty::ERROR_CORRECTION));
+    this->runner.SetRunnerProperty(RunnerProperty::CALC_DIST_BY_HEIGHT, this->runnerSettings.GetProperty(RunnerProperty::CALC_DIST_BY_HEIGHT));
 
     //set service labels
     if(this->learnerActivated && this->learner.GetLearning()) {
@@ -476,6 +477,10 @@ void ConfigEditor::Save() {
                     XMLTag distErrorCorrect = XMLTag("distErrorCorrect", std::to_string((double) this->runnerSettings.GetProperty(RunnerProperty::ERROR_CORRECTION)));
                         target.AddTag(distErrorCorrect);
 
+                    //<calcByHeight>
+                    XMLTag calcByHeight = XMLTag("calcByHeight", (this->runnerSettings.GetProperty(RunnerProperty::CALC_DIST_BY_HEIGHT) == 1 ? "true" : "false"));
+                        target.AddTag(calcByHeight);
+
                     postprocessor.AddTag(target);
                                     
                 /**
@@ -680,6 +685,6 @@ void ConfigEditor::UpdateImage() {
         vconcat(this->original, this->out, displayable);
         this->outputImage.Update(displayable);
     } catch(cv::Exception ex) {
-        std::cout << "cv exception in ce" << std::endl;
+        std::cout << "cv exception in config editor" << std::endl;
     }
 }

@@ -37,7 +37,7 @@ void KiwiLightApp::Create(int argc, char *argv[]) {
     KiwiLightApp::cameraFailures = 0;
     KiwiLightApp:currentCameraIndex = 100; //just to define index. Camera will only open if currentCameraindex != 100
 
-    KiwiLightApp::udpSender = UDP("127.0.0.1", 3695);
+    KiwiLightApp::udpSender = UDP("127.0.0.1", 3695, false);
     
     gtk_init(&argc, &argv);
     win = Window(GTK_WINDOW_TOPLEVEL);
@@ -322,7 +322,7 @@ void KiwiLightApp::InitCameraOnly(int index) {
 
 
 void KiwiLightApp::ReconnectUDP(std::string newAddress, int newPort) {
-    KiwiLightApp::udpSender = UDP(newAddress, newPort);
+    KiwiLightApp::udpSender = UDP(newAddress, newPort, false);
 }
 
 
@@ -506,28 +506,30 @@ void KiwiLightApp::NewConfiguration() {
  * @param currentMode The UIMode active when callback was triggered
  */
 void KiwiLightApp::EditConfiguration() {
-    //since this is a callback, close streamer
     UIMode currentMode = KiwiLightApp::mode;
-    std::string pathToOpen = "";
-    StopStreamingThread();
+    if(currentMode != UIMode::UI_EDITOR) {
+        //since this is a callback, close streamer
+        std::string pathToOpen = "";
+        StopStreamingThread();
 
-    if(currentMode == UIMode::UI_STREAM) {
-        //find generic.xml (in /home/user/KiwiLightData/confs)
-        char *homedir = getenv("HOME");
-        if(homedir == NULL) {
-            std::cout << "The HOME environment variable could not be found." << std::endl;
-            return;
-        } else {
-            pathToOpen = std::string(homedir) + "/KiwiLightData/confs/generic.xml";
+        if(currentMode == UIMode::UI_STREAM) {
+            //find generic.xml (in /home/user/KiwiLightData/confs)
+            char *homedir = getenv("HOME");
+            if(homedir == NULL) {
+                std::cout << "The HOME environment variable could not be found." << std::endl;
+                return;
+            } else {
+                pathToOpen = std::string(homedir) + "/KiwiLightData/confs/generic.xml";
+            }
+        } else if(currentMode == UIMode::UI_RUNNER) {
+            std::cout << "taking runner path" << std::endl;
+            pathToOpen = KiwiLightApp::runner.GetFileName();
+        } else if(currentMode == UIMode::UI_PAUSING) {
+            std::cout << "WARNING: UI mode unclear. Make sure EditConfiguration() is called before stream thread is terminated" << std::endl;
         }
-    } else if(currentMode == UIMode::UI_RUNNER) {
-        std::cout << "taking runner path" << std::endl;
-        pathToOpen = KiwiLightApp::runner.GetFileName();
-    } else if(currentMode == UIMode::UI_PAUSING) {
-        std::cout << "WARNING: UI mode unclear. Make sure EditConfiguration() is called before stream thread is terminated" << std::endl;
+        KiwiLightApp::configeditor = ConfigEditor(pathToOpen);
+        LaunchStreamingThread(UIMode::UI_EDITOR);
     }
-    KiwiLightApp::configeditor = ConfigEditor(pathToOpen);
-    LaunchStreamingThread(UIMode::UI_EDITOR);
 }
 
 /**

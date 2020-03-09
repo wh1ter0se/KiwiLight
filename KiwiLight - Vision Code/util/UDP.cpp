@@ -16,44 +16,11 @@ void err(const char *msg) {
     exit(1);
 }
 
-/**
- * Construct a new UDP object connecting to dest_ip on port
- * @param dest_ip a string containing the ip of the server in standard dot notation
- * @param port the port to connect on
- */
-UDP::UDP(std::string dest_ip, int port) {
-    this->address = dest_ip;
-    this->port = port;
-
-    this->sock = socket(AF_INET, SOCK_DGRAM, 0); //"0" for wildcard of what protocol is best
-    if(this->sock < 0) //socket creation didnt be like that tho
-        err("SOCKET FAILED");
-
-    memset(&this->client_address, 0, sizeof(this->client_address));
-    this->client_address.sin_family = AF_INET;
-    this->client_address.sin_port = htons(port);
-
-    //do inet_pton()
-    int pton_result = inet_pton(AF_INET, dest_ip.c_str(), &this->client_address.sin_addr);
-    if(pton_result <= 0) 
-        err("PTON FAILED");
-
-    //wait for the connect to succeed before we go
-    std::cout << "Waiting to connect..." << std::endl;
-    while(true) {
-        //now connect
-        int connect_result = connect(this->sock, (sockaddr*) &this->client_address, sizeof(this->client_address));
-        if(connect_result > -1) //the connection was the big good
-            break;
-    }
-
-    std::cout << "Connection set up." << std::endl;
-}
-
 
 UDP::UDP(std::string dest_ip, int port, bool blockUntilConnected) {
     this->address = dest_ip;
     this->port = port;
+    this->connected = false;
 
     this->sock = socket(AF_INET, SOCK_DGRAM, 0); //"0" for wildcard of what protocol is best
     if(this->sock < 0) //socket creation didnt be like that tho
@@ -63,24 +30,24 @@ UDP::UDP(std::string dest_ip, int port, bool blockUntilConnected) {
     this->client_address.sin_family = AF_INET;
     this->client_address.sin_port = htons(port);
 
-    //do inet_pton()
+    //do inet_pton(), translating information from our stringed ip address into the address object
     int pton_result = inet_pton(AF_INET, dest_ip.c_str(), &this->client_address.sin_addr);
     if(pton_result <= 0) 
         err("PTON FAILED");
 
     //wait for the connect to succeed before we go
     while(true) {
-        //now connect
-        int connect_result = connect(this->sock, (sockaddr*) &this->client_address, sizeof(this->client_address));
-        if(connect_result > -1 || !blockUntilConnected) //the connection was the big good
+        if(AttemptToConnect() || !blockUntilConnected) {
             break;
+        }
     }
 }
 
 
 UDP::UDP(std::string this_ip, std::string dest_ip, int port, bool blockUntilConnected) {
     this->address = dest_ip;
-    this->port = port;    
+    this->port = port; 
+    this->connected = false;   
 
     this->sock = socket(AF_INET, SOCK_DGRAM, 0); //"0" for wildcard of what protocol is best
     if(this->sock < 0) //socket creation didnt be like that tho
@@ -116,10 +83,9 @@ UDP::UDP(std::string this_ip, std::string dest_ip, int port, bool blockUntilConn
     //wait for the connect to succeed before we go
     std::cout << "Waiting to connect..." << std::endl;
     while(true) {
-        //now connect
-        int connect_result = connect(this->sock, (sockaddr*) &this->client_address, sizeof(this->client_address));
-        if(connect_result > -1 || !blockUntilConnected) //the connection was the big good
+        if(AttemptToConnect() || !blockUntilConnected) {
             break;
+        }
     }
 
     std::cout << "Connection set up." << std::endl;
@@ -130,15 +96,14 @@ UDP::UDP(std::string this_ip, std::string dest_ip, int port, bool blockUntilConn
  * @return true if the connection was successful, or the UDP was already connected, false otherwise.
  */
 bool UDP::AttemptToConnect() {
-    if(!this->connected) {
-        int connect_result = connect(this->sock, (sockaddr*) &this->client_address, sizeof(this->client_address));
-        
-        if(connect_result < 0) {
-            std::cout << "CONNECT FAILED" << std::endl;
-        }
-        return (connect_result > -1);
+    int connect_result = connect(this->sock, (sockaddr*) &this->client_address, sizeof(this->client_address));
+    
+    if(connect_result < 0) {
+        std::cout << "CONNECT FAILED" << std::endl;
+        return false;
     }
-
+    
+    this->connected = true;
     return true;
 }
 
@@ -148,7 +113,6 @@ bool UDP::AttemptToConnect() {
  */
 void UDP::Send(std::string msg) {
     const char *buffer = msg.c_str();
-    //std::cout << msg << std::endl;
     int send_result = send(this->sock, buffer, strlen(buffer), 0); //the big send
 }
 

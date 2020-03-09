@@ -156,7 +156,7 @@ std::string Runner::Iterate() {
         std::vector<Contour> contoursFromFrame = this->postprocessor.GetContoursFromLastFrame();
         std::vector<Contour> validContours = this->postprocessor.GetValidContoursForTarget(contoursFromFrame);
         
-        Target targ = Target(0, validContours, 0, 0, 0, 0);
+        Target targ = Target(0, validContours, 0, 0, 0, 0, DistanceCalcMode::BY_WIDTH);
         rectangle(out, targ.Bounds(), Scalar(0, 0, 255), 3);
         
         for(int i=0; i<validContours.size(); i++) {
@@ -344,7 +344,10 @@ void Runner::parseDocument(XMLDocument doc) {
                 double calibratedDistance = std::stod(targetTag.GetTagsByName("calibratedDistance")[0].Content());
                 double distErrorCorrect = std::stod(targetTag.GetTagsByName("distErrorCorrect")[0].Content());
 
-                ExampleTarget newTarget = ExampleTarget(targetId, contours, knownWidth, focalWidth, distErrorCorrect, calibratedDistance);
+                bool calcByHeight = targetTag.GetTagsByName("calcByHeight")[0].Content() == "true";
+                DistanceCalcMode distMode = (calcByHeight ? DistanceCalcMode::BY_HEIGHT : DistanceCalcMode::BY_WIDTH);
+
+                ExampleTarget newTarget = ExampleTarget(targetId, contours, knownWidth, focalWidth, distErrorCorrect, calibratedDistance, distMode);
                 this->postProcessorTargets.push_back(newTarget);
             }
 

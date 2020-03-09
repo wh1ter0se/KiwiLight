@@ -60,7 +60,7 @@ void ConfigLearner::FeedImage(Mat img, int minimumContourArea) {
             contourObjects.push_back(newObject);
         }
 
-        Target targ = Target(0, contourObjects, 0.0, 0.0, 0.0, 0.0);
+        Target targ = Target(0, contourObjects, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH);
 
         rectangle(this->out, targ.Bounds(), Scalar(255, 0, 0), 3);
         circle(this->out, targ.Center(), 3, Scalar(0,255,0), 4);
@@ -171,7 +171,7 @@ ExampleTarget ConfigLearner::StopLearning(int minimumContourArea) {
         double percentComplete = (((double) i / (double) regularNumberOfContours) * 10.0) + 90.0;
     }
 
-    ExampleTarget newTarget = ExampleTarget(0, finishedContours, 0.0, 0.0, 0.0, 0.0);
+    ExampleTarget newTarget = ExampleTarget(0, finishedContours, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH);
 
     //clear info from the last learn
     this->currentlyLearning = false;

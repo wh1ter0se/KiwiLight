@@ -156,6 +156,8 @@ std::vector<XMLTag> XMLDocument::GetTagsByName(std::string name) {
 
     if(results.size() == 0) {
         std::cout << "There were no XML Tag results for \"" << name << "\"" << std::endl;
+        XMLTag placeholder = XMLTag(name, "0");
+        results.push_back(placeholder);
     }
 
     return results;
