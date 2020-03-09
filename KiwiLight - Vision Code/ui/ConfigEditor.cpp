@@ -71,6 +71,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
                 Label cameraSettingsHeader = Label("Camera Settings");
                     cameraSettingsHeader.SetName("header");
                     cameraSettingsPanel.Pack_start(cameraSettingsHeader.GetWidget(), true, true, 0);
+                    
                 this->cameraSettings = Settings(this->currentDoc);
                     cameraSettingsPanel.Pack_start(this->cameraSettings.GetWidget(), true, false, 0);
             

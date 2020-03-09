@@ -97,11 +97,13 @@ std::string Runner::Iterate() {
     this->lastFrameCenterPoint = Point(robotCenterX, robotCenterY);
 
     //figure out which target to send and then send the target
-    int coordX = -1,
-        coordY = -1,
+    int coordX   = -1,
+        coordY   = -1,
+        width    = -1,
+        height   = -1,
         distance = -1,
-        HAngle = 180,
-        VAngle = 180;
+        HAngle   = 180,
+        VAngle   = 180;
 
     std::string rioMessage = "";
     
@@ -109,6 +111,9 @@ std::string Runner::Iterate() {
         //use the best target to fill in the information to send to the rio
         coordX = bestTarget.Center().x;
         coordY = bestTarget.Center().y;
+        
+        width = bestTarget.Bounds().width;
+        height = bestTarget.Bounds().height;
 
         distance = bestTarget.Distance();
 
@@ -120,11 +125,13 @@ std::string Runner::Iterate() {
 
     std::string x = std::to_string(coordX),
                 y = std::to_string(coordY),
+                w = std::to_string(width),
+                h = std::to_string(height),
                 d = std::to_string(distance),
                 ax = std::to_string(HAngle),
                 ay = std::to_string(VAngle);
 
-    rioMessage = ":" + x + "," + y + "," + d + "," + ax + "," + ay + ";";
+    rioMessage = ":" + x + "," + y + "," + w + "," + h +"," + d + "," + ax + "," + ay + ";";
 
     //mark up the image with some stuff for the programmers to look at :)
     if(this->debug) {
