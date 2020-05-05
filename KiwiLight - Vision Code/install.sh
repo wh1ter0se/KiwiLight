@@ -49,7 +49,7 @@ Install() {
 
     echo "Preparing KIWILIGHT"
     #install the confs folder
-    currentDir = $PWD
+    currentDir=$PWD
     cd
     mkdir KiwiLightData
     mkdir KiwiLightData/confs
@@ -60,17 +60,16 @@ Install() {
     cd $currentDir
 
     echo "KIWILIGHT has been successfully installed."
+    return 0
 }
 
 
 echo "Welcome to the KiwiLight installer!"
 echo "Installing KiwiLight from the sources will download many packages and may take a long time."
-echo "Would you like to continue? [y/n]: "
-
-read -N1 confirm
+read -p "Would you like to continue? [y/n]: " confirm
 echo
 
-if [ ${confirm} = 'y' ]; then
+if [ $confirm = "y"]; then
     Install
     else
     echo "Aborting."
