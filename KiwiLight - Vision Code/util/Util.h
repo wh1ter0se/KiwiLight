@@ -82,7 +82,6 @@ namespace KiwiLight {
     class UDP {
         public:
         UDP(){};
-        UDP(std::string dest_ip, int port);
         UDP(std::string dest_ip, int port, bool blockUntilConnected);
         UDP(std::string this_ip, std::string dest_ip, int port, bool blockUntilConnected);
         bool AttemptToConnect();

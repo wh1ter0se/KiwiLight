@@ -27,7 +27,7 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
         ExampleContour newContour = ExampleContour(i);
         newContours.push_back(newContour);
     }
-    ExampleTarget newTarget = ExampleTarget(0, newContours, 0, 0, 0, 0);
+    ExampleTarget newTarget = ExampleTarget(0, newContours, 0, 0, 0, 0, DistanceCalcMode::BY_WIDTH);
     this->storageRunner.SetExampleTarget(0, newTarget);
     
     //init the values in the storage runner because they are all generic right now
@@ -148,7 +148,7 @@ void PostprocessorEditor::SetNumContours(int contours) {
         newContours.push_back(newContour);
     }
 
-    ExampleTarget newTarg = ExampleTarget(0, newContours, 0.0, 0.0, 0.0, 0.0);
+    ExampleTarget newTarg = ExampleTarget(0, newContours, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH);
     std::cout << "ppe: setting target. " << newTarg.Contours().size() << " Contours." << std::endl;
     this->storageRunner.SetExampleTarget(0, newTarg);
 }

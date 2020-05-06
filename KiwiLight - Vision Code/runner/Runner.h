@@ -30,7 +30,8 @@ namespace KiwiLight {
         TRUE_WIDTH,
         PERCEIVED_WIDTH,
         CALIBRATED_DISTANCE,
-        ERROR_CORRECTION
+        ERROR_CORRECTION,
+        CALC_DIST_BY_HEIGHT
     };
 
     
@@ -55,6 +56,11 @@ namespace KiwiLight {
         ASPECT_RATIO,
         SOLIDITY,
         MINIMUM_AREA
+    };
+
+    enum DistanceCalcMode {
+        BY_WIDTH,
+        BY_HEIGHT
     };
 
 
@@ -152,10 +158,11 @@ namespace KiwiLight {
     class Target {
         public:
         Target();
-        Target(int id, std::vector<Contour> contours, double knownHeight, double focalHeight, double distErrorCorrect, double calibratedDistance);
+        Target(int id, std::vector<Contour> contours, double knownHeight, double focalHeight, double distErrorCorrect, double calibratedDistance, DistanceCalcMode distMode);
         int ID() { return this->id; };
         std::vector<Contour> Contours() { return this->contours; };
         double Distance();
+        double Distance(DistanceCalcMode mode);
         int HorizontalAngle(int imageCenterX);
         int HorizontalAngle(double distanceToTarget, int imageCenterX);
         int VerticalAngle(int imageCenterY);
@@ -181,13 +188,15 @@ namespace KiwiLight {
                focalHeight,
                distErrorCorrect,
                calibratedDistance;
+
+        DistanceCalcMode distMode;
     };
 
 
     class ExampleTarget {
         public:
         ExampleTarget() {};
-        ExampleTarget(int id, std::vector<ExampleContour> contours, double knownHeight, double focalHeight, double distErrorCorrect, double calibratedDistance);
+        ExampleTarget(int id, std::vector<ExampleContour> contours, double knownHeight, double focalHeight, double distErrorCorrect, double calibratedDistance, DistanceCalcMode mode);
         std::vector<Target> GetTargets(std::vector<Contour> contours);
         bool isTarget(std::vector<Contour> contours);
         std::vector<Contour> GetValidContours(std::vector<Contour> contours);
@@ -211,6 +220,8 @@ namespace KiwiLight {
                focalHeight,
                distErrorCorrect,
                calibratedDistance;
+
+        DistanceCalcMode distMode;
     };
 
     /**

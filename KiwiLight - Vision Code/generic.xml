@@ -45,6 +45,7 @@
             <focalWidth>300</focalWidth>
             <calibratedDistance>36</calibratedDistance>
             <distErrorCorrect>-0.1</distErrorCorrect>
+            <calcByHeight>true</calcByHeight>
         </target>
         <UDP>
             <address>127.0.0.1</address>

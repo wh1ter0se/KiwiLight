@@ -6,4 +6,4 @@
  */
 
 const bool        KiwiLight::RunnerSettings::USE_CAMERA   = true;
-const std::string KiwiLight::RunnerSettings::IMAGE_TO_USE = "sized.png";
+const std::string KiwiLight::RunnerSettings::IMAGE_TO_USE = "widthheightest.png";

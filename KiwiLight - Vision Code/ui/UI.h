@@ -638,6 +638,8 @@ namespace KiwiLight {
 
         Button enableUDP;
 
+        CheckBox useHeight;
+
         LabeledSlider 
             offsetX,
             offsetY,

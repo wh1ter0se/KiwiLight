@@ -1,77 +1,95 @@
-# ---------------------------------- #
-#                                    #
-#    UNIX INSTALLER FOR KIWILIGHT    #
-#                                    #
-# ---------------------------------- #
+#
+# UNIX INSTALLER FOR KIWILIGHT
+# Written By: Brach Knutson
+#
 
-Install() {
-    echo "Downloading Packages"
+echo "Welcome to the KiwiLight installer!"
+echo
+echo "Running this program will install/uninstall the following packages/dependencies:"
+echo " - OpenCV"
+echo " - Video4Linux"
+echo " - GTK 3"
+echo " - Cmake"
+echo " - VNC"
+echo ""
+read -p "Do you want to continue? [y/n]:" confirm
 
-    sudo apt-get --assume-yes install pkg-config
-    sudo apt-get --assume-yes install cmake
-    sudo apt-get --assume-yes install libgtk-3-dev
-    sudo apt-get --assume-yes install libv4l-dev
+if [ $confirm != "y" ];
+then
+echo "Aborting."
+return 0
+fi
+
+echo "What would you like to do?"
+echo "1: Install"
+echo "2: Uninstall"
+read -p "Enter an action:" action
+
+if [ $action = "1" ];
+then
+    echo "Installing."
+    #install packages
     sudo apt-get --assume-yes install v4l-utils
+    sudo apt-get --assume-yes install libgtk-3-dev
+    sudo apt-get --assume-yes install cmake
+    sudo apt-get --assume-yes install realvnc-vnc-server
     
-    echo "Preparing to download OPENCV"
+    #install OpenCV
+    currentDir=$PWD
+    cd $HOME
     mkdir opencv
     cd opencv
-
-    echo "downloading OPENCV"
     wget https://github.com/opencv/opencv/archive/3.4.5.zip
-    mkdir src
-
-    echo "unzipping OPENCV"
-    unzip 3.4.5.zip -d src
+    unzip 3.4.5.zip
     mkdir build
+    cmake -S opencv-3.4.5 -B build \
+    -DCMAKE_BUILD_TYPE=RELEASE \
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DBUILD_TEST=FALSE \
+    -DBUILD_JAVA=FALSE \
+    -DWITH_GTK=TRUE
+    
     cd build
-
-    echo "Preparing to compile OPENCV"
-    cmake -D CMAKE_BUILD_TYPE=RELEASE \
-          -D CMAKE_INSTALL_PREFIX=/usr/local \
-          -D WITH_GTK_2_X=FALSE \
-          -D WITH_GTK=TRUE \
-          -D BUILD_TESTS=FALSE \
-          ../src/opencv-3.4.5
-
-    echo "Compiling OPENCV (this will take a while!)"
-    sudo make -j2 install
+    sudo make -j3 install
     sudo ldconfig
-
-    #return back to normal directory
-    cd ../..
-
-    echo "Preparing to compile KIWILIGHT"
-    make setup
-
-    echo "Compiling KIWILIGHT"
-    make -j2 KiwiLight
-
-    echo "Preparing KIWILIGHT"
-    #install the confs folder
-    currentDir = $PWD
-    cd
+    cd "$currentDir"
+    
+    #prepare KiwiLight
+    cd $HOME
     mkdir KiwiLightData
     mkdir KiwiLightData/confs
     mkdir KiwiLightData/tmp
-    cp $PWD/generic.xml KiwiLightData/confs/
-    echo "" >> KiwiLightData/tmp/shell_out.log
-
+    cp "$currentDir/generic.xml" KiwiLightData/confs
+    
+    cd "$currentDir"
+    
+    make setup
+    make -j4 KiwiLight
+    sudo ln KiwiLight /usr/bin/KiwiLight
+    
+elif [ $action = "2" ];
+then
+    echo "Uninstalling"
+    #uninstall packages
+    sudo apt-get --assume-yes remove v4l-utils
+    sudo apt-get --assume-yes remove libgtk-3-dev
+    sudo apt-get --assume-yes remove cmake
+    sudo apt-get --assume-yes autoremove
+    
+    #uninstall OpenCV
+    currentDir=$PWD
+    cd $HOME
+    cd opencv/build
+    sudo make -j4 uninstall
+    sudo rm -r opencv
     cd $currentDir
-
-    echo "KIWILIGHT has been successfully installed."
-}
-
-
-echo "Welcome to the KiwiLight installer!"
-echo "Installing KiwiLight from the sources will download many packages and may take a long time."
-echo "Would you like to continue? [y/n]: "
-
-read -N1 confirm
-echo
-
-if [ ${confirm} = 'y' ]; then
-    Install
-    else
-    echo "Aborting."
+    
+    #remove KiwiLight
+    rm -r $HOME/KiwiLightData
+    sudo rm /usr/bin/KiwiLight
+    
+else
+echo "That is not a valid option."
 fi
+
+echo "Finished!"
