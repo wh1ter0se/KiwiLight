@@ -1,0 +1,55 @@
+<camera index="0">
+    <settings>
+        <setting id="3">600</setting>
+        <setting id="4">400</setting>
+        <setting id="21">1</setting>
+        <setting id="15">512</setting>
+        <setting id="44">1</setting>
+        <setting id="45">512</setting>
+        <setting id="39">1</setting>
+        <setting id="10">512</setting>
+        <setting id="14">512</setting>
+        <setting id="22">512</setting>
+    </settings>
+</camera>
+<configuration name="Generic Configuration">
+    <cameraOffset>
+        <horizontal>0</horizontal>
+        <vertical>0</vertical>
+    </cameraOffset>
+    <constantResize>
+        <width>250</width>
+        <height>145</height>
+    </constantResize>
+    <preprocessor type="full">
+        <threshold>75</threshold>
+        <erosion>3</erosion>
+        <dilation>5</dilation>
+        <targetColor error="20">
+            <h>80</h>
+            <s>255</s>
+            <v>255</v>
+        </targetColor>
+    </preprocessor>
+    <postprocessor>
+        <target id="0">
+            <contour id="0">
+                <x error="0.350000">0.000000</x>
+                <y error="0.350000">0.000000</y>
+                <angle error="12.000000">0.000000</angle>
+                <solidity error="0.350000">0.900000</solidity>
+                <aspectRatio error="0.350000">1.000000</aspectRatio>
+                <minimumArea>500.000000</minimumArea>
+            </contour>
+            <knownWidth>12</knownWidth>
+            <focalWidth>300</focalWidth>
+            <calibratedDistance>36</calibratedDistance>
+            <distErrorCorrect>-0.1</distErrorCorrect>
+            <calcByHeight>true</calcByHeight>
+        </target>
+        <UDP>
+            <address>127.0.0.1</address>
+            <port>3695</port>
+        </UDP>
+    </postprocessor>
+</configuration>

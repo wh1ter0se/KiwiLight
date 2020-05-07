@@ -95,6 +95,9 @@ OverviewPanel::OverviewPanel(XMLDocument doc) {
             Button reconnectUDP = Button("Reconnect", KiwiLightApp::EditorConnectUDPFromOverview);
                 udpPanel.Pack_start(reconnectUDP.GetWidget(), true, true, 0);
 
+            this->enableUDP = Button("Enable", KiwiLightApp::ToggleUDP);
+                udpPanel.Pack_start(this->enableUDP.GetWidget(), true, true, 0);
+
             editor.Pack_start(udpPanel.GetWidget(), true, true, 0);
 
     this->overviewpanel = editor.GetWidget();
@@ -165,6 +168,10 @@ int OverviewPanel::GetUDPPort() {
     return (int) this->udpPort.GetValue();
 }
 
+void OverviewPanel::SetUDPEnabledLabels(bool UDPEnabled) {
+    this->enableUDP.SetText((UDPEnabled ? "Disable" : "Enable"));
+}
+
 
 void OverviewPanel::SetTargetInformationLabelsFromString(std::string iterOutput) {
     if(iterOutput.length() < 3) { //improperly formatted string
@@ -175,12 +182,14 @@ void OverviewPanel::SetTargetInformationLabelsFromString(std::string iterOutput)
     std::vector<std::string> splitOutput = StringUtils::SplitString(trimmedOutput, ',');
 
     //there must be 5 nums in string, no more, no less
-    if(splitOutput.size() == 5) {
+    if(splitOutput.size() == 7) {
         int targetX = std::stoi(splitOutput[0]);
         int targetY = std::stoi(splitOutput[1]);
-        double targetDist = std::stod(splitOutput[2]);
-        double targetAngleHorizontal = std::stod(splitOutput[3]);
-        double targetAngleVertical = std::stod(splitOutput[4]);
+        int targetWidth = std::stoi(splitOutput[2]);
+        int targetHeight = std::stoi(splitOutput[3]);
+        double targetDist = std::stod(splitOutput[4]);
+        double targetAngleHorizontal = std::stod(splitOutput[5]);
+        double targetAngleVertical = std::stod(splitOutput[6]);
         bool targetSpotted = (targetX > -1);
 
         SetTargetInformationLabels(targetSpotted, targetX, targetY, targetDist, targetAngleHorizontal, targetAngleVertical);

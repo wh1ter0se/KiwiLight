@@ -13,14 +13,6 @@ static void ReconnectUDP() {
 
 RunnerEditor::RunnerEditor(Runner runner) {
     Panel editor = Panel(false, 0);
-        // OFFSET_X,
-        // OFFSET_Y,
-        // IMAGE_WIDTH,
-        // IMAGE_HEIGHT,
-        // TRUE_WIDTH,
-        // PERCEIVED_WIDTH,
-        // CALIBRATED_DISTANCE,
-        // ERROR_CORRECTION
 
         Panel udpPanel = Panel(true, 0);
             Panel udpInputPanel = Panel(false, 0);
@@ -28,7 +20,7 @@ RunnerEditor::RunnerEditor(Runner runner) {
                     Label udpAddressPanelHeader = Label("IPv4 Address: ");
                         udpAddressPanel.Pack_start(udpAddressPanelHeader.GetWidget(), true, true, 0);
 
-                    std::string realUDPAddress = runner.GetUDP().GetAddress();
+                    std::string realUDPAddress = KiwiLightApp::GetUDP().GetAddress();
                     this->udpAddress = TextBox(realUDPAddress);
                         udpAddressPanel.Pack_start(this->udpAddress.GetWidget(), true, true, 0);
 
@@ -38,13 +30,16 @@ RunnerEditor::RunnerEditor(Runner runner) {
                     Label udpPortPanelHeader = Label("Port: ");
                         udpPortPanel.Pack_start(udpPortPanelHeader.GetWidget(), true, true, 0);
 
-                    int realUDPPort = runner.GetUDP().GetPort();
+                    int realUDPPort = KiwiLightApp::GetUDP().GetPort();
                     this->udpPort = NumberBox(0.0, 9999.0, 1.0, (double) realUDPPort);
                         udpPortPanel.Pack_start(this->udpPort.GetWidget(), true, true, 0);
                     udpInputPanel.Pack_start(udpPortPanel.GetWidget(), true, true, 0);
                 udpPanel.Pack_start(udpInputPanel.GetWidget(), true, true, 0);
             Button reconnectUDP = Button("Reconnect", ReconnectUDP);
                 udpPanel.Pack_start(reconnectUDP.GetWidget(), true, true, 0);
+
+            this->enableUDP = Button("Enable", KiwiLightApp::ToggleUDP);
+                udpPanel.Pack_start(this->enableUDP.GetWidget(), true, true, 0);
 
             editor.Pack_start(udpPanel.GetWidget(), true, true, 0);
                     
@@ -91,6 +86,11 @@ RunnerEditor::RunnerEditor(Runner runner) {
             this->distanceLabel = Label("Calculated Distance: (no target!)");
                 this->distanceLabel.SetName("gray");
                 distancePanel.Pack_start(this->distanceLabel.GetWidget(), true, true, 0);
+
+            this->useHeight = CheckBox("Use Height to calculate distance", true);
+                bool realUseHeight = runner.GetRunnerProperty(RunnerProperty::CALC_DIST_BY_HEIGHT) == 1;
+                this->useHeight.SetState(realUseHeight);
+                distancePanel.Pack_start(this->useHeight.GetWidget(), true, true, 0);
             
             Panel imageConstantsPanel = Panel(true, 0);
                 double realTargetWidth = runner.GetRunnerProperty(RunnerProperty::TRUE_WIDTH);
@@ -147,6 +147,8 @@ double RunnerEditor::GetProperty(RunnerProperty prop) {
             return this->targetCalibratedDistance.GetValue();
         case RunnerProperty::ERROR_CORRECTION:
             return this->targetErrorCorrection.GetValue();
+        case RunnerProperty::CALC_DIST_BY_HEIGHT:
+            return (this->useHeight.GetState() ? 1 : 0);
     }
 }
 
@@ -179,6 +181,9 @@ void RunnerEditor::SetProperty(RunnerProperty prop, double value) {
         case RunnerProperty::ERROR_CORRECTION:
             this->targetErrorCorrection.SetValue(value);
             break;
+        case RunnerProperty::CALC_DIST_BY_HEIGHT:
+            this->useHeight.SetState(value == 1);
+            break;
     }
 }
 
@@ -202,6 +207,10 @@ void RunnerEditor::SetUDPPort(int newPort) {
     this->udpPort.SetValue((double) newPort);
 }
 
+
+void RunnerEditor::SetUDPEnabledLabels(bool UDPEnabled) {
+    this->enableUDP.SetText((UDPEnabled ? "Disable" : "Enable"));
+}
 
 void RunnerEditor::SetName(std::string name) {
     gtk_widget_set_name(this->runnereditor, name.c_str());

@@ -49,17 +49,23 @@ namespace KiwiLight {
         //general accessors 
         static bool LastImageCaptureSuccessful();
         static UIMode CurrentMode();
+        static UDP GetUDP();
 
         //misc. UI callbacks
         static void CloseEditor(bool saveFirst);
         static void StartEditorLearningTarget();
         static void StartEditorLearningDistance();
         static void EditorReconnectUDP();
+        static void ToggleUDP();
         static void EditorSetImageResolutionFromOverview();
         static void EditorConnectUDPFromOverview();
         static void EditorApplyCameraSettings();
         static void EditorOpenNewCameraFromOverview();
         static void OpenNewCameraOnIndex(int index);
+        static void InitCameraOnly(int index);
+        static void ReconnectUDP(std::string newAddress, int newPort);
+        static void ReconnectUDP(std::string newAddress, int newPort, bool block);
+        static void SendOverUDP(std::string message);
 
         //thread utilities
         static void LaunchStreamingThread(UIMode newMode);
@@ -76,7 +82,6 @@ namespace KiwiLight {
 
         //UI button callbacks
         static void OpenNewCameraFromMainIndex();
-        static void ToggleUDP();
         static void NewConfiguration();
         static void EditConfiguration();
         static void OpenConfiguration();
@@ -90,6 +95,7 @@ namespace KiwiLight {
         static Runner runner;
         static ConfigEditor configeditor;
         static VideoCapture camera;
+        static UDP udpSender;
         static GThread *streamingThread;
 
         //utilities

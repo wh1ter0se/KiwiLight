@@ -71,6 +71,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
                 Label cameraSettingsHeader = Label("Camera Settings");
                     cameraSettingsHeader.SetName("header");
                     cameraSettingsPanel.Pack_start(cameraSettingsHeader.GetWidget(), true, true, 0);
+                    
                 this->cameraSettings = Settings(this->currentDoc);
                     cameraSettingsPanel.Pack_start(this->cameraSettings.GetWidget(), true, false, 0);
             
@@ -119,7 +120,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
 
 
         this->window.SetPane(this->content);
-    this->window.SetOnWindowClosed(ConfigEditor::Closed);
+    this->window.SetOnWindowClosed(JustCloseButtonPressed);
     this->window.SetCSS("ui/Style.css");
     this->window.Show();
 
@@ -163,7 +164,7 @@ void ConfigEditor::Update() {
             ExampleContour newContour = ExampleContour(i);
             newContours.push_back(newContour);
         }
-        ExampleTarget newTarget = ExampleTarget(0, newContours, 0.0, 0.0, 0.0, 0.0);
+        ExampleTarget newTarget = ExampleTarget(0, newContours, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH);
         this->runner.SetExampleTarget(0, newTarget);
     }
 
@@ -185,6 +186,7 @@ void ConfigEditor::Update() {
     this->runner.SetRunnerProperty(RunnerProperty::PERCEIVED_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::PERCEIVED_WIDTH));
     this->runner.SetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE, this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE));
     this->runner.SetRunnerProperty(RunnerProperty::ERROR_CORRECTION, this->runnerSettings.GetProperty(RunnerProperty::ERROR_CORRECTION));
+    this->runner.SetRunnerProperty(RunnerProperty::CALC_DIST_BY_HEIGHT, this->runnerSettings.GetProperty(RunnerProperty::CALC_DIST_BY_HEIGHT));
 
     //set service labels
     if(this->learnerActivated && this->learner.GetLearning()) {
@@ -475,6 +477,10 @@ void ConfigEditor::Save() {
                     XMLTag distErrorCorrect = XMLTag("distErrorCorrect", std::to_string((double) this->runnerSettings.GetProperty(RunnerProperty::ERROR_CORRECTION)));
                         target.AddTag(distErrorCorrect);
 
+                    //<calcByHeight>
+                    XMLTag calcByHeight = XMLTag("calcByHeight", (this->runnerSettings.GetProperty(RunnerProperty::CALC_DIST_BY_HEIGHT) == 1 ? "true" : "false"));
+                        target.AddTag(calcByHeight);
+
                     postprocessor.AddTag(target);
                                     
                 /**
@@ -601,15 +607,17 @@ void ConfigEditor::StartLearningDistance() {
 void ConfigEditor::ReconnectUDPFromEditor() {
     std::string newUDPAddr = this->runnerSettings.GetUDPAddr();
     int newUDPPort = this->runnerSettings.GetUDPPort();
-    this->runner.ReconnectUDP(newUDPAddr, newUDPPort);
+    KiwiLightApp::ReconnectUDP(newUDPAddr, newUDPPort);
 
     //set the things in the overview panel
     this->configOverview.SetUDPAddr(newUDPAddr);
     this->configOverview.SetUDPPort(newUDPPort);
 }
 
-void ConfigEditor::SendOverUDP(std::string message) {
-    this->runner.SendOverUDP(message);
+
+void ConfigEditor::SetUDPEnabledLabels(bool UDPEnabled) {
+    this->configOverview.SetUDPEnabledLabels(UDPEnabled);
+    this->runnerSettings.SetUDPEnabledLabels(UDPEnabled);
 }
 
 /**
@@ -647,7 +655,7 @@ void ConfigEditor::SetCameraIndexBoxes(int index) {
 void ConfigEditor::ReconnectUDPFromOverview() {
     std::string newAddr = this->configOverview.GetUDPAddr();
     int newPort = this->configOverview.GetUDPPort();
-    this->runner.ReconnectUDP(newAddr, newPort);
+    KiwiLightApp::ReconnectUDP(newAddr, newPort);
 
     //set the properties in the actual editor
     this->runnerSettings.SetUDPAddr(newAddr);
@@ -668,13 +676,6 @@ void ConfigEditor::SetName(std::string name) {
     gtk_widget_set_name(this->configeditor, name.c_str());
 }
 
-/**
- * Called when the X in the corner is pressed
- */
-void ConfigEditor::Closed() {
-    KiwiLightApp::CloseEditor(false);
-}
-
 
 void ConfigEditor::UpdateImage() {
     this->runner.Iterate();
@@ -684,6 +685,6 @@ void ConfigEditor::UpdateImage() {
         vconcat(this->original, this->out, displayable);
         this->outputImage.Update(displayable);
     } catch(cv::Exception ex) {
-        std::cout << "cv exception in ce" << std::endl;
+        std::cout << "cv exception in config editor" << std::endl;
     }
 }
