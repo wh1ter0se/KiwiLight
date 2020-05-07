@@ -11,19 +11,29 @@ using namespace KiwiLight;
 /**
  * Creates a new ExampleTarget with given ExampleContours, to model a real target.
  */
-ExampleTarget::ExampleTarget(int id, std::vector<ExampleContour> contours, double knownHeight, double focalHeight, double distErrorCorrect, double calibratedDistance) {
+ExampleTarget::ExampleTarget(
+    int id, 
+    std::vector<ExampleContour> contours, 
+    double knownHeight, 
+    double focalHeight, 
+    double distErrorCorrect, 
+    double calibratedDistance,
+    DistanceCalcMode distMode
+) {
     this->id = id;
     this->contours = contours;
     this->knownHeight = knownHeight;
     this->focalHeight = focalHeight;
     this->distErrorCorrect = distErrorCorrect;
     this->calibratedDistance = calibratedDistance;
+    this->distMode = distMode;
 }
 
 /**
  * returns a vector containing all targets found within the vector of contours.
  */
 std::vector<Target> ExampleTarget::GetTargets(std::vector<Contour> objects) {
+
     std::vector<Target> foundTargets = std::vector<Target>();
     std::vector<Contour> validContours = std::vector<Contour>();
     
@@ -37,7 +47,7 @@ std::vector<Target> ExampleTarget::GetTargets(std::vector<Contour> objects) {
             std::vector<Contour> potentialTarget = std::vector<Contour>();
             potentialTarget.push_back(validContours[i]);
             if(isTarget(potentialTarget)) {
-                Target newTarg = Target(this->id, potentialTarget, this->knownHeight, this->focalHeight, this->distErrorCorrect, this->calibratedDistance);
+                Target newTarg = Target(this->id, potentialTarget, this->knownHeight, this->focalHeight, this->distErrorCorrect, this->calibratedDistance, this->distMode);
                 foundTargets.push_back(newTarg);
             }
         }
@@ -73,7 +83,7 @@ std::vector<Target> ExampleTarget::GetTargets(std::vector<Contour> objects) {
 
                     //test new target
                     if(isTarget(potentialTarget)) {
-                        Target newTarget = Target(this->id, potentialTarget, this->knownHeight, this->focalHeight, this->distErrorCorrect, this->calibratedDistance);
+                        Target newTarget = Target(this->id, potentialTarget, this->knownHeight, this->focalHeight, this->distErrorCorrect, this->calibratedDistance, this->distMode);
                         foundTargets.push_back(newTarget);
                     }
                 }
@@ -114,7 +124,7 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
 
     int totalGood = 0;
 
-    Target potentialTarg = Target(0, imageContours, 0, 0, 0, 0);
+    Target potentialTarg = Target(0, imageContours, 0, 0, 0, 0, this->distMode);
     int centerX = potentialTarg.Center().x;
     int centerY = potentialTarg.Center().y;
     
@@ -179,10 +189,7 @@ ExampleContour ExampleTarget::GetExampleContourByID(int id) {
 void ExampleTarget::SetContourProperty(int contour, TargetProperty prop, SettingPair values) {  
     //get the index of the contour we want to change, that way we directly set the values instead of taking a reference
         
-    // //make sure we have a contour with the id "contour"
-    // while(contour >= this->contours.size()) {
-    //     this->AddGenericContour();
-    // }
+    //make sure we have a contour with the id "contour"
     if(contour > this->contours.size()) {
         return;
     }
@@ -268,6 +275,9 @@ void ExampleTarget::SetTargetProperty(RunnerProperty prop, double value) {
         case RunnerProperty::ERROR_CORRECTION:
             this->distErrorCorrect = value;
             break;
+        case RunnerProperty::CALC_DIST_BY_HEIGHT:
+            this->distMode = (value == 1 ? DistanceCalcMode::BY_HEIGHT : DistanceCalcMode::BY_WIDTH);
+            break;
     }
 }
 
@@ -287,6 +297,9 @@ double ExampleTarget::GetTargetProperty(RunnerProperty prop) {
             break;
         case RunnerProperty::ERROR_CORRECTION:
             value = this->distErrorCorrect;
+            break;
+        case RunnerProperty::CALC_DIST_BY_HEIGHT:
+            value = (this->distMode == DistanceCalcMode::BY_HEIGHT ? 1 : 0);
             break;
     }
 

@@ -4,7 +4,6 @@
 #include <iostream>
 #include <stdlib.h>
 #include <fstream>
-#include "gtk-3.0/gtk/gtk.h"
 #include "opencv2/opencv.hpp"
 #include "netdb.h"
 #include "unistd.h"
@@ -83,7 +82,6 @@ namespace KiwiLight {
     class UDP {
         public:
         UDP(){};
-        UDP(std::string dest_ip, int port);
         UDP(std::string dest_ip, int port, bool blockUntilConnected);
         UDP(std::string this_ip, std::string dest_ip, int port, bool blockUntilConnected);
         bool AttemptToConnect();
