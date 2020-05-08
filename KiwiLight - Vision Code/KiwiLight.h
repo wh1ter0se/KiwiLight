@@ -50,6 +50,7 @@ namespace KiwiLight {
         static bool LastImageCaptureSuccessful();
         static UIMode CurrentMode();
         static UDP GetUDP();
+        static std::string GetCurrentFile();
 
         //misc. UI callbacks
         static void CloseEditor(bool saveFirst);
@@ -61,6 +62,8 @@ namespace KiwiLight {
         static void EditorConnectUDPFromOverview();
         static void EditorApplyCameraSettings();
         static void EditorOpenNewCameraFromOverview();
+        static void SaveConfigShouldRun();
+        static void SaveConfigShouldNotRun();
         static void OpenNewCameraOnIndex(int index);
         static void InitCameraOnly(int index);
         static void ReconnectUDP(std::string newAddress, int newPort);
@@ -88,22 +91,27 @@ namespace KiwiLight {
         static void OpenConfigurationFromFile(std::string fileName);
         static void CloseConfiguration();
         static void Quit();
+        static void ShowCronMenu();
+        static void RunHeadlessly();
         static void ShowAboutWindow();
         static void ShowHelpWindow();
 
         //essential objects
         static Runner runner;
         static ConfigEditor configeditor;
+        static CronWindow cronWindow;
         static VideoCapture camera;
         static UDP udpSender;
         static GThread *streamingThread;
 
         //utilities
         static UIMode mode;
-        static bool lastImageGrabSuccessful;
-        static bool udpEnabled;
-        static bool streamThreadEnabled;
-        static bool outImgInUse;
+        static bool 
+            lastImageGrabSuccessful,
+            udpEnabled,
+            streamThreadEnabled,
+            outImgInUse,
+            uiInitalized;
         static Mat lastFrameGrabImage;
         static int currentCameraIndex;
 

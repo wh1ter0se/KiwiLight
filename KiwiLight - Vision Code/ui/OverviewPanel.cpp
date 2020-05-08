@@ -36,6 +36,9 @@ OverviewPanel::OverviewPanel(XMLDocument doc) {
             this->targetImageLocation = Label("Target Location: N/A");
                 targetInformationPanel.Pack_start(this->targetImageLocation.GetWidget(), false, false, 0);
 
+            this->targetSize = Label("Target Size: N/A");
+                targetInformationPanel.Pack_start(this->targetSize.GetWidget(), false, false, 0);
+
             this->targetDist = Label("Target Distance: N/A");
                 targetInformationPanel.Pack_start(this->targetDist.GetWidget(), false, false, 0);
 
@@ -119,23 +122,35 @@ std::string OverviewPanel::GetConfigName() {
 }
 
 
-void OverviewPanel::SetTargetInformationLabels(bool targetSpotted, int targetImgX, int targetImgY, double targetDist, double targetHAngle, double targetVAngle) {
+void OverviewPanel::SetTargetInformationLabels(
+    bool targetSpotted, 
+    int targetImgX, 
+    int targetImgY, 
+    int targetImgW, 
+    int targetImgH,
+    double targetDist,
+    double targetHAngle, 
+    double targetVAngle
+) {
     this->targetSpotted.SetText(std::string("Target Spotted: ") + (targetSpotted ? std::string("YES") : std::string("NO")));
     
     std::string
         targetLocationString = "N/A",
+        targetSizeString = "N/A",
         targetDistString = "N/A",
         targetHAngleString = "N/A",
         targetVAngleString = "N/A";
 
     if(targetSpotted) {
         targetLocationString = "( " + std::to_string(targetImgX) + ", " + std::to_string(targetImgY) + ")";
+        targetSizeString = "(" + std::to_string(targetImgW) + ", " + std::to_string(targetImgH) + ")";
         targetDistString = std::to_string(targetDist);
         targetHAngleString = std::to_string(targetHAngle);
         targetVAngleString = std::to_string(targetVAngle);
     }
 
     this->targetImageLocation.SetText("Target Location " + targetLocationString);
+    this->targetSize.SetText("Target Size: " + targetSizeString);
     this->targetDist.SetText("Target Distance: " + targetDistString);
     this->targetHAngle.SetText("Target Horizontal Angle: " + targetHAngleString);
     this->targetVAngle.SetText("Target Vertical Angle: " + targetVAngleString);
@@ -192,7 +207,7 @@ void OverviewPanel::SetTargetInformationLabelsFromString(std::string iterOutput)
         double targetAngleVertical = std::stod(splitOutput[6]);
         bool targetSpotted = (targetX > -1);
 
-        SetTargetInformationLabels(targetSpotted, targetX, targetY, targetDist, targetAngleHorizontal, targetAngleVertical);
+        SetTargetInformationLabels(targetSpotted, targetX, targetY, targetWidth, targetHeight, targetDist, targetAngleHorizontal, targetAngleVertical);
     } else {
         std::cout << "WARNING: Could not update overview panel information labels. Input string was wrongly formatted." << std::endl;
     }

@@ -395,18 +395,33 @@ namespace KiwiLight {
         GtkWidget *helpwindow;
     };
 
-
-    class TroubleshootingWindow : public Widget {
+    /**
+     * A window that houses a crontab manager.
+     */
+    class CronWindow : public Widget {
         public:
-        TroubleshootingWindow() {};
-        TroubleshootingWindow(TroubleshootingData data[], int dataLen);
+        CronWindow() {};
+        CronWindow(GtkWindowType type);
+        bool isOpen();
         void Show();
-        GtkWidget *GetWidget() { return this->troubleshootingwindow; };
+        void Close();
+        void SaveRule(bool shouldRun);
+        GtkWidget *GetWidget() { return this->cronwindow; };
         void SetName(std::string name);
 
         private:
+        bool isCurrentFileAutomatic();
+        std::vector<std::string> ReadAllRules();
+        std::vector<std::string> ReadKiwiLightRules();
+
         Window window;
-        GtkWidget *troubleshootingwindow;
+        Label 
+            cronStatus,
+            currentRuleStatus;
+
+        bool isOpened;
+
+        GtkWidget *cronwindow;
     };
 
     /**
@@ -485,6 +500,8 @@ namespace KiwiLight {
             bool targetSpotted,
             int targetImgX,
             int targetImgY,
+            int targetImgW,
+            int targetImgH,
             double targetDist,
             double targetHAngle,
             double targetVAngle
@@ -510,6 +527,7 @@ namespace KiwiLight {
         Label
             targetSpotted,
             targetImageLocation,
+            targetSize,
             targetDist,
             targetHAngle,
             targetVAngle;

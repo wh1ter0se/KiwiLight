@@ -13,12 +13,14 @@ VideoCapture KiwiLightApp::camera;
 UDP          KiwiLightApp::udpSender;
 Runner       KiwiLightApp::runner;
 ConfigEditor KiwiLightApp::configeditor;
+CronWindow   KiwiLightApp::cronWindow;
 GThread     *KiwiLightApp::streamingThread;
 UIMode       KiwiLightApp::mode = UIMode::UI_STREAM;
 bool         KiwiLightApp::lastImageGrabSuccessful = false;
 bool         KiwiLightApp::udpEnabled = false;
 bool         KiwiLightApp::streamThreadEnabled = true; //acts as a kind of "enable switch" for the streamthread because it seems to like starting when its not supposed to
 bool         KiwiLightApp::outImgInUse = false;
+bool         KiwiLightApp::uiInitalized = false;
 Mat          KiwiLightApp::lastFrameGrabImage;
 Window       KiwiLightApp::win;
 ConfigPanel  KiwiLightApp::confInfo;
@@ -96,6 +98,7 @@ void KiwiLightApp::Create(int argc, char *argv[]) {
     win.SetCSS("ui/Style.css");
     win.SetOnAppClosed(KiwiLightApp::Quit);
     win.SetInterval(75, KiwiLightApp::UpdateApp);
+    uiInitalized = true;
     
     OpenNewCameraOnIndex(0);
 }
@@ -169,8 +172,23 @@ bool KiwiLightApp::LastImageCaptureSuccessful() {
     return KiwiLightApp::lastImageGrabSuccessful;
 }
 
+/**
+ * Returns KiwiLight's UDP sender.
+ */
 UDP KiwiLightApp::GetUDP() {
     return KiwiLightApp::udpSender;
+}
+
+
+std::string KiwiLightApp::GetCurrentFile() {
+    switch(mode) {
+        case UIMode::UI_RUNNER:
+            return KiwiLightApp::runner.GetFileName();
+        case UIMode::UI_EDITOR:
+            return KiwiLightApp::configeditor.GetFileName();
+        default:
+            return "";
+    }
 }
 
 /**
@@ -194,6 +212,15 @@ MenuBar KiwiLightApp::CreateMenuBar() {
                 file.AddSubmenuItem(quit);
 
             menubar.AddItem(file);
+
+        MenuItem config = MenuItem("Configuration");
+            SubMenuItem confCron = SubMenuItem("Configure Auto-Start", KiwiLightApp::ShowCronMenu);
+                config.AddSubmenuItem(confCron);
+
+            SubMenuItem runHeadlessly = SubMenuItem("Run Configuration Headlessly", KiwiLightApp::RunHeadlessly);
+                config.AddSubmenuItem(runHeadlessly);
+
+            menubar.AddItem(config);
 
         MenuItem help = MenuItem("Help");
             SubMenuItem about = SubMenuItem("About", KiwiLightApp::ShowAboutWindow);
@@ -279,10 +306,11 @@ void KiwiLightApp::OpenNewCameraOnIndex(int index) {
         KiwiLightApp::currentCameraIndex = index;
         UIMode currentMode = KiwiLightApp::mode;
     
-        if(KiwiLightApp::camera.isOpened()) {
-            KiwiLightApp::camera.~VideoCapture();
-        }
+        // if(KiwiLightApp::camera.isOpened()) {
+        //     KiwiLightApp::camera.release();
+        // }
         
+
         KiwiLightApp::camera = VideoCapture(index);
         
         //set the auto exposure menu in shell because opencv cant do it
@@ -294,13 +322,15 @@ void KiwiLightApp::OpenNewCameraOnIndex(int index) {
             std::to_string(index) + 
             std::string(" --set-ctrl=exposure_auto=1")
         );
-    
-        //set the text box on main UI
-        KiwiLightApp::cameraIndexBox.SetValue((double) index);
-    
-        //set editor text boxes if necessary
-        if(currentMode == UIMode::UI_EDITOR) {
-            KiwiLightApp::configeditor.SetCameraIndexBoxes(index);
+
+        if(uiInitalized) {
+            //set the text box on main UI
+            KiwiLightApp::cameraIndexBox.SetValue((double) index);
+        
+            //set editor text boxes if necessary
+            if(currentMode == UIMode::UI_EDITOR) {
+                KiwiLightApp::configeditor.SetCameraIndexBoxes(index);
+            }
         }
     }
 }
@@ -350,6 +380,22 @@ void KiwiLightApp::EditorApplyCameraSettings() {
 void KiwiLightApp::EditorOpenNewCameraFromOverview(){
     //we don't need to do stream things here because it is all handled in OpenNewCameraOnIndex()
     KiwiLightApp::configeditor.OpenNewCameraFromOverview();
+}
+
+/**
+ * Causes the cron window to save a configuration in cron.
+ */
+void KiwiLightApp::SaveConfigShouldRun() {
+    KiwiLightApp::cronWindow.SaveRule(true);
+    KiwiLightApp::cronWindow.Close();
+}
+
+/**
+ * Closes the Cron window if it is open.
+ */
+void KiwiLightApp::SaveConfigShouldNotRun() {
+    KiwiLightApp::cronWindow.SaveRule(false);
+    KiwiLightApp::cronWindow.Close();
 }
 
 /**
@@ -577,6 +623,17 @@ void KiwiLightApp::CloseConfiguration() {
 void KiwiLightApp::Quit() {
     StopStreamingThread();
     gtk_main_quit();
+}
+
+
+void KiwiLightApp::ShowCronMenu() {
+    KiwiLightApp::cronWindow = CronWindow(GTK_WINDOW_TOPLEVEL);
+    cronWindow.Show();
+}
+
+
+void KiwiLightApp::RunHeadlessly() {
+    std::cout << "Run Headlessly" << std::endl;
 }
 
 /**

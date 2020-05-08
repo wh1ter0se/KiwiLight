@@ -8,7 +8,7 @@
 using namespace cv;
 using namespace KiwiLight;
 
-const std::string Runner::NULL_MESSAGE = ":-1,-1,-1,180,180;";
+const std::string Runner::NULL_MESSAGE = ":-1,-1,-1,-1,-1,180,180;";
 
 /**
  * Creates a new runner which runs the configuration described by the given file
