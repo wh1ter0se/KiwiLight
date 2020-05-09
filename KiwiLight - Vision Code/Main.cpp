@@ -103,6 +103,11 @@ void RunConfigs(std::vector<std::string> filePaths) {
 }
 
 
+void Test() {
+    Clock::GetDateString();
+}
+
+
 int main(int argc, char *argv[]) {
     if(argc == 1) {
         KiwiLightApp::Create(argc, argv);
@@ -114,6 +119,11 @@ int main(int argc, char *argv[]) {
 
         for(int i=0; i<argc; i++) {
             std::string argument = std::string(argv[i]);
+
+            if(argument == "-t") {
+                Test();
+                return 0;
+            }
 
             if(argument == "-c") {
                 runningConfig = true;

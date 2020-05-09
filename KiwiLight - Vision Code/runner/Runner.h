@@ -296,6 +296,29 @@ namespace KiwiLight {
     };
 
     /**
+     * Utility which logs Runner activity into a log file which can be read by a LogViewer.
+     */
+    class Logger {
+        public:
+        static const int LOG_ARRAY_MAX_SIZE;
+
+        Logger() {};
+        Logger(std::string filePath);
+        void Start();
+        void Log(std::string runnerOutput);
+
+        private:
+        std::string filePath;
+        Clock clock;
+        int 
+            totalFrames,
+            framesWithTargetSeen,
+            targetLostEventCount;
+        int *fpsSamples;
+        std::vector<int> fpsAverages;
+    };
+
+    /**
      * Handles everything vision from taking images to send coordinates to a RoboRIO(or other UDP destination)
      */
     class Runner {

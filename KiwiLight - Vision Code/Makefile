@@ -138,8 +138,11 @@ bin/util/SettingPair.o: util/SettingPair.cpp
 bin/util/Color.o: util/Color.cpp
 	$(CXX) -c -o bin/util/Color.o util/Color.cpp $(GTK) $(CV)
 
-lib/Util.a: bin/util/Flags.o bin/util/Shell.o bin/util/Util.o bin/util/StringUtils.o bin/util/DataUtils.o bin/util/UDP.o bin/util/XMLDocument.o bin/util/XMLTag.o bin/util/XMLTagAttribute.o bin/util/SettingPair.o bin/util/Color.o
-	ar rs lib/Util.a bin/util/Flags.o bin/util/Shell.o bin/util/Util.o bin/util/StringUtils.o bin/util/DataUtils.o bin/util/UDP.o bin/util/XMLDocument.o bin/util/XMLTag.o bin/util/XMLTagAttribute.o bin/util/SettingPair.o bin/util/Color.o
+bin/util/Clock.o: util/Clock.cpp
+	$(CXX) -c -o bin/util/Clock.o util/Clock.cpp $(GTK)
+
+lib/Util.a: bin/util/Flags.o bin/util/Shell.o bin/util/Util.o bin/util/StringUtils.o bin/util/DataUtils.o bin/util/UDP.o bin/util/XMLDocument.o bin/util/XMLTag.o bin/util/XMLTagAttribute.o bin/util/SettingPair.o bin/util/Color.o bin/util/Clock.o
+	ar rs lib/Util.a bin/util/Flags.o bin/util/Shell.o bin/util/Util.o bin/util/StringUtils.o bin/util/DataUtils.o bin/util/UDP.o bin/util/XMLDocument.o bin/util/XMLTag.o bin/util/XMLTagAttribute.o bin/util/SettingPair.o bin/util/Color.o bin/util/Clock.o
 
 #RUNNER
 bin/runner/Contour.o: runner/Contour.cpp
@@ -160,6 +163,9 @@ bin/runner/PreProcessor.o: runner/PreProcessor.cpp
 bin/runner/CameraFrame.o: runner/CameraFrame.cpp
 	$(CXX) -c -o bin/runner/CameraFrame.o runner/CameraFrame.cpp $(GTK) $(CV)
 
+bin/runner/Logger.o: runner/Logger.cpp
+	$(CXX) -c -o bin/runner/Logger.o runner/Logger.cpp $(GTK) $(CV)
+
 bin/runner/ConfigLearner.o: runner/ConfigLearner.cpp
 	$(CXX) -c -o bin/runner/ConfigLearner.o runner/ConfigLearner.cpp $(GTK) $(CV)
 
@@ -178,8 +184,8 @@ bin/runner/TargetTroubleshooter.o: runner/TargetTroubleshooter.cpp
 bin/runner/RunnerSettings.o: runner/RunnerSettings.cpp
 	$(CXX) -c -o bin/runner/RunnerSettings.o runner/RunnerSettings.cpp
 
-lib/Runner.a: bin/runner/Contour.o bin/runner/ExampleContour.o bin/runner/ExampleTarget.o bin/runner/PostProcessor.o bin/runner/PreProcessor.o bin/runner/CameraFrame.o bin/runner/ConfigLearner.o bin/runner/Runner.o bin/runner/Target.o bin/runner/TargetDistanceLearner.o bin/runner/TargetTroubleshooter.o bin/runner/RunnerSettings.o
-	ar rs lib/Runner.a bin/runner/Runner.o bin/runner/ConfigLearner.o bin/runner/Contour.o bin/runner/ExampleContour.o bin/runner/ExampleTarget.o bin/runner/PostProcessor.o bin/runner/PreProcessor.o bin/runner/CameraFrame.o bin/runner/Target.o bin/runner/TargetDistanceLearner.o bin/runner/TargetTroubleshooter.o bin/runner/RunnerSettings.o
+lib/Runner.a: bin/runner/Contour.o bin/runner/ExampleContour.o bin/runner/ExampleTarget.o bin/runner/PostProcessor.o bin/runner/PreProcessor.o bin/runner/CameraFrame.o bin/runner/Logger.o bin/runner/ConfigLearner.o bin/runner/Runner.o bin/runner/Target.o bin/runner/TargetDistanceLearner.o bin/runner/TargetTroubleshooter.o bin/runner/RunnerSettings.o
+	ar rs lib/Runner.a bin/runner/Runner.o bin/runner/ConfigLearner.o bin/runner/Contour.o bin/runner/ExampleContour.o bin/runner/ExampleTarget.o bin/runner/PostProcessor.o bin/runner/Logger.o bin/runner/PreProcessor.o bin/runner/CameraFrame.o bin/runner/Target.o bin/runner/TargetDistanceLearner.o bin/runner/TargetTroubleshooter.o bin/runner/RunnerSettings.o
 
 #MAIN FILE
 bin/KiwiLight.o: KiwiLight.cpp

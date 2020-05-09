@@ -4,6 +4,8 @@
 #include <iostream>
 #include <stdlib.h>
 #include <fstream>
+#include <chrono>
+#include <ctime>
 #include "opencv2/opencv.hpp"
 #include "netdb.h"
 #include "unistd.h"
@@ -217,6 +219,21 @@ namespace KiwiLight {
             hError,
             sError,
             vError;
+    };
+
+    /**
+     * Basic timer utility, which increments time since start() is called. 
+     */
+    class Clock {
+        public:
+        Clock();
+        void Start();
+        long GetTime();
+        static long GetSystemTime();
+        static std::string GetDateString();
+
+        private:
+        long startTime;
     };
 }
 
