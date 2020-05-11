@@ -32,7 +32,16 @@ long Clock::GetSystemTime() {
 
 
 std::string Clock::GetDateString() {
+    //get system time in seconds
     time_t currentTime;
     time(&currentTime);
-    std::cout << "currentTime: " << currentTime << std::endl;
+
+    //pull date information
+    struct tm *timeinfo = localtime(&currentTime);
+
+    //convert to string
+    char stringBuffer[100];
+    strftime(stringBuffer, sizeof(stringBuffer), "%m-%d-%Y-%H-%M-%S", timeinfo);
+
+    return std::string(stringBuffer);
 }

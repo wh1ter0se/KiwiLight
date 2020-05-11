@@ -38,6 +38,9 @@ bin/ui/HelpWindow.o: ui/HelpWindow.cpp
 bin/ui/CronWindow.o: ui/CronWindow.cpp
 	$(CXX) -c -o bin/ui/CronWindow.o ui/CronWindow.cpp $(GTK)
 
+bin/ui/LogViewer.o: ui/LogViewer.cpp
+	$(CXX) -c -o bin/ui/LogViewer.o ui/LogViewer.cpp $(GTK)
+
 bin/ui/Panel.o: ui/Panel.cpp
 	$(CXX) -c -o bin/ui/Panel.o ui/Panel.cpp $(GTK)
 
@@ -101,8 +104,8 @@ bin/ui/ConfigEditor.o: ui/ConfigEditor.cpp
 bin/ui/CameraSetting.o: ui/CameraSetting.cpp
 	$(CXX) -c -o bin/ui/CameraSetting.o ui/CameraSetting.cpp $(GTK)
 
-lib/UI.a: bin/ui/ConfirmationDialog.o bin/ui/SubMenuItem.o bin/ui/MenuItem.o bin/ui/MenuBar.o bin/ui/Button.o bin/ui/Label.o bin/ui/LabeledSlider.o bin/ui/AboutWindow.o bin/ui/HelpWindow.o bin/ui/CronWindow.o bin/ui/Panel.o bin/ui/Scrollable.o bin/ui/Frame.o bin/ui/Separator.o bin/ui/Slider.o bin/ui/CheckBox.o bin/ui/TextBox.o bin/ui/NumberBox.o bin/ui/FileChooser.o bin/ui/TabView.o bin/ui/PopupTextBox.o bin/ui/Image.o bin/ui/Window.o bin/ui/ConfigPanel.o bin/ui/OverviewPanel.o bin/ui/Settings.o bin/ui/PreprocessorEditor.o bin/ui/PostprocessorEditor.o bin/ui/RunnerEditor.o bin/ui/ConfigEditor.o bin/ui/CameraSetting.o
-	ar rs lib/UI.a bin/ui/ConfirmationDialog.o bin/ui/SubMenuItem.o bin/ui/MenuItem.o bin/ui/MenuBar.o bin/ui/Button.o bin/ui/Label.o bin/ui/LabeledSlider.o bin/ui/AboutWindow.o bin/ui/HelpWindow.o bin/ui/CronWindow.o bin/ui/Panel.o bin/ui/Scrollable.o bin/ui/Frame.o bin/ui/Separator.o bin/ui/Slider.o bin/ui/CheckBox.o bin/ui/TextBox.o bin/ui/NumberBox.o bin/ui/FileChooser.o bin/ui/TabView.o bin/ui/PopupTextBox.o bin/ui/Image.o bin/ui/Window.o bin/ui/ConfigPanel.o bin/ui/OverviewPanel.o bin/ui/Settings.o bin/ui/PreprocessorEditor.o bin/ui/PostprocessorEditor.o bin/ui/RunnerEditor.o bin/ui/ConfigEditor.o bin/ui/CameraSetting.o
+lib/UI.a: bin/ui/ConfirmationDialog.o bin/ui/SubMenuItem.o bin/ui/MenuItem.o bin/ui/MenuBar.o bin/ui/Button.o bin/ui/Label.o bin/ui/LabeledSlider.o bin/ui/AboutWindow.o bin/ui/HelpWindow.o bin/ui/CronWindow.o bin/ui/LogViewer.o bin/ui/Panel.o bin/ui/Scrollable.o bin/ui/Frame.o bin/ui/Separator.o bin/ui/Slider.o bin/ui/CheckBox.o bin/ui/TextBox.o bin/ui/NumberBox.o bin/ui/FileChooser.o bin/ui/TabView.o bin/ui/PopupTextBox.o bin/ui/Image.o bin/ui/Window.o bin/ui/ConfigPanel.o bin/ui/OverviewPanel.o bin/ui/Settings.o bin/ui/PreprocessorEditor.o bin/ui/PostprocessorEditor.o bin/ui/RunnerEditor.o bin/ui/ConfigEditor.o bin/ui/CameraSetting.o
+	ar rs lib/UI.a bin/ui/ConfirmationDialog.o bin/ui/SubMenuItem.o bin/ui/MenuItem.o bin/ui/MenuBar.o bin/ui/Button.o bin/ui/Label.o bin/ui/LabeledSlider.o bin/ui/AboutWindow.o bin/ui/HelpWindow.o bin/ui/CronWindow.o bin/ui/LogViewer.o bin/ui/Panel.o bin/ui/Scrollable.o bin/ui/Frame.o bin/ui/Separator.o bin/ui/Slider.o bin/ui/CheckBox.o bin/ui/TextBox.o bin/ui/NumberBox.o bin/ui/FileChooser.o bin/ui/TabView.o bin/ui/PopupTextBox.o bin/ui/Image.o bin/ui/Window.o bin/ui/ConfigPanel.o bin/ui/OverviewPanel.o bin/ui/Settings.o bin/ui/PreprocessorEditor.o bin/ui/PostprocessorEditor.o bin/ui/RunnerEditor.o bin/ui/ConfigEditor.o bin/ui/CameraSetting.o
 
 #UTIL
 bin/util/Flags.o: util/Flags.cpp

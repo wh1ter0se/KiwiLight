@@ -39,6 +39,18 @@ void RunConfigs(std::vector<std::string> filePaths) {
         totalContours += runners[i].GetNumberOfContours(0);
     }
 
+    //find HOME so we can put the file in /home/<usr>/KiwiLightData/logs/KiwiLight-Runner-Log-DD-MM-YY-HH-MM-SS.xml
+    std::string logFileBase = "";
+    char *home = getenv("HOME");
+    if(home != NULL) {
+        logFileBase = std::string(home) + "/KiwiLightData/logs/";
+    } else {
+        std::cout << "WARNING: The HOME Environment variable could not be found! The Log file will not be generated!" << std::endl;
+    }
+    std::string logFileName = logFileBase + "KiwiLight-Runner-Log-" + Clock::GetDateString() + ".xml";
+    Logger logger = Logger(logFileName);
+    logger.Start();
+
     //show the cool header in the terminal
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "                                            " << std::endl;
@@ -91,20 +103,23 @@ void RunConfigs(std::vector<std::string> filePaths) {
             std::string
                 x  = std::to_string(closestTarget.Center().x),
                 y  = std::to_string(closestTarget.Center().y),
+                w  = std::to_string(closestTarget.Bounds().width),
+                h  = std::to_string(closestTarget.Bounds().height),
                 d  = std::to_string((int) closestTarget.Distance()),
                 ha = std::to_string((int) closestTargetHorizontalAngle),
                 va = std::to_string((int) closestTargetVerticalAngle);
             
-            message = ":" + x + "," + y + "," + d + "," + ha + "," + va + ";";
+            message = ":" + x + "," + y + "," + w + "," + h + "," + d + "," + ha + "," + va + ";";
         }
         
         KiwiLightApp::SendOverUDP(message);
+        logger.Log(message);
     }
 }
 
 
 void Test() {
-    Clock::GetDateString();
+    std::cout << Clock::GetDateString() << std::endl;
 }
 
 

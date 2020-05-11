@@ -300,22 +300,34 @@ namespace KiwiLight {
      */
     class Logger {
         public:
-        static const int LOG_ARRAY_MAX_SIZE;
-
         Logger() {};
         Logger(std::string filePath);
+        void SetFileName(std::string confName, std::string confFilePath);
         void Start();
         void Log(std::string runnerOutput);
 
         private:
-        std::string filePath;
+        void WriteNewFile();
+
+        std::string 
+            filePath,
+            confFilePath,
+            confName,
+            beginTime,
+            lastFrameMessage;
         Clock clock;
+        long lastFrameTime;
+        double 
+            runningFrameTimeAvg,
+            runningDistanceAvg;
         int 
             totalFrames,
+            fastestFrameTime,
+            slowestFrameTime,
+            farthestDistance,
+            closestDistance,
             framesWithTargetSeen,
             targetLostEventCount;
-        int *fpsSamples;
-        std::vector<int> fpsAverages;
     };
 
     /**

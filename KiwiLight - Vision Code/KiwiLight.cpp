@@ -636,6 +636,19 @@ void KiwiLightApp::RunHeadlessly() {
     std::cout << "Run Headlessly" << std::endl;
 }
 
+
+void KiwiLightApp::ShowLog(std::string fileName) {
+    
+}
+
+
+void KiwiLightApp::ShowLog() {
+    FileChooser chooser = FileChooser(false, "");
+    std::string fileToOpen = chooser.Show();
+
+    ShowLog(fileToOpen);
+}
+
 /**
  * Causes KiwiLight to show the about window.
  */

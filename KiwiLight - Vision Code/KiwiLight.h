@@ -93,6 +93,8 @@ namespace KiwiLight {
         static void Quit();
         static void ShowCronMenu();
         static void RunHeadlessly();
+        static void ShowLog(std::string fileName);
+        static void ShowLog();
         static void ShowAboutWindow();
         static void ShowHelpWindow();
 

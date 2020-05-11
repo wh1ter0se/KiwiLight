@@ -425,6 +425,22 @@ namespace KiwiLight {
     };
 
     /**
+     * A window that displays a KiwiLight log file.
+     */
+    class LogViewer : public Widget {
+        public:
+        LogViewer() {};
+        LogViewer(std::string fileName);
+        void Show();
+        GtkWidget *GetWidget() { return this->logviewer; };
+        void SetName(std::string name);
+
+        private:
+        Window window;
+        GtkWidget *logviewer;
+    };
+
+    /**
      * A singlular widget adjusting a camera setting
      */
     class CameraSetting : public Widget {
