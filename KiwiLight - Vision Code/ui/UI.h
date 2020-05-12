@@ -436,7 +436,28 @@ namespace KiwiLight {
         void SetName(std::string name);
 
         private:
+        void createHorizontalReadout(std::string header, Label readout);
+        std::string timeFromMS(long ms);
+
         Window window;
+        Panel 
+            contents;
+        Label
+            logFileName,
+            logRecordedTime,
+            confNames,
+            confFiles,
+            totalRunningTime,
+            totalFrames,
+            framesWithTargetSeen,
+            targetLostEventCount,
+            averageFrameTime,
+            fastestFrameTime,
+            slowestFrameTime,
+            averageDistance,
+            closestDistance,
+            farthestDistance;
+
         GtkWidget *logviewer;
     };
 

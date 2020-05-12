@@ -220,6 +220,9 @@ MenuBar KiwiLightApp::CreateMenuBar() {
             SubMenuItem runHeadlessly = SubMenuItem("Run Configuration Headlessly", KiwiLightApp::RunHeadlessly);
                 config.AddSubmenuItem(runHeadlessly);
 
+            SubMenuItem viewLog = SubMenuItem("View Log", KiwiLightApp::ShowLog);
+                config.AddSubmenuItem(viewLog);
+
             menubar.AddItem(config);
 
         MenuItem help = MenuItem("Help");
@@ -638,7 +641,8 @@ void KiwiLightApp::RunHeadlessly() {
 
 
 void KiwiLightApp::ShowLog(std::string fileName) {
-    
+    LogViewer viewer = LogViewer(fileName);
+    viewer.Show();
 }
 
 

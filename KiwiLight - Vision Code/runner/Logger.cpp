@@ -12,15 +12,20 @@ Logger::Logger(std::string filePath) {
     this->confName = "Unavailable";
     this->confFilePath = "Unavailable";
     this->beginTime = "";
+    this->totalFrames = 0;
+    this->framesWithTargetSeen = 0;
+    this->targetLostEventCount = 0;
+    this->runningFrameTimeAvg = 0;
     this->fastestFrameTime = 10000000;
     this->slowestFrameTime = 0;
+    this->runningDistanceAvg = 0;
     this->closestDistance = 10000000;
     this->farthestDistance = 0;
     this->lastFrameMessage = Runner::NULL_MESSAGE;
 }
 
 
-void Logger::SetFileName(std::string confName, std::string confFilePath) {
+void Logger::SetConfName(std::string confName, std::string confFilePath) {
     this->confName = confName;
     this->confFilePath = confFilePath;
 }

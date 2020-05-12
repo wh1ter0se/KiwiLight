@@ -302,7 +302,7 @@ namespace KiwiLight {
         public:
         Logger() {};
         Logger(std::string filePath);
-        void SetFileName(std::string confName, std::string confFilePath);
+        void SetConfName(std::string confName, std::string confFilePath);
         void Start();
         void Log(std::string runnerOutput);
 
@@ -351,6 +351,7 @@ namespace KiwiLight {
         Target GetClosestTargetToCenter() { return this->closestTarget; };
         Point GetLastFrameCenterPoint() { return this->lastFrameCenterPoint; };
         std::string GetFileName() { return this->src; };
+        std::string GetConfName() { return this->configName; };
         cv::Mat GetOriginalImage() { return this->originalImage; };
         cv::Mat GetOutputImage() { return this->outputImage; };
         Size GetConstantSize() { return this->constantResize; };

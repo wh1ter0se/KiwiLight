@@ -33,10 +33,21 @@ void RunConfigs(std::vector<std::string> filePaths) {
     std::cout << "\nInitalizing Runners" << std::endl;
     const int numTargets = (const int) filePaths.size();
     Runner runners[numTargets];
+    std::string 
+        runnerNames = "",
+        runnerFiles = "";
     int totalContours = 0;
     for(int i=0; i<filePaths.size(); i++) {
         runners[i] = Runner(filePaths[i], false);
         totalContours += runners[i].GetNumberOfContours(0);
+
+        runnerNames += runners[i].GetConfName();
+        runnerFiles += runners[i].GetFileName();
+
+        if(i < filePaths.size() - 1) {
+            runnerNames += ",";
+            runnerFiles += ",";
+        }
     }
 
     //find HOME so we can put the file in /home/<usr>/KiwiLightData/logs/KiwiLight-Runner-Log-DD-MM-YY-HH-MM-SS.xml
@@ -49,6 +60,7 @@ void RunConfigs(std::vector<std::string> filePaths) {
     }
     std::string logFileName = logFileBase + "KiwiLight-Runner-Log-" + Clock::GetDateString() + ".xml";
     Logger logger = Logger(logFileName);
+    logger.SetConfName(runnerNames, runnerFiles);
     logger.Start();
 
     //show the cool header in the terminal
