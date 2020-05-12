@@ -436,7 +436,7 @@ namespace KiwiLight {
         void SetName(std::string name);
 
         private:
-        void createHorizontalReadout(std::string header, Label readout);
+        void createHorizontalReadout(std::string header, Label readout, bool isBig);
         std::string timeFromMS(long ms);
 
         Window window;
