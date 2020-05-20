@@ -235,6 +235,43 @@ namespace KiwiLight {
         private:
         long startTime;
     };
+
+    /**
+     * Logger Event, such as a general update, or a record time or distance.
+     */
+    class LogEvent {
+        public:
+        static const std::string
+            RECORD_LOW_FPS,
+            RECORD_HIGH_FPS,
+            RECORD_LOW_DIST,
+            RECORD_HIGH_DIST,
+            GENERAL_UPDATE;
+
+        LogEvent() {};
+        LogEvent(const std::string evName, long timestamp, double record); //for RECORD events only
+        LogEvent(const std::string evName, long timestamp, double fps, int distance, bool targetSeen); // for GENERAL_UPDATE event only
+        std::string GetEventType();
+        long GetTimestamp();
+        double GetRecord();
+        double GetFPS();
+        int GetDistance();
+        bool GetTargetSeen();
+        XMLTag EncodeXMLTag();
+
+        private:
+        void InitBlank(const std::string evName, long timetamp);
+        std::string evName;
+        long timestamp;
+        
+        //record events
+        double record;
+
+        //generate update events
+        double fps;
+        int distance;
+        bool targetSeen;
+    };
 }
 
 #endif

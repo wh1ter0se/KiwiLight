@@ -7,6 +7,9 @@
 
 using namespace KiwiLight;
 
+const int Logger::UPDATE_VECTOR_MAX_SIZE = 500;
+const int Logger::FILE_WRITE_INTERVAL = 2500;
+
 Logger::Logger(std::string filePath) {
     this->filePath = filePath;
     this->confName = "Unavailable";
@@ -14,14 +17,18 @@ Logger::Logger(std::string filePath) {
     this->beginTime = "";
     this->totalFrames = 0;
     this->framesWithTargetSeen = 0;
-    this->targetLostEventCount = 0;
-    this->runningFrameTimeAvg = 0;
-    this->fastestFrameTime = 10000000;
-    this->slowestFrameTime = 0;
+    this->runningFPSAvg = 0;
     this->runningDistanceAvg = 0;
-    this->closestDistance = 10000000;
-    this->farthestDistance = 0;
     this->lastFrameMessage = Runner::NULL_MESSAGE;
+
+    this->fastestFPSEvent = LogEvent(LogEvent::RECORD_HIGH_FPS, 0L, 0.0);
+    this->slowestFPSEvent = LogEvent(LogEvent::RECORD_LOW_FPS, 0, 10000000.0);
+    this->closestDistanceEvent = LogEvent(LogEvent::RECORD_LOW_DIST, 0, 1000000.0);
+    this->farthestDistanceEvent = LogEvent(LogEvent::RECORD_HIGH_DIST, 0, 0.0);
+
+    this->lastGeneralUpdateTime = 0;
+    this->generalUpdateInterval = 125; //milliseconds
+    this->lastFileWriteTime = 0;
 }
 
 
@@ -38,103 +45,126 @@ void Logger::Start() {
 
 
 void Logger::Log(std::string runnerOutput) {
-    std::string slicedMessage = runnerOutput.substr(1, runnerOutput.length() - 1);
-    std::vector<std::string> messageSegments = StringUtils::SplitString(slicedMessage, ',');
+    std::string slicedOutput = runnerOutput.substr(1, runnerOutput.length() - 1);
+    std::vector<std::string> segments = StringUtils::SplitString(slicedOutput, ',');
 
     totalFrames++;
-    if(runnerOutput != Runner::NULL_MESSAGE) {
+    bool isTargetSeen = segments[0] != "-1";
+    if(isTargetSeen) {
         framesWithTargetSeen++;
     }
 
-    if(lastFrameMessage != Runner::NULL_MESSAGE && runnerOutput == Runner::NULL_MESSAGE) {
-        targetLostEventCount++;
+    //calculate FPS for this frame
+    long thisFrameTime = clock.GetTime();
+    int timeSinceLastFrame = thisFrameTime - lastFrameTime;
+    double thisFrameFPS = 1000 / (double) timeSinceLastFrame;
+
+    //calculate new average FPS
+    double expandedFPS = runningFPSAvg * (totalFrames - 1);
+    expandedFPS += thisFrameFPS;
+    runningFPSAvg = expandedFPS / totalFrames;
+
+    //get distance
+    int distance = std::stoi(segments[4]);
+    double expandedDistance = runningDistanceAvg * (totalFrames - 1);
+    expandedDistance += distance;
+    runningDistanceAvg = expandedDistance / totalFrames;
+
+    //store events
+    if(thisFrameFPS > fastestFPSEvent.GetRecord()) {
+        fastestFPSEvent = LogEvent(LogEvent::RECORD_HIGH_FPS, thisFrameTime, thisFrameFPS);
     }
 
-    //calculate the frame time
-    long frameTime = clock.GetTime();
-    int timeBetweenFrames = frameTime - lastFrameTime;
-
-    //store record times
-    if(timeBetweenFrames < fastestFrameTime) {
-        fastestFrameTime = timeBetweenFrames;
+    if(thisFrameFPS < slowestFPSEvent.GetRecord()) {
+        slowestFPSEvent = LogEvent(LogEvent::RECORD_LOW_FPS, thisFrameTime, thisFrameFPS);
     }
 
-    if(timeBetweenFrames > slowestFrameTime) {
-        slowestFrameTime = timeBetweenFrames;
-    }
-    
-    //calculate new frame time average
-    double expandedFrameTimeAvg = runningFrameTimeAvg * (totalFrames - 1);
-    expandedFrameTimeAvg += timeBetweenFrames;
-    runningFrameTimeAvg = expandedFrameTimeAvg / totalFrames;
-
-    //calculate distance running average and records
-    int distance = std::stoi(messageSegments[4]);
     if(distance > -1) {
-        double expandedDistanceAvg = runningDistanceAvg * (totalFrames - 1);
-        expandedDistanceAvg += distance;
-        runningDistanceAvg = expandedDistanceAvg / totalFrames;
-
-        if(distance < closestDistance) {
-            closestDistance = distance;
+        if(distance > farthestDistanceEvent.GetRecord()) {
+            farthestDistanceEvent = LogEvent(LogEvent::RECORD_HIGH_DIST, thisFrameTime, distance);
         }
 
-        if(distance > farthestDistance) {
-            farthestDistance = distance;
+        if(distance < closestDistanceEvent.GetRecord()) {
+            closestDistanceEvent = LogEvent(LogEvent::RECORD_LOW_DIST, thisFrameTime, distance);
         }
     }
 
-    //store prevs
-    lastFrameMessage = runnerOutput;
-    lastFrameTime = frameTime;
+    //do we have to do a general update?
+    if(thisFrameTime - lastGeneralUpdateTime >= generalUpdateInterval) {
+        //perform a general update
+        LogEvent update = LogEvent(LogEvent::GENERAL_UPDATE, thisFrameTime, thisFrameFPS, distance, isTargetSeen);
+        updates.push_back(update);
+        lastGeneralUpdateTime = thisFrameTime;
+    }
 
-    //print it all into the file
-    WriteNewFile();
+    //do we need to cut back on the updates?
+    if(updates.size() > UPDATE_VECTOR_MAX_SIZE) {
+        //remove every other update event, and multiply the update interval by 2.
+        for(int i=0; i<updates.size(); i++) {
+            updates.erase(updates.begin() + i);
+        }
+
+        generalUpdateInterval *= 2;
+    }
+
+    if(thisFrameTime - lastFileWriteTime > FILE_WRITE_INTERVAL) {
+        WriteNewFile();
+        lastFileWriteTime = thisFrameTime;
+    }
+
+    //store previous variables
+    lastFrameTime = thisFrameTime;
 }
 
 
 void Logger::WriteNewFile() {
     XMLDocument document = XMLDocument();
 
-        //<KiwiLightLog time="DD/MM/YY:HH:MM:SS">
-        XMLTag logTag = XMLTag("KiwiLightLog");
-            XMLTagAttribute date = XMLTagAttribute("time", beginTime);
-                logTag.AddAttribute(date);
+    XMLTag KiwiLightLog = XMLTag("KiwiLightLog");
+        XMLTagAttribute started = XMLTagAttribute("started", beginTime);
+            KiwiLightLog.AddAttribute(started);
 
-            XMLTagAttribute fileNameAttr = XMLTagAttribute("conffilename", confFilePath);
-                logTag.AddAttribute(fileNameAttr);
+        XMLTagAttribute confnames = XMLTagAttribute("confnames", confName);
+            KiwiLightLog.AddAttribute(confnames);
 
-            XMLTagAttribute confNameAttr = XMLTagAttribute("confname", confName);
-                logTag.AddAttribute(confNameAttr);
+        XMLTagAttribute conffiles = XMLTagAttribute("conffiles", confFilePath);
+            KiwiLightLog.AddAttribute(conffiles);
 
-            XMLTag totalFramesTag = XMLTag("TotalFrames", std::to_string(totalFrames));
-                logTag.AddTag(totalFramesTag);
+        /**
+         * Tags to generate separate from events:
+         * totalFrames
+         * averageFPS
+         * averageDistance
+         */
+        
+        XMLTag TotalFrames = XMLTag("TotalFrames", std::to_string(totalFrames));
+            KiwiLightLog.AddTag(TotalFrames);
 
-            XMLTag framesWithTargetSeenTag = XMLTag("FramesWithTargetSeen", std::to_string(framesWithTargetSeen));
-                logTag.AddTag(framesWithTargetSeenTag);
+        XMLTag FramesWithTargetSeen = XMLTag("FramesWithTargetSeen", std::to_string(framesWithTargetSeen));
+            KiwiLightLog.AddTag(FramesWithTargetSeen);
 
-            XMLTag targetLostEventCountTag = XMLTag("TargetLostEventCount", std::to_string(targetLostEventCount));
-                logTag.AddTag(targetLostEventCountTag);
+        XMLTag AverageFPS = XMLTag("AverageFPS", std::to_string(runningFPSAvg));
+            KiwiLightLog.AddTag(AverageFPS);
 
-            XMLTag averageFrameTimeTag = XMLTag("AverageFrameTime", std::to_string(runningFrameTimeAvg));
-                logTag.AddTag(averageFrameTimeTag);
+        XMLTag AverageDistance = XMLTag("AverageDistance", std::to_string(runningDistanceAvg));
+            KiwiLightLog.AddTag(AverageDistance);
 
-            XMLTag fastestFrameTimeTag = XMLTag("FastestFrameTime", std::to_string(fastestFrameTime));
-                logTag.AddTag(fastestFrameTimeTag);
+        XMLTag Events = XMLTag("Events");
 
-            XMLTag slowestFrameTimeTag = XMLTag("SlowestFrameTime", std::to_string(slowestFrameTime));
-                logTag.AddTag(slowestFrameTimeTag);
+            //add the records first
+            Events.AddTag(fastestFPSEvent.EncodeXMLTag());
+            Events.AddTag(slowestFPSEvent.EncodeXMLTag());
+            Events.AddTag(farthestDistanceEvent.EncodeXMLTag());
+            Events.AddTag(closestDistanceEvent.EncodeXMLTag());
 
-            XMLTag averageDistanceTag = XMLTag("AverageDistance", std::to_string(runningDistanceAvg));
-                logTag.AddTag(averageDistanceTag);
+            //add all general update tags
+            for(int i=0; i<updates.size(); i++) {
+                Events.AddTag(updates[i].EncodeXMLTag());
+            }
 
-            XMLTag closestDistanceTag = XMLTag("ClosestDistance", std::to_string(closestDistance));
-                logTag.AddTag(closestDistanceTag);
+            KiwiLightLog.AddTag(Events);
 
-            XMLTag farthestDistanceTag = XMLTag("FarthestDistance", std::to_string(farthestDistance));
-                logTag.AddTag(farthestDistanceTag);
-
-            document.AddTag(logTag);
+        document.AddTag(KiwiLightLog);
 
     document.WriteFile(this->filePath);
 }

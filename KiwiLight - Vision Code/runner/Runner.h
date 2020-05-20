@@ -300,6 +300,9 @@ namespace KiwiLight {
      */
     class Logger {
         public:
+        static const int UPDATE_VECTOR_MAX_SIZE;
+        static const int FILE_WRITE_INTERVAL;
+
         Logger() {};
         Logger(std::string filePath);
         void SetConfName(std::string confName, std::string confFilePath);
@@ -318,16 +321,21 @@ namespace KiwiLight {
         Clock clock;
         long lastFrameTime;
         double 
-            runningFrameTimeAvg,
+            runningFPSAvg,
             runningDistanceAvg;
         int 
-            totalFrames,
-            fastestFrameTime,
-            slowestFrameTime,
-            farthestDistance,
-            closestDistance,
+            totalFrames,            
             framesWithTargetSeen,
-            targetLostEventCount;
+            lastGeneralUpdateTime,
+            generalUpdateInterval,
+            lastFileWriteTime;
+
+        std::vector<LogEvent> updates;
+        LogEvent 
+            fastestFPSEvent,
+            slowestFPSEvent,
+            closestDistanceEvent,
+            farthestDistanceEvent;
     };
 
     /**

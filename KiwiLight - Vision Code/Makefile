@@ -142,10 +142,13 @@ bin/util/Color.o: util/Color.cpp
 	$(CXX) -c -o bin/util/Color.o util/Color.cpp $(GTK) $(CV)
 
 bin/util/Clock.o: util/Clock.cpp
-	$(CXX) -c -o bin/util/Clock.o util/Clock.cpp $(GTK)
+	$(CXX) -c -o bin/util/Clock.o util/Clock.cpp
 
-lib/Util.a: bin/util/Flags.o bin/util/Shell.o bin/util/Util.o bin/util/StringUtils.o bin/util/DataUtils.o bin/util/UDP.o bin/util/XMLDocument.o bin/util/XMLTag.o bin/util/XMLTagAttribute.o bin/util/SettingPair.o bin/util/Color.o bin/util/Clock.o
-	ar rs lib/Util.a bin/util/Flags.o bin/util/Shell.o bin/util/Util.o bin/util/StringUtils.o bin/util/DataUtils.o bin/util/UDP.o bin/util/XMLDocument.o bin/util/XMLTag.o bin/util/XMLTagAttribute.o bin/util/SettingPair.o bin/util/Color.o bin/util/Clock.o
+bin/util/LogEvent.o: util/LogEvent.cpp
+	$(CXX) -c -o bin/util/LogEvent.o util/LogEvent.cpp 
+
+lib/Util.a: bin/util/Flags.o bin/util/Shell.o bin/util/Util.o bin/util/StringUtils.o bin/util/DataUtils.o bin/util/UDP.o bin/util/XMLDocument.o bin/util/XMLTag.o bin/util/XMLTagAttribute.o bin/util/SettingPair.o bin/util/Color.o bin/util/Clock.o bin/util/LogEvent.o
+	ar rs lib/Util.a bin/util/Flags.o bin/util/Shell.o bin/util/Util.o bin/util/StringUtils.o bin/util/DataUtils.o bin/util/UDP.o bin/util/XMLDocument.o bin/util/XMLTag.o bin/util/XMLTagAttribute.o bin/util/SettingPair.o bin/util/Color.o bin/util/Clock.o bin/util/LogEvent.o
 
 #RUNNER
 bin/runner/Contour.o: runner/Contour.cpp

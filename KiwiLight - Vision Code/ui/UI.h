@@ -1,6 +1,7 @@
 #ifndef KiwiLight_UI_H
 #define KiwiLight_UI_H
 
+// #include "gnuplot_i.hpp"
 #include <iostream>
 #include <stdlib.h>
 #include <string.h>
@@ -437,6 +438,8 @@ namespace KiwiLight {
 
         private:
         void createHorizontalReadout(std::string header, Label readout, bool isBig);
+        Mat generateGraph(long elapsedTime, int maxFPS, int maxDist, LogEvent *events, int numEvents);
+        LogEvent eventFromTag(XMLTag tag);
         std::string timeFromMS(long ms);
 
         Window window;
