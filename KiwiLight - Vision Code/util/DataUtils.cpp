@@ -44,6 +44,12 @@ std::vector<double> DataUtils::SortLeastGreatestDouble(std::vector<double> data)
 }
 
 
+double DataUtils::MaxWithoutOutliers(std::vector<double> data, double allowableDeviation) {
+    std::vector<double> noOutliers = DataUtils::RemoveOutliers(data, allowableDeviation);
+    return DataUtils::Greatest(noOutliers);
+}
+
+
 double DataUtils::Total(std::vector<double> data) {
     double total = 0.0;
 

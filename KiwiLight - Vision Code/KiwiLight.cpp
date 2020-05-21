@@ -308,12 +308,6 @@ void KiwiLightApp::OpenNewCameraOnIndex(int index) {
     if(KiwiLightApp::currentCameraIndex != index || !KiwiLightApp::camera.isOpened()) {
         KiwiLightApp::currentCameraIndex = index;
         UIMode currentMode = KiwiLightApp::mode;
-    
-        // if(KiwiLightApp::camera.isOpened()) {
-        //     KiwiLightApp::camera.release();
-        // }
-        
-
         KiwiLightApp::camera = VideoCapture(index);
         
         //set the auto exposure menu in shell because opencv cant do it
@@ -640,8 +634,8 @@ void KiwiLightApp::RunHeadlessly() {
 }
 
 
-void KiwiLightApp::ShowLog(std::string fileName) {
-    LogViewer viewer = LogViewer(fileName);
+void KiwiLightApp::ShowLog(XMLDocument log) {
+    LogViewer viewer = LogViewer(log);
     viewer.Show();
 }
 
@@ -649,8 +643,10 @@ void KiwiLightApp::ShowLog(std::string fileName) {
 void KiwiLightApp::ShowLog() {
     FileChooser chooser = FileChooser(false, "");
     std::string fileToOpen = chooser.Show();
-
-    ShowLog(fileToOpen);
+    XMLDocument log = XMLDocument(fileToOpen);
+    if(log.HasContents()) {
+        ShowLog(fileToOpen);
+    }
 }
 
 /**

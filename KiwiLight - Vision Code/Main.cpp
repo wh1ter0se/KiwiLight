@@ -22,7 +22,8 @@ void ShowHelp() {
 
 void RunConfigs(std::vector<std::string> filePaths) {
     //init needed KiwiLight variables
-    KiwiLightApp::InitCameraOnly(0);
+
+    // KiwiLightApp::InitCameraOnly(0); //TODO: decide if this line is needed
     KiwiLightApp::ReconnectUDP("127.0.0.1", 3695, false);
 
     std::cout << "Command: Run Configs\n";

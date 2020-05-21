@@ -430,21 +430,24 @@ namespace KiwiLight {
      */
     class LogViewer : public Widget {
         public:
+        static const std::string TEMPFILE_DIR;
+
         LogViewer() {};
-        LogViewer(std::string fileName);
+        LogViewer(XMLDocument log);
         void Show();
         GtkWidget *GetWidget() { return this->logviewer; };
         void SetName(std::string name);
 
         private:
         void createHorizontalReadout(std::string header, Label readout, bool isBig);
-        Mat generateGraph(long elapsedTime, int maxFPS, int maxDist, LogEvent *events, int numEvents);
+        Image generateGraph(long elapsedTime, int maxFPS, int maxDist, LogEvent *events, int numEvents);
         LogEvent eventFromTag(XMLTag tag);
         std::string timeFromMS(long ms);
 
         Window window;
         Panel 
-            contents;
+            contents,
+            readouts;
         Label
             logFileName,
             logRecordedTime,

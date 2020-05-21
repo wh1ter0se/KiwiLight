@@ -61,6 +61,7 @@ namespace KiwiLight {
     class DataUtils {
         public:
         static std::vector<double> SortLeastGreatestDouble(std::vector<double> data);
+        static double MaxWithoutOutliers(std::vector<double> data, double allowableDeviation);
         static double Total(std::vector<double> data);
         static double Average(std::vector<double> data);
         static double Median(std::vector<double> data);
