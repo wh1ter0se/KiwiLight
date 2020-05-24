@@ -65,6 +65,8 @@ namespace KiwiLight {
         static void EditorOpenNewCameraFromOverview();
         static void SaveConfigShouldRun();
         static void SaveConfigShouldNotRun();
+        static void ToggleLogPlot();
+        static void GenerateLogPlot();
         static void OpenNewCameraOnIndex(int index);
         static void InitCameraOnly(int index);
         static void ReconnectUDP(std::string newAddress, int newPort);
@@ -103,6 +105,7 @@ namespace KiwiLight {
         static Runner runner;
         static ConfigEditor configeditor;
         static CronWindow cronWindow;
+        static LogViewer logViewer;
         static VideoCapture camera;
         static UDP udpSender;
         static GThread *streamingThread;
@@ -114,7 +117,8 @@ namespace KiwiLight {
             udpEnabled,
             streamThreadEnabled,
             outImgInUse,
-            uiInitalized;
+            uiInitalized,
+            logviewerExists;
         static Mat lastFrameGrabImage;
         static int currentCameraIndex;
 

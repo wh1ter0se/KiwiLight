@@ -431,19 +431,24 @@ namespace KiwiLight {
     class LogViewer : public Widget {
         public:
         static const std::string TEMPFILE_DIR;
-
-        LogViewer() {};
+        LogViewer();
         LogViewer(XMLDocument log);
+        ~LogViewer();
         void Show();
+        void TogglePlotShowing();
+        void GenerateAndShowPlot();
         GtkWidget *GetWidget() { return this->logviewer; };
         void SetName(std::string name);
 
         private:
         void createHorizontalReadout(std::string header, Label readout, bool isBig);
-        Image generateGraph(long elapsedTime, int maxFPS, int maxDist, LogEvent *events, int numEvents);
+        void generatePlot(long elapsedTime, int maxFPS, int maxDist, LogEvent *events, int numEvents);
         LogEvent eventFromTag(XMLTag tag);
         std::string timeFromMS(long ms);
 
+        bool 
+            initalized,
+            showingPlot;
         Window window;
         Panel 
             contents,
@@ -463,6 +468,22 @@ namespace KiwiLight {
             averageDistance,
             closestDistance,
             farthestDistance;
+        Button plotButton;
+        int 
+            totalRunningTimeNum,
+            totalFramesNum,
+            framesWithTargetSeenNum,
+            targetLostEventCountNum,
+            closestDistanceNum,
+            farthestDistanceNum,
+            numEvents;
+        double 
+            averageFPSNum,
+            averageDistanceNum,
+            fastestFPSNum,
+            slowestFPSNum;
+
+        LogEvent *events;
 
         GtkWidget *logviewer;
     };

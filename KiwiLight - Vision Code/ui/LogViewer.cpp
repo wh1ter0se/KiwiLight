@@ -10,7 +10,12 @@ using namespace KiwiLight;
 
 const std::string LogViewer::TEMPFILE_DIR = "/KiwiLightData/tmp/plotout.png";
 
+LogViewer::LogViewer() {
+    this->initalized = false;
+}
+
 LogViewer::LogViewer(XMLDocument log) {
+    this->initalized = true;
     std::string fileName = log.FileName();
     this->window = Window(GTK_WINDOW_TOPLEVEL, false);
         this->contents = Panel(false, 0);
@@ -76,36 +81,32 @@ LogViewer::LogViewer(XMLDocument log) {
                 contents.Pack_start(ribbonSeparator.GetWidget(), false, false, 0);
 
             //parse ints directly in the file
-            int 
-                totalFramesNum          = std::stoi(logTag.GetTagsByName("TotalFrames")[0].Content()),
-                framesWithTargetSeenNum = std::stoi(logTag.GetTagsByName("FramesWithTargetSeen")[0].Content());
+            this->totalFramesNum          = std::stoi(logTag.GetTagsByName("TotalFrames")[0].Content()),
+            this->framesWithTargetSeenNum = std::stoi(logTag.GetTagsByName("FramesWithTargetSeen")[0].Content());
 
             //parse double directly in the file
-            double 
-                averageFPSNum = std::stod(logTag.GetTagsByName("AverageFPS")[0].Content()),
-                averageDistanceNum  = std::stod(logTag.GetTagsByName("AverageDistance")[0].Content());
+            this->averageFPSNum = std::stod(logTag.GetTagsByName("AverageFPS")[0].Content()),
+            this->averageDistanceNum  = std::stod(logTag.GetTagsByName("AverageDistance")[0].Content());
 
             //declare numbers located in events
-            int
-                targetLostEventCountNum = 0,
-                closestDistanceNum = 0,
-                farthestDistanceNum = 0;
+            this->targetLostEventCountNum = 0,
+            this->closestDistanceNum = 0,
+            this->farthestDistanceNum = 0;
 
-            double 
-                fastestFPSNum = 0,
-                slowestFPSNum = 0;
+            this->fastestFPSNum = 0,
+            this->slowestFPSNum = 0;
 
             //parse events
             std::vector<XMLTag> eventTags = logTag.GetTagsByName("Events")[0].GetTagsByName("Event");
-            const int numEvents = (const int) eventTags.size();
-            LogEvent events[numEvents];
+            this->numEvents = eventTags.size();
+            this->events = new LogEvent[(const int) numEvents];
             bool lastTargetSeen = false;
             for(int i=0; i<numEvents; i++) {
                 LogEvent event = eventFromTag(eventTags[i]);
                 events[i] = event;
 
-                if(event.GetEventType() == LogEvent::RECORD_HIGH_FPS)  { fastestFPSNum = event.GetRecord();  }
-                if(event.GetEventType() == LogEvent::RECORD_LOW_FPS)   { slowestFPSNum = event.GetRecord();   }
+                if(event.GetEventType() == LogEvent::RECORD_HIGH_FPS)  { fastestFPSNum = event.GetRecord();       }
+                if(event.GetEventType() == LogEvent::RECORD_LOW_FPS)   { slowestFPSNum = event.GetRecord();       }
                 if(event.GetEventType() == LogEvent::RECORD_HIGH_DIST) { farthestDistanceNum = event.GetRecord(); }
                 if(event.GetEventType() == LogEvent::RECORD_LOW_DIST)  { closestDistanceNum = event.GetRecord();  }
                 if(event.GetEventType() == LogEvent::GENERAL_UPDATE) {
@@ -122,12 +123,8 @@ LogViewer::LogViewer(XMLDocument log) {
 
                 contents.Pack_start(body.GetWidget(), true, false, 0);
 
-            int totalRunningTimeNum = totalFramesNum * averageFPSNum;
-            std::cout << "total running time: " << totalRunningTimeNum << std::endl;
-                Image graph = generateGraph(totalRunningTimeNum, fastestFPSNum, farthestDistanceNum, events, numEvents);
-                    body.Pack_start(graph.GetWidget(), true, false, 0);
-
             //total running time readout
+            this->totalRunningTimeNum = totalFramesNum * (1000 / averageFPSNum);
             this->totalRunningTime = Label(timeFromMS(totalRunningTimeNum));
             createHorizontalReadout("Running Time: ", this->totalRunningTime, true);
 
@@ -172,14 +169,51 @@ LogViewer::LogViewer(XMLDocument log) {
             this->farthestDistance = Label(std::to_string(farthestDistanceNum));
             createHorizontalReadout("Farthest Distance: ", farthestDistance, false);
 
+            //show plot button
+            this->showingPlot = false;
+            this->plotButton = Button("Show Plot", KiwiLightApp::ToggleLogPlot);
+                readouts.Pack_start(plotButton.GetWidget(), true, false, 0);
+
             this->window.SetPane(contents);
         this->window.SetCSS("ui/Style.css");
     this->logviewer = this->window.GetWidget();
 }
 
 
+LogViewer::~LogViewer() {
+    if(initalized) {
+        delete[] this->events;
+    }
+}
+
+/**
+ * Shows the LogViewer.
+ */
 void LogViewer::Show() {
     this->window.Show();
+}
+
+
+void LogViewer::TogglePlotShowing() {
+    showingPlot = !showingPlot;
+
+    if(showingPlot) {
+        g_thread_new("log plotter", GThreadFunc(KiwiLightApp::GenerateLogPlot), NULL);
+    }
+
+    //set text of plot button
+    plotButton.SetText(showingPlot ? "Hide Plot" : "Show Plot");
+}
+
+
+void LogViewer::GenerateAndShowPlot() {
+    // std::cout << "gsp1" << std::endl;
+    int elapsedTimeMS = totalFramesNum * (1000 / averageFPSNum);
+    int maxFPS = (int) (fastestFPSNum * 1.1);
+    int maxDist = (int) (farthestDistanceNum * 1.1);
+    // std::cout << "gsp2" << std::endl;
+    generatePlot(elapsedTimeMS, maxFPS, maxDist, events, numEvents);
+    // std::cout<< "gsp3" << std::endl;
 }
 
 
@@ -209,7 +243,7 @@ void LogViewer::createHorizontalReadout(std::string header, Label readout, bool 
 /**
  * Generates two graphs: one for FPS, one for Distance, and returns an opencv Mat with the image.
  */
-Image LogViewer::generateGraph(long elapsedTime, int maxFPS, int maxDist, LogEvent *events, int numEvents) {
+void LogViewer::generatePlot(long elapsedTime, int maxFPS, int maxDist, LogEvent *events, int numEvents) {
     Gnuplot plot;
     
     //resolve the height of the image
@@ -276,22 +310,11 @@ Image LogViewer::generateGraph(long elapsedTime, int maxFPS, int maxDist, LogEve
     plot.plot_xy(fpsTimes, fpsReadings, "FPS");
     plot.plot_xy(distanceTimes, distanceReadings, "Distance");
 
-    //get the KiwiLightData directory.
-    char *home = getenv("HOME");
-    std::string tempoutDir = "";
-    if(home != NULL) {
-        tempoutDir = std::string(home) + TEMPFILE_DIR;
-    } else {
-        std::cout << "ERROR: LogViewer could not find HOME!" << std::endl;
-        return Image(ImageColorspace::RGB);
+    plot.showonscreen();
+
+    while(showingPlot) {
+        usleep(250000);
     }
-
-    //export both plots to png file
-    plot << "set term png\n";
-    plot << "set output '" + tempoutDir + "'\n";
-    plot.replot();
-
-    return Image(tempoutDir);
 }
 
 

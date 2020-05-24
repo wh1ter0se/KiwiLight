@@ -14,6 +14,7 @@ UDP          KiwiLightApp::udpSender;
 Runner       KiwiLightApp::runner;
 ConfigEditor KiwiLightApp::configeditor;
 CronWindow   KiwiLightApp::cronWindow;
+LogViewer    KiwiLightApp::logViewer;
 GThread     *KiwiLightApp::streamingThread;
 UIMode       KiwiLightApp::mode = UIMode::UI_STREAM;
 bool         KiwiLightApp::lastImageGrabSuccessful = false;
@@ -21,6 +22,7 @@ bool         KiwiLightApp::udpEnabled = false;
 bool         KiwiLightApp::streamThreadEnabled = true; //acts as a kind of "enable switch" for the streamthread because it seems to like starting when its not supposed to
 bool         KiwiLightApp::outImgInUse = false;
 bool         KiwiLightApp::uiInitalized = false;
+bool         KiwiLightApp::logviewerExists = false;
 Mat          KiwiLightApp::lastFrameGrabImage;
 Window       KiwiLightApp::win;
 ConfigPanel  KiwiLightApp::confInfo;
@@ -396,6 +398,18 @@ void KiwiLightApp::SaveConfigShouldNotRun() {
 }
 
 /**
+ * Shows the log plot on the LogViewer
+ */
+void KiwiLightApp::ToggleLogPlot() {
+    KiwiLightApp::logViewer.TogglePlotShowing();
+}
+
+
+void KiwiLightApp::GenerateLogPlot() {
+    KiwiLightApp::logViewer.GenerateAndShowPlot();
+}
+
+/**
  * Updates KiwiLight's utilities depending on it's state.
  */
 void KiwiLightApp::UpdateApp() {
@@ -408,7 +422,7 @@ void KiwiLightApp::UpdateApp() {
         if(lastImageGrabSuccessful) {
             //wait for the output image to be updated by other thread
             while(KiwiLightApp::outImgInUse) {
-                usleep(10);
+                usleep(100);
             }
             KiwiLightApp::outImgInUse = true;
             KiwiLightApp::outputImage.Update(KiwiLightApp::lastFrameGrabImage);
@@ -635,8 +649,13 @@ void KiwiLightApp::RunHeadlessly() {
 
 
 void KiwiLightApp::ShowLog(XMLDocument log) {
-    LogViewer viewer = LogViewer(log);
-    viewer.Show();
+    // if(KiwiLightApp::logviewerExists) {
+    //     KiwiLightApp::logViewer.~LogViewer();
+    // }
+
+    KiwiLightApp::logViewer = LogViewer(log);
+    logViewer.Show();
+    logviewerExists = true;
 }
 
 
