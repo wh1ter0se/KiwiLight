@@ -649,9 +649,9 @@ void KiwiLightApp::RunHeadlessly() {
 
 
 void KiwiLightApp::ShowLog(XMLDocument log) {
-    // if(KiwiLightApp::logviewerExists) {
-    //     KiwiLightApp::logViewer.~LogViewer();
-    // }
+    if(logviewerExists) {
+        KiwiLightApp::logViewer.Release();
+    }
 
     KiwiLightApp::logViewer = LogViewer(log);
     logViewer.Show();

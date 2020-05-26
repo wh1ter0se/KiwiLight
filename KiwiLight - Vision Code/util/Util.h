@@ -72,6 +72,7 @@ namespace KiwiLight {
         static double MostCommonValue(std::vector<double> data);
         static bool IsOutlier(std::vector<double> data, int indexOfValue, double allowableError);
         static std::vector<double> RemoveOutliers(std::vector<double> data, double allowableError);
+        static std::vector<double> RemoveOccurances(std::vector<double> data, double occurance);
         static std::string VectorToString(std::vector<double> data);
 
         std::vector<int> VectorDoubleToInt(std::vector<double> data);

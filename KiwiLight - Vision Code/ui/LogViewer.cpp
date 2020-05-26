@@ -15,7 +15,6 @@ LogViewer::LogViewer() {
 }
 
 LogViewer::LogViewer(XMLDocument log) {
-    this->initalized = true;
     std::string fileName = log.FileName();
     this->window = Window(GTK_WINDOW_TOPLEVEL, false);
         this->contents = Panel(false, 0);
@@ -177,13 +176,7 @@ LogViewer::LogViewer(XMLDocument log) {
             this->window.SetPane(contents);
         this->window.SetCSS("ui/Style.css");
     this->logviewer = this->window.GetWidget();
-}
-
-
-LogViewer::~LogViewer() {
-    if(initalized) {
-        delete[] this->events;
-    }
+    this->initalized = true;
 }
 
 /**
@@ -207,13 +200,15 @@ void LogViewer::TogglePlotShowing() {
 
 
 void LogViewer::GenerateAndShowPlot() {
-    // std::cout << "gsp1" << std::endl;
     int elapsedTimeMS = totalFramesNum * (1000 / averageFPSNum);
     int maxFPS = (int) (fastestFPSNum * 1.1);
     int maxDist = (int) (farthestDistanceNum * 1.1);
-    // std::cout << "gsp2" << std::endl;
-    generatePlot(elapsedTimeMS, maxFPS, maxDist, events, numEvents);
-    // std::cout<< "gsp3" << std::endl;
+    generatePlot(elapsedTimeMS, maxFPS, maxDist, events, (const int) numEvents);
+}
+
+
+void LogViewer::Release() {
+    delete[] events;
 }
 
 
@@ -243,7 +238,7 @@ void LogViewer::createHorizontalReadout(std::string header, Label readout, bool 
 /**
  * Generates two graphs: one for FPS, one for Distance, and returns an opencv Mat with the image.
  */
-void LogViewer::generatePlot(long elapsedTime, int maxFPS, int maxDist, LogEvent *events, int numEvents) {
+void LogViewer::generatePlot(long elapsedTime, int maxFPS, int maxDist, LogEvent events[], const int numEvents) {
     Gnuplot plot;
     
     //resolve the height of the image
@@ -271,22 +266,21 @@ void LogViewer::generatePlot(long elapsedTime, int maxFPS, int maxDist, LogEvent
     //assemble vectors for plotting points
     int lastGUTimestampSeconds = 0;
     for(int i=0; i<numEvents; i++) {
-        LogEvent event = events[i];
-        double timestamp = event.GetTimestamp() / 1000.0;
-        if(event.GetEventType() == LogEvent::RECORD_HIGH_FPS || event.GetEventType() == LogEvent::RECORD_LOW_FPS) {
+        double timestamp = events[i].GetTimestamp() / 1000.0;
+        if(events[i].GetEventType() == LogEvent::RECORD_HIGH_FPS || events[i].GetEventType() == LogEvent::RECORD_LOW_FPS) {
             fpsTimes.push_back(timestamp);
-            fpsReadings.push_back(event.GetRecord());
-        } else if(event.GetEventType() == LogEvent::RECORD_HIGH_DIST || event.GetEventType() == LogEvent::RECORD_LOW_DIST) {
+            fpsReadings.push_back(events[i].GetRecord());
+        } else if(events[i].GetEventType() == LogEvent::RECORD_HIGH_DIST || events[i].GetEventType() == LogEvent::RECORD_LOW_DIST) {
             distanceTimes.push_back(timestamp);
-            distanceReadings.push_back(event.GetRecord());
+            distanceReadings.push_back(events[i].GetRecord());
         } else { //GENERAL_UPDATE
             fpsTimes.push_back(timestamp);
-            fpsReadings.push_back(event.GetFPS());
+            fpsReadings.push_back(events[i].GetFPS());
 
             distanceTimes.push_back(timestamp);
-            distanceReadings.push_back(event.GetDistance());
+            distanceReadings.push_back(events[i].GetDistance());
 
-            int colorValue = (event.GetTargetSeen() ? 0 : 1);
+            int colorValue = (events[i].GetTargetSeen() ? 0 : 1);
             //fill in fps image
             for(int r=lastGUTimestampSeconds; r<timestamp; r++) {
                 for(int c=0; c<imageHeight; c++) {
@@ -299,9 +293,11 @@ void LogViewer::generatePlot(long elapsedTime, int maxFPS, int maxDist, LogEvent
     }
 
     //resolve plot height and apply
+    std::vector<double> distanceWithoutNegatives = DataUtils::RemoveOccurances(distanceReadings, -1);
+
     int fpsHeight = DataUtils::MaxWithoutOutliers(fpsReadings, 30);
-    int distHeight = DataUtils::MaxWithoutOutliers(distanceReadings, 30);
-    int plotHeight = (fpsHeight > distHeight ? fpsHeight : distHeight) * 1.1;
+    int distHeight = DataUtils::MaxWithoutOutliers(distanceWithoutNegatives, 150);
+    int plotHeight = (fpsHeight > distHeight ? fpsHeight : distHeight);
     plot.set_xrange(0, elapsedTimeSeconds);
     plot.set_yrange(0, plotHeight);
 
@@ -317,7 +313,9 @@ void LogViewer::generatePlot(long elapsedTime, int maxFPS, int maxDist, LogEvent
     }
 }
 
-
+/**
+ * Interprets the XMLTag tag and creates a LogEvent out of it.
+ */
 LogEvent LogViewer::eventFromTag(XMLTag tag) {
     std::string type = tag.GetAttributesByName("type")[0].Value();
     long timestamp = std::stol(tag.GetAttributesByName("timestamp")[0].Value());
@@ -335,7 +333,9 @@ LogEvent LogViewer::eventFromTag(XMLTag tag) {
     }
 }
 
-
+/**
+ * Takes a number of milliseconds and creates a readable string out of it.
+ */
 std::string LogViewer::timeFromMS(long ms) {
     int seconds = (ms / 1000) % 60;
     int minutes = (ms / 60000) % 60;

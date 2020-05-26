@@ -166,9 +166,24 @@ bool DataUtils::IsOutlier(std::vector<double> data, int indexOfValue, double all
 
 std::vector<double> DataUtils::RemoveOutliers(std::vector<double> data, double allowableError) {
     std::vector<double> newSet = std::vector<double>();
+    std::vector<double> sorted = DataUtils::SortLeastGreatestDouble(data);
+    double dataAvg = DataUtils::Median(data);
 
     for(int i=0; i<data.size(); i++) {
-        if(!DataUtils::IsOutlier(data, i, allowableError)) {
+        if(abs(data[i] - dataAvg) <= allowableError) {
+            newSet.push_back(data[i]);
+        }
+    }
+
+    return newSet;
+}
+
+
+std::vector<double> DataUtils::RemoveOccurances(std::vector<double> data, double occurance) {
+    std::vector<double> newSet = std::vector<double>();
+
+    for(int i=0; i<data.size(); i++) {
+        if(data[i] != occurance) {
             newSet.push_back(data[i]);
         }
     }
