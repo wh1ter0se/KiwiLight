@@ -47,7 +47,7 @@ AboutWindow::AboutWindow(GtkWindowType type) {
 
         this->window.SetPane(main);
 
-    this->aboutwindow = window.GetWidget();
+    this->widget = window.GetWidget();
 }
 
 /**
@@ -55,9 +55,4 @@ AboutWindow::AboutWindow(GtkWindowType type) {
  */
 void AboutWindow::Show() {
     this->window.Show();
-}
-
-
-void AboutWindow::SetName(std::string name) {
-    gtk_widget_set_name(this->aboutwindow, name.c_str());
 }

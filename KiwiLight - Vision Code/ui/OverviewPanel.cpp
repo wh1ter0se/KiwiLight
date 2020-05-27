@@ -8,7 +8,9 @@
 using namespace cv;
 using namespace KiwiLight;
 
-
+/**
+ * Creates a new OverviewPanel dispaying information from doc.
+ */
 OverviewPanel::OverviewPanel(XMLDocument doc) {
     XMLTag configTag = doc.GetTagsByName("configuration")[0];
     Panel editor = Panel(false, 0);
@@ -103,7 +105,7 @@ OverviewPanel::OverviewPanel(XMLDocument doc) {
 
             editor.Pack_start(udpPanel.GetWidget(), true, true, 0);
 
-    this->overviewpanel = editor.GetWidget();
+    this->widget = editor.GetWidget();
 }
 
 /**
@@ -113,15 +115,31 @@ void OverviewPanel::Update() {
 
 }
 
+/**
+ * Sets the name of the configuration being displayed.
+ */
 void OverviewPanel::SetConfigName(std::string name) {
     this->configName.SetText(name);
 }
 
+/**
+ * Returns the name of the configuration being displayed.
+ */
 std::string OverviewPanel::GetConfigName() {
     return this->configName.GetText();
 }
 
-
+/**
+ * Sets the text of the information labels.
+ * @param targetSpotted Whether or not the target is currently spotted.
+ * @param targetImgX The X coordinate of the target in image space.
+ * @param targetImgY The Y coordinate of the target in image space.
+ * @param targetImgW The width of the target in image space.
+ * @param targetImgH The height of the target in image space.
+ * @param targetDist The distance from the camera to the target.
+ * @param targetHAngle The horizontal angle that the camera must turn to be aligned with the target.
+ * @param targetVAngle The vertical angle that the camera must turn to be aligned with the target.
+ */
 void OverviewPanel::SetTargetInformationLabels(
     bool targetSpotted, 
     int targetImgX, 
@@ -156,38 +174,59 @@ void OverviewPanel::SetTargetInformationLabels(
     this->targetVAngle.SetText("Target Vertical Angle: " + targetVAngleString);
 }
 
-
+/**
+ * Sets the index of the camera to use.
+ */
 void OverviewPanel::SetCameraIndex(int index) {
     this->cameraIndex.SetValue((double) index);
 }
 
-
+/**
+ * Returns the index of the camera being used.
+ */
 int OverviewPanel::GetCameraIndex() {
     return this->cameraIndex.GetValue();
 }
 
-
+/**
+ * Sets the text of the "UDP Address" field.
+ */
 void OverviewPanel::SetUDPAddr(std::string addr) {
     this->udpAddr.SetText(addr);
 }
 
+/**
+ * Returns the text of the "UDP Address" field.
+ */
 std::string OverviewPanel::GetUDPAddr() {
     return this->udpAddr.GetText();
 }
 
+/**
+ * Sets the value of the "UDP Port" field.
+ */
 void OverviewPanel::SetUDPPort(int port) {
     this->udpPort.SetValue(port);
 }
 
+/**
+ * Returns the value of the "UDP Port" field.
+ */
 int OverviewPanel::GetUDPPort() {
     return (int) this->udpPort.GetValue();
 }
 
+/**
+ * Sets the "Enable/Disable" text of the UDP enable button.
+ */
 void OverviewPanel::SetUDPEnabledLabels(bool UDPEnabled) {
     this->enableUDP.SetText((UDPEnabled ? "Disable" : "Enable"));
 }
 
-
+/**
+ * Calls SetTargetInformationLabels() with the information from the passed string
+ * @param iterOutput A Runner output string (returned by Runner::Iterate()).
+ */
 void OverviewPanel::SetTargetInformationLabelsFromString(std::string iterOutput) {
     if(iterOutput.length() < 3) { //improperly formatted string
         return;
@@ -211,9 +250,4 @@ void OverviewPanel::SetTargetInformationLabelsFromString(std::string iterOutput)
     } else {
         std::cout << "WARNING: Could not update overview panel information labels. Input string was wrongly formatted." << std::endl;
     }
-}
-
-
-void OverviewPanel::SetName(std::string name) {
-    gtk_widget_set_name(this->overviewpanel, name.c_str());
 }

@@ -7,7 +7,9 @@
 
 using namespace KiwiLight;
 
-
+/**
+ * Creates a new PostProcessorEditor displaying values from "postprocessor" as the inital values.
+ */
 PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
     //create a runner to store values for all contours rather than having arrays and things
     std::string genericFileLocation = "";
@@ -128,10 +130,12 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
         this->minimumArea = LabeledSlider("Minimum Area", 5.0, 10000.0, 5.0, realMinArea);
             editor.Pack_start(this->minimumArea.GetWidget(), true, true, 0);
 
-    this->postprocessoreditor = editor.GetWidget();
+    this->widget = editor.GetWidget();
 }
 
-
+/**
+ * Returns the number of contours associated with this PostProcessor.
+ */
 int PostprocessorEditor::GetNumContours() {
     return this->storageRunner.GetNumberOfContours(0);
 }
@@ -248,9 +252,4 @@ void PostprocessorEditor::SetProperty(int contour, TargetProperty prop, SettingP
                 break;
         }
     }
-}
-
-
-void PostprocessorEditor::SetName(std::string name) {
-    gtk_widget_set_name(this->postprocessoreditor, name.c_str());
 }

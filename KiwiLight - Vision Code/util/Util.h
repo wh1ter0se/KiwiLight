@@ -18,6 +18,9 @@ using namespace cv;
 
 namespace KiwiLight {
 
+    /**
+     * A struct representing a 2D distance on both axis.
+     */
     struct Distance {
         Distance(double x, double y) {
             this->x = x;
@@ -29,6 +32,7 @@ namespace KiwiLight {
 
     /**
      * An easy event and variable flagging system
+     * DEPRECIATED: This class is no longer used in KiwiLight and will be removed in the next update.
      */
     class Flags {
         public:
@@ -49,6 +53,9 @@ namespace KiwiLight {
         static std::string ExecuteCommand(std::string command);
     };
 
+    /**
+     * Utilities for handling strings.
+     */
     class StringUtils {
         public:
         static std::vector<std::string> SplitString(std::string str, char character);
@@ -57,7 +64,9 @@ namespace KiwiLight {
         static int CountCharacters(std::string str, char character);
     };
 
-
+    /**
+     * Utilities for handling sets of doubles.
+     */
     class DataUtils {
         public:
         static std::vector<double> SortLeastGreatestDouble(std::vector<double> data);
@@ -106,6 +115,11 @@ namespace KiwiLight {
         int port;
     };
 
+    /**
+     * An attribute of an XML Tag.
+     * ex: <tag attribute="">
+     *          ^^^^^^^^^^^^
+     */
     class XMLTagAttribute {
         public:
         XMLTagAttribute(std::string name, std::string value);
@@ -224,7 +238,7 @@ namespace KiwiLight {
     };
 
     /**
-     * Basic timer utility, which increments time since start() is called. 
+     * Basic timer utility, which increments time since Start() is called. 
      */
     class Clock {
         public:

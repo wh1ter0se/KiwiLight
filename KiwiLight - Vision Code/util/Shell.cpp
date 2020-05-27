@@ -7,6 +7,11 @@
 
 using namespace KiwiLight;
 
+/**
+ * Executes "command" in the terminal logs its output, and returns it.
+ * @param command The command to execute in the terminal.
+ * @return The output of the command.
+ */
 std::string Shell::ExecuteCommand(std::string command) {
     //to create the out file for the command, find HOME to place it in KiwiLightData
     std::string outLocation = "";

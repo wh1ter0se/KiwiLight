@@ -43,13 +43,17 @@ std::vector<double> DataUtils::SortLeastGreatestDouble(std::vector<double> data)
     return result;
 }
 
-
+/**
+ * Returns the greatest value of the set after outliers are removed.
+ */
 double DataUtils::MaxWithoutOutliers(std::vector<double> data, double allowableDeviation) {
     std::vector<double> noOutliers = DataUtils::RemoveOutliers(data, allowableDeviation);
     return DataUtils::Greatest(noOutliers);
 }
 
-
+/**
+ * Returns the sum of all numbers in the set.
+ */
 double DataUtils::Total(std::vector<double> data) {
     double total = 0.0;
 
@@ -60,7 +64,9 @@ double DataUtils::Total(std::vector<double> data) {
     return total;
 }
 
-
+/**
+ * Returns the average of all numbers in the set.
+ */
 double DataUtils::Average(std::vector<double> data) {
     double avg = 0.0;
 
@@ -72,13 +78,17 @@ double DataUtils::Average(std::vector<double> data) {
     return avg;
 }
 
-
+/**
+ * Returns the median of all numbers in the set.
+ */
 double DataUtils::Median(std::vector<double> data) {
     int middle = data.size() / 2;
     return data[middle];
 }
 
-
+/**
+ * Returns the greatest value in the set.
+ */
 double DataUtils::Greatest(std::vector<double> data) {
     double greatest = -1000000000.0;
 
@@ -92,7 +102,9 @@ double DataUtils::Greatest(std::vector<double> data) {
     return greatest;
 }
 
-
+/**
+ * Returns the smallest value in the set.
+ */
 double DataUtils::Least(std::vector<double> data) {
     double least = 1000000000.0;
 
@@ -106,7 +118,9 @@ double DataUtils::Least(std::vector<double> data) {
     return least;
 }
 
-
+/**
+ * Returns the average difference of all numbers in the set.
+ */
 double DataUtils::AverageDifference(std::vector<double> data) {
     double avgDiff = 0.0;
     int totalDifferences = 0;
@@ -124,7 +138,9 @@ double DataUtils::AverageDifference(std::vector<double> data) {
     return avgDiff;
 }
 
-
+/**
+ * Returns the number of times "value" occurs in the set.
+ */
 int DataUtils::NumberOfOccurrances(std::vector<double> data, double value) {
     int occurrances = 0;
 
@@ -137,7 +153,9 @@ int DataUtils::NumberOfOccurrances(std::vector<double> data, double value) {
     return occurrances;
 }
 
-
+/**
+ * Returns the value with the most occurances in the set.
+ */
 double DataUtils::MostCommonValue(std::vector<double> data) {
     int indexWithMostOccurrances = 0;
     int numberOfOccurrances = -1;
@@ -154,7 +172,9 @@ double DataUtils::MostCommonValue(std::vector<double> data) {
     return data[indexWithMostOccurrances];
 }
 
-
+/**
+ * Returns whether or not the value at "indexOfValue" is an outlier in the set "data"
+ */
 bool DataUtils::IsOutlier(std::vector<double> data, int indexOfValue, double allowableError) {
     double average = DataUtils::Average(data);
     double upperBound = average + allowableError;
@@ -163,7 +183,11 @@ bool DataUtils::IsOutlier(std::vector<double> data, int indexOfValue, double all
     return !(data[indexOfValue] > lowerBound && data[indexOfValue] < upperBound);
 }
 
-
+/**
+ * Removes all outliers from the set.
+ * @param data The data set.
+ * @param allowableError The allowable devation from the median to not be considered an outlier.
+ */
 std::vector<double> DataUtils::RemoveOutliers(std::vector<double> data, double allowableError) {
     std::vector<double> newSet = std::vector<double>();
     std::vector<double> sorted = DataUtils::SortLeastGreatestDouble(data);
@@ -178,7 +202,9 @@ std::vector<double> DataUtils::RemoveOutliers(std::vector<double> data, double a
     return newSet;
 }
 
-
+/**
+ * Removes all occurances of "occurances" from data.
+ */
 std::vector<double> DataUtils::RemoveOccurances(std::vector<double> data, double occurance) {
     std::vector<double> newSet = std::vector<double>();
 
@@ -204,7 +230,7 @@ std::vector<int> DataUtils::VectorDoubleToInt(std::vector<double> data) {
 }
 
 /**
- * cast all ints in "data" to double.
+ * Cast all ints in "data" to double.
  */
 std::vector<double> DataUtils::VectorIntToDouble(std::vector<int> data) {
     std::vector<double> result;
@@ -215,7 +241,9 @@ std::vector<double> DataUtils::VectorIntToDouble(std::vector<int> data) {
     return result;
 }
 
-
+/**
+ * Encodes data into a string.
+ */
 std::string DataUtils::VectorToString(std::vector<double> data) {
     std::string vectorString = "[";
 

@@ -33,7 +33,7 @@ CameraSetting::CameraSetting(std::string name, int valueName, double min, double
         this->input = NumberBox(min, max, 0.01, value);
             main.Pack_start(this->input.GetWidget(), true, true, 0);
 
-    this->camerasetting = main.GetWidget();
+    this->widget = main.GetWidget();
 }
 
 /**
@@ -56,9 +56,4 @@ int CameraSetting::GetValueName() {
 void CameraSetting::SetValue(double newValue) {
     this->value = newValue;
     this->input.SetValue(value);
-}
-
-
-void CameraSetting::SetName(std::string name) {
-    gtk_widget_set_name(this->camerasetting, name.c_str());
 }

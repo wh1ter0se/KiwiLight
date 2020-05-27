@@ -10,20 +10,36 @@ using namespace KiwiLight;
 
 static int LEARNER_FRAMES = 50;
 
+/**
+ * Called when the "Learn Target" editor button is pressed. 
+ * This method activates the learner.
+ */
 static void LearnTargetButtonPressed() {
     KiwiLightApp::StartEditorLearningTarget();
 }
 
+/**
+ * Called when the "Learn Distance" editor button is pressed.
+ * Activates the distance learner.
+ */
 static void LearnDistanceButtonPressed() {
     KiwiLightApp::StartEditorLearningDistance();
 }
 
+/**
+ * Called when the "Just Close" editor button is pressed.
+ * Closes the editor window without saving the current configuration.
+ */
 static void JustCloseButtonPressed() {
     KiwiLightApp::StopStreamingThread();
     KiwiLightApp::CloseEditor(false);
     KiwiLightApp::LaunchStreamingThread(UIMode::UI_RUNNER);
 }
 
+/**
+ * Called when the "Save and Close" editor button is pressed.
+ * Saves the configuration being edited and closes the editor window.
+ */
 static void SaveAndCloseButtonPressed() {
     KiwiLightApp::StopStreamingThread();
     KiwiLightApp::CloseEditor(true);
@@ -31,7 +47,7 @@ static void SaveAndCloseButtonPressed() {
 }
 
 /**
- * Creates a window to edit the bassed file.
+ * Creates a window to edit the passed file.
  */
 ConfigEditor::ConfigEditor(std::string fileName) {
     this->learnerActivated = false;
@@ -124,11 +140,11 @@ ConfigEditor::ConfigEditor(std::string fileName) {
     this->window.SetCSS("ui/Style.css");
     this->window.Show();
 
-    this->configeditor = this->window.GetWidget();
+    this->widget = this->window.GetWidget();
 }
 
 /**
- * Updates the editor and checks for button presses, etc.
+ * Updates the editor tools and checks for button presses, etc.
  */
 void ConfigEditor::Update() {
     Mat displayable;
@@ -287,7 +303,7 @@ std::string ConfigEditor::GetLastFrameResult() {
 }
 
 /**
- * Causes the editor to save the config to file.
+ * Causes the editor to save the config to it's file.
  */
 void ConfigEditor::Save() {
     //assemble the file structure and write it into a file which the user may designate
@@ -514,12 +530,16 @@ void ConfigEditor::Save() {
     doc.WriteFile(fileToSave);
 }
 
-
+/**
+ * Closes and destroys the editor window.
+ */
 void ConfigEditor::Close() {
-    gtk_widget_destroy(this->configeditor);
+    gtk_widget_destroy(this->widget);
 }
 
-
+/**
+ * Activates the target learning tool and prompts instructions for the user to follow to learn the target.
+ */
 void ConfigEditor::StartLearningTarget() {
     if(KiwiLightApp::CameraOpen()) {
         //reinstantiate the learner to apply the preprocessor settings
@@ -549,7 +569,9 @@ void ConfigEditor::StartLearningTarget() {
     }
 }
 
-
+/**
+ * Activates the Distance learner and prompts instructions for the user to follow to learn distance.
+ */
 void ConfigEditor::StartLearningDistance() {
     //check for video errors
     if(KiwiLightApp::CameraOpen()) {
@@ -603,7 +625,9 @@ void ConfigEditor::StartLearningDistance() {
     }
 }
 
-
+/**
+ * Reconnects the KiwiLight socket sender to the IPv4 address and port found in the Runner tab.
+ */
 void ConfigEditor::ReconnectUDPFromEditor() {
     std::string newUDPAddr = this->runnerSettings.GetUDPAddr();
     int newUDPPort = this->runnerSettings.GetUDPPort();
@@ -614,7 +638,9 @@ void ConfigEditor::ReconnectUDPFromEditor() {
     this->configOverview.SetUDPPort(newUDPPort);
 }
 
-
+/**
+ * Sets the "Enable/Disable" UDP button texts based on the value of "UDPEnabled"
+ */
 void ConfigEditor::SetUDPEnabledLabels(bool UDPEnabled) {
     this->configOverview.SetUDPEnabledLabels(UDPEnabled);
     this->runnerSettings.SetUDPEnabledLabels(UDPEnabled);
@@ -645,13 +671,17 @@ void ConfigEditor::ApplyCameraSettings() {
     }
 }
 
-
+/**
+ * Sets the text of the Camera ID number boxes to the value of "index."
+ */
 void ConfigEditor::SetCameraIndexBoxes(int index) {
     this->configOverview.SetCameraIndex(index);
     this->cameraSettings.SetCameraIndex(index);
 }
 
-
+/**
+ * Reconnects the KiwiLight socket sender to the IPv4 address and port found in the Runner tab.
+ */
 void ConfigEditor::ReconnectUDPFromOverview() {
     std::string newAddr = this->configOverview.GetUDPAddr();
     int newPort = this->configOverview.GetUDPPort();
@@ -662,7 +692,9 @@ void ConfigEditor::ReconnectUDPFromOverview() {
     this->runnerSettings.SetUDPPort(newPort);
 }
 
-
+/**
+ * Sets the index of the KiwiLight camera to the value found on the Overview ID widget.
+ */
 void ConfigEditor::OpenNewCameraFromOverview() {
     int newCameraIndex = this->configOverview.GetCameraIndex();
 
@@ -671,12 +703,9 @@ void ConfigEditor::OpenNewCameraFromOverview() {
     KiwiLightApp::OpenNewCameraOnIndex(newCameraIndex);
 }
 
-
-void ConfigEditor::SetName(std::string name) {
-    gtk_widget_set_name(this->configeditor, name.c_str());
-}
-
-
+/**
+ * Updates the Image widget found to the right side of the editor.
+ */
 void ConfigEditor::UpdateImage() {
     this->runner.Iterate();
     Mat displayable;

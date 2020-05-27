@@ -10,10 +10,9 @@ using namespace KiwiLight;
 
 const std::string LogViewer::TEMPFILE_DIR = "/KiwiLightData/tmp/plotout.png";
 
-LogViewer::LogViewer() {
-    this->initalized = false;
-}
-
+/**
+ * Creates a new LogViewer displaying the contents of "log"
+ */
 LogViewer::LogViewer(XMLDocument log) {
     std::string fileName = log.FileName();
     this->window = Window(GTK_WINDOW_TOPLEVEL, false);
@@ -175,7 +174,7 @@ LogViewer::LogViewer(XMLDocument log) {
 
             this->window.SetPane(contents);
         this->window.SetCSS("ui/Style.css");
-    this->logviewer = this->window.GetWidget();
+    this->widget = this->window.GetWidget();
     this->initalized = true;
 }
 
@@ -186,7 +185,9 @@ void LogViewer::Show() {
     this->window.Show();
 }
 
-
+/**
+ * Turns on/off the log Gnuplot, which shows seen, FPS, and Distance data.
+ */
 void LogViewer::TogglePlotShowing() {
     showingPlot = !showingPlot;
 
@@ -198,7 +199,9 @@ void LogViewer::TogglePlotShowing() {
     plotButton.SetText(showingPlot ? "Hide Plot" : "Show Plot");
 }
 
-
+/**
+ * Generates and shows the log Gnuplot.
+ */
 void LogViewer::GenerateAndShowPlot() {
     int elapsedTimeMS = totalFramesNum * (1000 / averageFPSNum);
     int maxFPS = (int) (fastestFPSNum * 1.1);
@@ -206,17 +209,20 @@ void LogViewer::GenerateAndShowPlot() {
     generatePlot(elapsedTimeMS, maxFPS, maxDist, events, (const int) numEvents);
 }
 
-
+/**
+ * Should be called when the LogViewer is destroyed to prevent memory leaks.
+ * Deletes the events array.
+ */
 void LogViewer::Release() {
     delete[] events;
 }
 
-
-void LogViewer::SetName(std::string name) {
-    gtk_widget_set_name(this->logviewer, name.c_str());
-}
-
-
+/**
+ * Creates a horizontal readout.
+ * @param header The name of the value being read out.
+ * @param readout The Label displaying the value.
+ * @param isBig True if the readout should be big, false for normal size.
+ */
 void LogViewer::createHorizontalReadout(std::string header, Label readout, bool isBig) {
     int pad = (isBig ? 10 : 0);
 
@@ -334,7 +340,8 @@ LogEvent LogViewer::eventFromTag(XMLTag tag) {
 }
 
 /**
- * Takes a number of milliseconds and creates a readable string out of it.
+ * Takes a number of milliseconds and and returns a time.
+ * Format: x hours, x minutes, x seconds
  */
 std::string LogViewer::timeFromMS(long ms) {
     int seconds = (ms / 1000) % 60;

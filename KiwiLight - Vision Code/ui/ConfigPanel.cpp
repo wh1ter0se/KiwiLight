@@ -7,10 +7,13 @@
 
 using namespace KiwiLight;
 
-extern void EditSelected(); //from Main.cpp
-extern void ToggleUDP(); //from Main.cpp
+//TODO: figre out if these should be deleted
+// extern void EditSelected(); //from Main.cpp
+// extern void ToggleUDP(); //from Main.cpp
 
-
+/**
+ * Creates a new ConfigPanel displaying information from "file"
+ */
 ConfigPanel::ConfigPanel(XMLDocument file) {
     this->panel = Panel(false, 5);
 
@@ -95,10 +98,12 @@ ConfigPanel::ConfigPanel(XMLDocument file) {
         
             this->panel.Pack_start(udpPortPanel.GetWidget(), false, false, 0);
 
-    this->configPanel = this->panel.GetWidget();
+    this->widget = this->panel.GetWidget();
 }
 
-
+/**
+ * Loads config information from fileName.
+ */
 void ConfigPanel::LoadConfig(std::string fileName) {
     this->LoadConfig(XMLDocument(fileName));
 }
@@ -130,7 +135,9 @@ void ConfigPanel::LoadConfig(XMLDocument file) {
     this->configNameString = name;
 }
 
-
+/**
+ * Sets the panel information to reflect that no config is loaded.
+ */
 void ConfigPanel::Clear() {
     this->header.SetText("Configuration: (none loaded)");
     this->fileLabel.SetText("(none)");
@@ -138,8 +145,4 @@ void ConfigPanel::Clear() {
     this->TargetLabel.SetText("(none)");
     this->UDPAddressLabel.SetText("(none)");
     this->UDPPortLabel.SetText("(none)");
-}
-
-void ConfigPanel::SetName(std::string name) {
-    gtk_widget_set_name(this->configPanel, name.c_str());
 }

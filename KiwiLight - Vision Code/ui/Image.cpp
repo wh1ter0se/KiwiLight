@@ -8,17 +8,21 @@
 using namespace cv;
 using namespace KiwiLight;
 
-
+/**
+ * Creates a new Image widget from the given file path.
+ */
 Image::Image(std::string fileName) {
-    this->image = gtk_image_new_from_file(fileName.c_str());
+    this->widget = gtk_image_new_from_file(fileName.c_str());
     this->colorspace = ImageColorspace::RGB;
     this->declaredAsStaticImage = true;
     this->declared = true;
 }
 
-
+/**
+ * Creates a new Image widget with the given colorspace.
+ */
 Image::Image(ImageColorspace colorspace) {
-    this->image = gtk_drawing_area_new();
+    this->widget = gtk_drawing_area_new();
     this->colorspace = colorspace;
     this->declaredAsStaticImage = false;
     this->declared = true;
@@ -36,7 +40,7 @@ void Image::Update(cv::Mat newImage) {
 
         //create the cairo renderer and initalize it
         cairo_region_t *region = cairo_region_create();
-        GdkWindow *win = gtk_widget_get_window(this->image);
+        GdkWindow *win = gtk_widget_get_window(this->widget);
 
         if(win != NULL) {
             GdkDrawingContext *drawingContext = gdk_window_begin_draw_frame(win, region);
@@ -67,7 +71,7 @@ void Image::Update(cv::Mat newImage) {
             gdk_window_end_draw_frame(win, drawingContext);
 
             //request a new widget size so the entire image is visible
-            gtk_widget_set_size_request(this->image, newImageCopy.cols, newImageCopy.rows);
+            gtk_widget_set_size_request(this->widget, newImageCopy.cols, newImageCopy.rows);
 
             //clean up memory so leaks don't happen
             cairo_surface_destroy(surface);
@@ -77,8 +81,4 @@ void Image::Update(cv::Mat newImage) {
     } else {
         std::cout << "CANNOT UPDATE A STATIC IMAGE!" << std::endl;
     }
-}
-
-void Image::SetName(std::string name) {
-    gtk_widget_set_name(this->image, name.c_str());
 }

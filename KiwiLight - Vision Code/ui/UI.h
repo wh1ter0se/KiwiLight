@@ -19,6 +19,9 @@ using namespace cv;
 
 namespace KiwiLight {
 
+    /**
+     * Colorspaces that are used by the Image class.
+     */
     enum ImageColorspace {
         RGB
     };
@@ -28,8 +31,11 @@ namespace KiwiLight {
      */
     class Widget {
         public:
-        virtual GtkWidget *GetWidget() = 0;
-        virtual void SetName(std::string name) = 0;
+        GtkWidget *GetWidget();
+        void SetName(std::string name);
+
+        protected:
+        GtkWidget *widget;
     };
 
     /**
@@ -41,43 +47,34 @@ namespace KiwiLight {
         Panel(bool horizontal, int spacing);
         void Pack_start(GtkWidget *widget, bool expand, bool fill, int pad);
         void Pack_end(GtkWidget *widget, bool expand, bool fill, int pad);
-        void Show() { gtk_widget_show_all(this->panel); };
-        GtkWidget *GetWidget() { return panel; };
-        void SetName(std::string name);
-
-        private:
-        GtkWidget *panel;
+        void Show() { gtk_widget_show_all(this->widget); };
     };
 
-
+    /**
+     * A panel with scrollbars.
+     * DEPRECIATED: This class is not used in KiwiLight and will be removed in the next update.
+     */
     class Scrollable : public Widget {
         public:
         Scrollable() {};
         Scrollable(bool horizontal, bool vertical);
         void PackWidget(GtkWidget *wid);
-        GtkWidget *GetWidget() { return this->scrollable; };
-        void SetName(std::string name);
-
-        private:
-        GtkWidget *scrollable;
     };
 
-
+    /**
+     * A frame with a label.
+     * DEPRECIATED: The Frame class is not used in KiwiLight and will be removed in the next update.
+     */
     class Frame : public Widget {
         public:
         Frame() {};
         Frame(std::string label);
         void Pack(GtkWidget *widget);
         void Unpack(GtkWidget *widget);
-        GtkWidget *GetWidget() { return this->frame; };
-        void SetName(std::string name);
-
-        private:
-        GtkWidget *frame;
     };
 
     /**
-     * Represents a UI window that contains a form, or what have you
+     * Represents a UI window.
      */
     class Window : public Widget {
         public:
@@ -93,11 +90,8 @@ namespace KiwiLight {
         void RemoveInterval(int id);
         void Main() { gtk_main(); };
         void SetCSS(std::string fileName);
-        GtkWidget *GetWidget() { return this->window; };
-        void SetName(std::string name);
         
         private:
-        GtkWidget *window;
         static void(*onAppClosed)();
         static void(*timeoutMethod)();
         static gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer pointer);
@@ -114,10 +108,8 @@ namespace KiwiLight {
         Label(std::string text);
         void SetText(std::string text);
         std::string GetText() { return text; };
-        void SetName(std::string name);
         void SetLineWrap(bool enabled);
         void SetJustify(int justify);
-        GtkWidget *GetWidget() { return this->label; };
 
         static const int JUSTIFY_LEFT = 0,
                           JUSTIFY_RIGHT = 1,
@@ -127,7 +119,6 @@ namespace KiwiLight {
         std::string text;
         std::string font;
         double font_size;
-        GtkWidget *label;
     };
 
     /**
@@ -140,14 +131,11 @@ namespace KiwiLight {
         void SetText(std::string text);
         void SetAlignment(double align);
         std::string GetText();
-        GtkWidget *GetWidget() { return this->textbox; };
-        void SetName(std::string name);
-
-        private:
-        GtkWidget *textbox;
     };
 
-
+    /**
+     * A Box that contains a number, and buttons to increment/decrement it.
+     */
     class NumberBox : public Widget {
         public:
         NumberBox() {};
@@ -155,14 +143,10 @@ namespace KiwiLight {
         NumberBox(double min, double max, double step, double value);
         void SetValue(double value);
         double GetValue();
-        GtkWidget *GetWidget() { return this->numberBox; };
-        void SetName(std::string name);
 
         private:
         double min,
             max;
-        
-        GtkWidget *numberBox;
     };
 
     /**
@@ -174,11 +158,6 @@ namespace KiwiLight {
         CheckBox(std::string name, bool checked);
         void SetState(bool checked);
         bool GetState();
-        GtkWidget *GetWidget() { return this->checkbox; };
-        void SetName(std::string name);
-
-        private:
-        GtkWidget *checkbox;
     };
 
     /**
@@ -191,11 +170,6 @@ namespace KiwiLight {
         Slider(bool horizontal, double min, double max, double step, double value);
         void SetValue(double value);
         double GetValue();
-        GtkWidget *GetWidget() { return this->slider; };
-        void SetName(std::string name);
-
-        private:
-        GtkWidget *slider;
     };
 
     /**
@@ -204,11 +178,6 @@ namespace KiwiLight {
     class Separator : public Widget {
         public:
         Separator(bool horizontal);
-        GtkWidget *GetWidget() { return this->separator; };
-        void SetName(std::string name);
-
-        private:
-        GtkWidget *separator;
     };
 
     /**
@@ -221,12 +190,9 @@ namespace KiwiLight {
         void SetText(std::string text);
         std::string GetText() { return text; };
         void SetCallback( void(*callback)() );
-        GtkWidget *GetWidget() { return this->button; };
-        void SetName(std::string name);
-
+        
         private:
         std::string text;
-        GtkWidget *button;
     };
 
     /**
@@ -241,12 +207,9 @@ namespace KiwiLight {
         void ShowWithoutRunning();
         bool ShowAndGetResponse();
         void Destroy();
-        GtkWidget *GetWidget() { return this->dialog; };
-        void SetName(std::string name);
 
         private:
         Panel content;
-        GtkWidget *dialog;
     };
 
     /**
@@ -255,11 +218,6 @@ namespace KiwiLight {
     class SubMenuItem : public Widget {
         public:
         SubMenuItem(std::string name, void(*callback)());
-        GtkWidget *GetWidget() { return this->submenuitem; };
-        void SetName(std::string name);
-
-        private:
-        GtkWidget *submenuitem;
     };
 
     /**
@@ -269,11 +227,8 @@ namespace KiwiLight {
         public:
         MenuItem(std::string name);
         void AddSubmenuItem(SubMenuItem item);
-        GtkWidget *GetWidget() { return this->menuitem; };
-        void SetName(std::string name);
 
         private:
-        GtkWidget *menuitem;
         GtkWidget *menu;
     };
 
@@ -284,13 +239,11 @@ namespace KiwiLight {
         public:
         MenuBar();
         void AddItem(MenuItem item);
-        GtkWidget *GetWidget() { return this->menubar; };
-        void SetName(std::string name);
-
-        private:
-        GtkWidget *menubar;
     };
 
+    /**
+     * A widget that displays an image, either loaded from file, or displayed from an OpenCV Mat.
+     */
     class Image : public Widget {
         public:
         Image() { this->declared = false; };
@@ -298,58 +251,53 @@ namespace KiwiLight {
         Image(ImageColorspace colorspace);
         bool Declared() { return this->declared; };
         void Update(cv::Mat newImage);
-        GtkWidget *GetWidget() { return this->image; };
-        void SetName(std::string name);
 
         private:
         bool declared;
         bool declaredAsStaticImage;
-        GtkWidget *image;
         ImageColorspace colorspace;
 
         //for one time init without updates
         Mat originalImage;
     };
 
+    /**
+     * A file chooser dialog.
+     */
     class FileChooser : public Widget {
         public:
         FileChooser() {};
         FileChooser(bool writing, std::string defaultFileName);
         std::string Show();
-        GtkWidget *GetWidget() { return this->filechooser; };
-        void SetName(std::string name);
-
-        private:
-        GtkWidget *filechooser;
     };
 
-
+    /**
+     * A panel with tabs which display different widgets.
+     */
     class TabView : public Widget {
         public:
         TabView() {};
         TabView(std::string tab1Name, GtkWidget *tab1Content);
         void AddTab(std::string tabName, GtkWidget* tabContent);
-        GtkWidget *GetWidget() { return this->tabview; };
-        void SetName(std::string name);
-
-        private:
-        GtkWidget *tabview;
     };
 
-
+    /**
+     * A dialog with a text box.
+     * DEPRECIATED: The PopupTextBox class is not used in KiwiLight and will be removed in the next update.
+     */
     class PopupTextBox : public Widget {
         public:
         PopupTextBox() {};
         PopupTextBox(std::string name, std::string prompt, std::string initValue);
         std::string Show();
-        GtkWidget *GetWidget() { return this->popuptextbox; };
-        void SetName(std::string name);
 
         private:
-        GtkWidget *popuptextbox;
         TextBox textbox;
     };
 
+    /**
+     * A Slider with a label.
+     */
     class LabeledSlider : public Widget {
         public:
         LabeledSlider() {};
@@ -358,42 +306,37 @@ namespace KiwiLight {
         double GetValue();
         void SetValue(double value);
         void SetLabel(std::string text);
-        GtkWidget *GetWidget() { return this->labeledslider; };
-        void SetName(std::string name);
 
         private:
         Panel panel;
         Label label;
         Slider slider;
-        GtkWidget *labeledslider;
     };
 
-
+    /**
+     * A window that shows information about KiwiLight.
+     */
     class AboutWindow : public Widget {
         public:
         AboutWindow() {};
         AboutWindow(GtkWindowType type);
         void Show();
-        GtkWidget *GetWidget() { return this->aboutwindow; };
-        void SetName(std::string name);
-
+        
         private:
         Window window;
-        GtkWidget *aboutwindow;
     };
 
-
+    /**
+     * A window that provides help with using KiwiLight.
+     */
     class HelpWindow : public Widget {
         public:
         HelpWindow() {};
         HelpWindow(GtkWindowType type);
         void Show();
-        GtkWidget *GetWidget() { return this->helpwindow; };
-        void SetName(std::string name);
 
         private:
         Window window;
-        GtkWidget *helpwindow;
     };
 
     /**
@@ -407,8 +350,6 @@ namespace KiwiLight {
         void Show();
         void Close();
         void SaveRule(bool shouldRun);
-        GtkWidget *GetWidget() { return this->cronwindow; };
-        void SetName(std::string name);
 
         private:
         bool isCurrentFileAutomatic();
@@ -421,8 +362,6 @@ namespace KiwiLight {
             currentRuleStatus;
 
         bool isOpened;
-
-        GtkWidget *cronwindow;
     };
 
     /**
@@ -431,14 +370,12 @@ namespace KiwiLight {
     class LogViewer : public Widget {
         public:
         static const std::string TEMPFILE_DIR;
-        LogViewer();
+        LogViewer() {};
         LogViewer(XMLDocument log);
         void Show();
         void TogglePlotShowing();
         void GenerateAndShowPlot();
         void Release();
-        GtkWidget *GetWidget() { return this->logviewer; };
-        void SetName(std::string name);
 
         private:
         void createHorizontalReadout(std::string header, Label readout, bool isBig);
@@ -484,8 +421,6 @@ namespace KiwiLight {
             slowestFPSNum;
 
         LogEvent *events;
-
-        GtkWidget *logviewer;
     };
 
     /**
@@ -500,12 +435,8 @@ namespace KiwiLight {
         void SetValue(double newValue);
         void Destroy();
         std::string GetName() { return name; };
-        GtkWidget *GetWidget() { return this->camerasetting; };
-        void SetName(std::string name);
 
         private:
-        GtkWidget *camerasetting;
-
         Label  nameLabel;
         NumberBox input;
 
@@ -533,8 +464,6 @@ namespace KiwiLight {
         void Clear();
         std::string GetConfigurationName() { return this->configNameString; };
         std::string GetConfigFile() { return this->configFile; };
-        GtkWidget *GetWidget() { return this->configPanel; };
-        void SetName(std::string name);
 
         private:
         Panel panel;
@@ -549,10 +478,11 @@ namespace KiwiLight {
         std::string 
             configFile,
             configNameString;
-
-        GtkWidget *configPanel;
     };
 
+    /**
+     * A panel that edits basic config properties.
+     */
     class OverviewPanel : public Widget {
         public:
         OverviewPanel() {};
@@ -578,8 +508,6 @@ namespace KiwiLight {
         int GetUDPPort();
         void SetUDPEnabledLabels(bool UDPEnabled);
         void SetTargetInformationLabelsFromString(std::string iterOutput);
-        GtkWidget *GetWidget() { return overviewpanel; };
-        void SetName(std::string name);
 
         private:
         TextBox configName;
@@ -595,12 +523,10 @@ namespace KiwiLight {
             targetDist,
             targetHAngle,
             targetVAngle;
-
-        GtkWidget *overviewpanel;
     };
 
     /**
-     * A window where camera settings can be modified.
+     * A window where KiwiLight camera settings can be modified.
      */
     class Settings : public Widget {
         public:
@@ -608,23 +534,22 @@ namespace KiwiLight {
         Settings(XMLDocument doc);
         void Update();
         void UpdateValue();
-        void Show() { gtk_widget_show_all(this->settingsWidget); };
+        void Show() { gtk_widget_show_all(this->widget); };
         XMLTag GetFinishedTag();
         void SetSettingValueFromID(int id, double value);
         double GetSettingValueFromID(int id);
         void SetCameraIndex(int index);
         int GetCameraIndex();
         std::vector<int> GetSettingIDs();
-        GtkWidget *GetWidget() { return settingsWidget; };
-        void SetName(std::string name);
 
         private:
         NumberBox cameraIndex;
         std::vector<CameraSetting> settings;
-        GtkWidget *settingsWidget;
     };
 
-    
+    /**
+     * A panel that edits KiwiLight PreProcessors.
+     */
     class PreprocessorEditor : public Widget {
         public:
         PreprocessorEditor() {};
@@ -632,7 +557,7 @@ namespace KiwiLight {
         void Update();
         double GetProperty(PreProcessorProperty prop);
         void SetProperty(PreProcessorProperty prop, double value);
-        GtkWidget *GetWidget() { return this->preprocessoreditor; };
+        GtkWidget *GetWidget() { return this->widget; };
         void SetName(std::string name);
 
         private:
@@ -654,10 +579,12 @@ namespace KiwiLight {
             erosion,
             dilation;
         
-        GtkWidget *preprocessoreditor;
+        GtkWidget *widget;
     };
 
-
+    /**
+     * A panel that edits KiwiLight PostProcessors.
+     */
     class PostprocessorEditor : public Widget {
         public:
         PostprocessorEditor() {};
@@ -667,8 +594,6 @@ namespace KiwiLight {
         void SetNumContours(int contours);
         SettingPair GetProperty(int contour, TargetProperty prop);
         void SetProperty(int contour, TargetProperty prop, SettingPair value);
-        GtkWidget *GetWidget() { return this->postprocessoreditor; };
-        void SetName(std::string name);
 
         private:
         int lastDesiredContour;
@@ -692,11 +617,11 @@ namespace KiwiLight {
         Label totalContours;
 
         Runner storageRunner;
-
-        GtkWidget *postprocessoreditor;
     };
 
-
+    /**
+     * A panel that edits KiwiLight Runners.
+     */
     class RunnerEditor : public Widget {
         public:
         RunnerEditor() {};
@@ -709,8 +634,6 @@ namespace KiwiLight {
         void SetUDPAddr(std::string newAddr);
         void SetUDPPort(int newPort);
         void SetUDPEnabledLabels(bool UDPEnabled);
-        GtkWidget *GetWidget() { return this->runnereditor; };
-        void SetName(std::string name);
 
         private:
         Label distanceLabel;
@@ -731,10 +654,11 @@ namespace KiwiLight {
             targetPercievedWidth,
             targetCalibratedDistance,
             targetErrorCorrection;
-
-        GtkWidget *runnereditor;
     };
 
+    /**
+     * A window editor that edits a KiwiLight configuration.
+     */
     class ConfigEditor : public Widget {
         public:
         ConfigEditor() {};
@@ -754,8 +678,6 @@ namespace KiwiLight {
         void OpenNewCameraFromOverview();
         std::string GetFileName() { return this->fileName; };
         cv::Mat GetOutputImage() { return this->out; };
-        GtkWidget *GetWidget() { return this->configeditor; };
-        void SetName(std::string name);
 
         private:
         void UpdateImage();
@@ -795,8 +717,6 @@ namespace KiwiLight {
 
         Window window;
         Panel content;
-
-        GtkWidget *configeditor;
     };
 }
 

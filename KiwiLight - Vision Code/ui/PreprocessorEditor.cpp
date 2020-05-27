@@ -7,7 +7,9 @@
 
 using namespace KiwiLight;
 
-
+/**
+ * Creates a new PreProcessorEditor using the values from "preprocessor" as the inital values.
+ */
 PreprocessorEditor::PreprocessorEditor(PreProcessor preprocessor) {
     this->lastIsFull = preprocessor.GetProperty(PreProcessorProperty::IS_FULL) == 1.0;
     Panel editor = Panel(false, 0);
@@ -76,7 +78,7 @@ PreprocessorEditor::PreprocessorEditor(PreProcessor preprocessor) {
         this->dilation = LabeledSlider("Dilation", 1.0, 25.0, 1.0, realDilation);
             editor.Pack_start(this->dilation.GetWidget(), true, true, 0);
 
-    this->preprocessoreditor = editor.GetWidget();
+    this->widget = editor.GetWidget();
 }
 
 /**
@@ -174,11 +176,4 @@ void PreprocessorEditor::SetProperty(PreProcessorProperty prop, double value) {
             this->colorError.SetValue(value);
             break;
     }
-}
-
-/**
- * Sets the name of the editor.
- */
-void PreprocessorEditor::SetName(std::string name) {
-    gtk_widget_set_name(this->preprocessoreditor, name.c_str());
 }

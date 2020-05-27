@@ -33,7 +33,12 @@ std::vector<std::string> StringUtils::SplitString(std::string str, char characte
     return substrings;
 }
 
-
+/**
+ * Returns a substring of str.
+ * @param str The string to create a substring out of.
+ * @param begin The first character that the substring should have.
+ * @param end The first character that the substring should NOT have.
+ */
 std::string StringUtils::Substring(std::string str, int begin, int end) {
     std::string substr = "";
 
@@ -51,12 +56,18 @@ std::string StringUtils::Substring(std::string str, int begin, int end) {
     return substr;
 }
 
-
+/**
+ * Returns whether or not str starts with startsWith.
+ * @param str The string to test.
+ * @param startsWith The string that str is being tested for.
+ */
 bool StringUtils::StringStartsWith(std::string str, std::string startsWith) {
     return ( StringUtils::Substring(str, 0, startsWith.length()) == startsWith );
 }
 
-
+/**
+ * Returns the number of times "character" appears in "str."
+ */
 int StringUtils::CountCharacters(std::string str, char character) {
     int counter = 0;
 

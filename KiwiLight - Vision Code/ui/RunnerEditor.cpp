@@ -7,10 +7,17 @@
 
 using namespace KiwiLight;
 
+/**
+ * Called when the "Reconnect" button is pressed.
+ * Reconnects the KiwiLight Socket sender.
+ */
 static void ReconnectUDP() {
     KiwiLightApp::EditorReconnectUDP();
 }
 
+/**
+ * Creates a new RunnerEditor using the values from "runner" as the inital values.
+ */
 RunnerEditor::RunnerEditor(Runner runner) {
     Panel editor = Panel(false, 0);
 
@@ -115,7 +122,7 @@ RunnerEditor::RunnerEditor(Runner runner) {
                 distancePanel.Pack_start(errorCorrectionPanel.GetWidget(), true, true, 0);
             editor.Pack_start(distancePanel.GetWidget(), true, true, 0);
 
-    this->runnereditor = editor.GetWidget();
+    this->widget = editor.GetWidget();
 }
 
 /**
@@ -187,31 +194,37 @@ void RunnerEditor::SetProperty(RunnerProperty prop, double value) {
     }
 }
 
-
+/**
+ * Returns the text of the "UDP Address" field.
+ */
 std::string RunnerEditor::GetUDPAddr() {
     return this->udpAddress.GetText();
 }
 
-
+/**
+ * Returns the value of the "UDP Port" field.
+ */
 int RunnerEditor::GetUDPPort() {
     return (int) this->udpPort.GetValue();
 }
 
-
+/**
+ * Sets the text of the "UDP Address" field.
+ */
 void RunnerEditor::SetUDPAddr(std::string newAddr) {
     this->udpAddress.SetText(newAddr);
 }
 
-
+/**
+ * Sets the value of the "UDP Port" field.
+ */
 void RunnerEditor::SetUDPPort(int newPort) {
     this->udpPort.SetValue((double) newPort);
 }
 
-
+/**
+ * Sets the text of the UDP Enable button.
+ */
 void RunnerEditor::SetUDPEnabledLabels(bool UDPEnabled) {
     this->enableUDP.SetText((UDPEnabled ? "Disable" : "Enable"));
-}
-
-void RunnerEditor::SetName(std::string name) {
-    gtk_widget_set_name(this->runnereditor, name.c_str());
 }

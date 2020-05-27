@@ -8,7 +8,7 @@
 using namespace KiwiLight;
 
 /**
- * Creates a new CronWindow.
+ * Creates a new CronWindow with the passed window type
  */
 CronWindow::CronWindow(GtkWindowType type) {
     this->window = Window(type, false);
@@ -69,7 +69,7 @@ CronWindow::CronWindow(GtkWindowType type) {
 
         window.SetPane(contents);
 
-    this->cronwindow = window.GetWidget();
+    this->widget = window.GetWidget();
 }
 
 /**
@@ -91,7 +91,7 @@ void CronWindow::Show() {
  */
 void CronWindow::Close() {
     if(this->isOpened) {
-        gtk_widget_destroy(this->cronwindow);
+        gtk_widget_destroy(this->widget);
     }
 }
 
@@ -143,12 +143,6 @@ void CronWindow::SaveRule(bool shouldCurrentConfigRun) {
     Shell::ExecuteCommand("crontab " + fileLocation);
 }
 
-
-void CronWindow::SetName(std::string name) {
-    gtk_widget_set_name(this->cronwindow, name.c_str());
-}
-
-
 bool CronWindow::isCurrentFileAutomatic() {
     //evaluate wether or not this config is set to run on boot
     std::string currentFile = KiwiLightApp::GetCurrentFile();
@@ -162,13 +156,17 @@ bool CronWindow::isCurrentFileAutomatic() {
     return false;
 }
 
-
+/**
+ * Reads and returns all existing system Cron rules.
+ */
 std::vector<std::string> CronWindow::ReadAllRules() {
     std::string output = Shell::ExecuteCommand("crontab -l");
     return StringUtils::SplitString(output, '\n');
 }
 
-
+/**
+ * Reads all existing system Cron rules and returns the KiwiLight-related ones.
+ */
 std::vector<std::string> CronWindow::ReadKiwiLightRules() {
     std::vector<std::string> validRules;
     std::vector<std::string> rules = ReadAllRules();

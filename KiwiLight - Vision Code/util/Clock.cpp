@@ -8,20 +8,29 @@
 using namespace KiwiLight;
 using namespace std::chrono;
 
+/**
+ * Creates a new Clock.
+ */
 Clock::Clock() {
 }
 
-
+/**
+ * Marks the start time of the clock as now.
+ */
 void Clock::Start() {
     startTime = GetSystemTime();
 }
 
-
+/**
+ * Returns the number of milliseconds that have elapsed since Start() was called.
+ */
 long Clock::GetTime() {
     return GetSystemTime() - startTime;
 }
 
-
+/**
+ * Returns the time since epoch according to the system.
+ */
 long Clock::GetSystemTime() {
     milliseconds ms = duration_cast<milliseconds> (
 		system_clock::now().time_since_epoch()
@@ -30,7 +39,10 @@ long Clock::GetSystemTime() {
 	return ms.count();
 }
 
-
+/**
+ * Returns the current date.
+ * Format: MM-DD-YYYY-HH-MM-SS
+ */
 std::string Clock::GetDateString() {
     //get system time in seconds
     time_t currentTime;

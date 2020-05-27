@@ -10,13 +10,19 @@ using namespace KiwiLight;
 
 /**
  * literally kills everything
+ * DEPRECIATED: This method will be removed in the next update.
  */
 void err(const char *msg) {
     perror(msg);
     exit(1);
 }
 
-
+/**
+ * Creates a new UDP sender.
+ * @param dest_ip The desination IPv4 address.
+ * @param port The port
+ * @param blockUntilConnected True if this call should block until connected, false otherwise.
+ */
 UDP::UDP(std::string dest_ip, int port, bool blockUntilConnected) {
     this->address = dest_ip;
     this->port = port;
@@ -43,7 +49,14 @@ UDP::UDP(std::string dest_ip, int port, bool blockUntilConnected) {
     }
 }
 
-
+/**
+ * Creates a new UDP Sender.
+ * @param this_ip The address to bind to.
+ * @param dest_ip The destination IPv4 address.
+ * @param port The port
+ * @param blockUntilConnected True if this call should block until connected, false otherwise.
+ * DEPRECIATED: This constructor is not used in KiwiLight and will be removed in the next update.
+ */
 UDP::UDP(std::string this_ip, std::string dest_ip, int port, bool blockUntilConnected) {
     this->address = dest_ip;
     this->port = port; 
@@ -128,7 +141,7 @@ std::string UDP::Recieve() {
 }
 
 /**
- * closes the UDP socket
+ * Closes the UDP socket
  */
 void UDP::Close() {
     close(this->sock);
