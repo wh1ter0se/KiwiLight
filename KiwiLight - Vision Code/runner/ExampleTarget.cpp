@@ -156,7 +156,9 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
     return (this->contours.size() == totalGood);
 }
 
-
+/**
+ * Filters out contours that are definitely NOT part of this target.
+ */
 std::vector<Contour> ExampleTarget::GetValidContours(std::vector<Contour> objects) {
     std::vector<Contour> validContours;
     
@@ -185,7 +187,12 @@ ExampleContour ExampleTarget::GetExampleContourByID(int id) {
     return this->contours[0];
 }
 
-
+/**
+ * Sets the value and allowable error of the property "prop" to the "contour"th contour of this target to the values specified in "values."
+ * @param contour The ID of the contour to set.
+ * @param prop The property to set.
+ * @param values The values (value and allowable error) to set the property to.
+ */
 void ExampleTarget::SetContourProperty(int contour, TargetProperty prop, SettingPair values) {  
     //get the index of the contour we want to change, that way we directly set the values instead of taking a reference
         
@@ -224,7 +231,11 @@ void ExampleTarget::SetContourProperty(int contour, TargetProperty prop, Setting
     }
 }
 
-
+/**
+ * Returns the value and allowable error of the property "prop" of the "contour"th contour of this ExampleTarget.
+ * @param contour The ID of the contour to read the property from.
+ * @param prop The property to read.
+ */
 SettingPair ExampleTarget::GetContourProperty(int contour, TargetProperty prop) {
     SettingPair finalValue = SettingPair(-1,-1);
 
@@ -260,7 +271,11 @@ SettingPair ExampleTarget::GetContourProperty(int contour, TargetProperty prop) 
     return finalValue;
 }
 
-
+/**
+ * Sets the value of this targets "prop" to "value."
+ * @param prop The property to set
+ * @param value The value to set the property to.
+ */
 void ExampleTarget::SetTargetProperty(RunnerProperty prop, double value) {
     switch(prop) {
         case RunnerProperty::TRUE_WIDTH:
@@ -281,7 +296,10 @@ void ExampleTarget::SetTargetProperty(RunnerProperty prop, double value) {
     }
 }
 
-
+/**
+ * Reads the value of "prop" from this ExampleTarget.
+ * @param prop The property to read.
+ */
 double ExampleTarget::GetTargetProperty(RunnerProperty prop) {
     double value = -1.0;
 
@@ -306,7 +324,9 @@ double ExampleTarget::GetTargetProperty(RunnerProperty prop) {
     return value;
 }
 
-
+/**
+ * DEPRECIATED: Adds a "generic" contour to this target, increasing the contour count by 1.
+ */
 void ExampleTarget::AddGenericContour() {
     SettingPair genericDistX = SettingPair(0.0, 0.4);
     SettingPair genericDistY = SettingPair(0.0, 0.4);
@@ -318,7 +338,9 @@ void ExampleTarget::AddGenericContour() {
     this->contours.push_back(newContour);
 }
 
-
+/**
+ * Returns true if arr as any possible combos left based on the values "size" and "max," false otherwise.
+ */
 bool ExampleTarget::ArrayMaxed(int arr[], int size, int max) {
     if(arr[size - 1] < max) {
         return false;
@@ -327,7 +349,9 @@ bool ExampleTarget::ArrayMaxed(int arr[], int size, int max) {
     return true;
 }
 
-
+/**
+ * Returns true if arr contains duplicate values, false otherwise.
+ */
 bool ExampleTarget::ContainsDuplicates(int arr[], int size) {
     for(int i=0; i<size; i++) {
         for(int k=0; k<size; k++) {
@@ -339,7 +363,12 @@ bool ExampleTarget::ContainsDuplicates(int arr[], int size) {
     }
 }
 
-
+/**
+ * Evaluates whether "combo" matches any combonations present in "testedCombos."
+ * @param combo An int array representing the combonation to be tested.
+ * @param testedCombos A vector of combos which have already been tested.
+ * @param comboSize The length of the combo array (numbers, not bytes! DO NOT use sizeof()!)
+ */
 bool ExampleTarget::CombonationAlreadyTested(int combo[], std::vector< std::vector<int> > testedCombos, int comboSize) {    
     for(int i=0; i<testedCombos.size(); i++) {
         std::vector<int> originalCombo = testedCombos[i];

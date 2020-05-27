@@ -7,6 +7,9 @@
 using namespace cv;
 using namespace KiwiLight;
 
+/**
+ * Displays the KiwiLight help message.
+ */
 void ShowHelp() {
     std::cout << "KIWILIGHT HELP\n";
     std::cout << "Usage: KiwiLight [-h] [-c] [config files]\n";
@@ -19,11 +22,11 @@ void ShowHelp() {
     std::cout << std::endl;
 }
 
-
+/**
+ * Runs the configurations specified in filePaths. A KiwiLight log will be produced.
+ */
 void RunConfigs(std::vector<std::string> filePaths) {
     //init needed KiwiLight variables
-
-    // KiwiLightApp::InitCameraOnly(0); //TODO: decide if this line is needed
     KiwiLightApp::ReconnectUDP("127.0.0.1", 3695, false);
 
     std::cout << "Command: Run Configs\n";
@@ -130,12 +133,16 @@ void RunConfigs(std::vector<std::string> filePaths) {
     }
 }
 
-
+/**
+ * Test method. This method will be run if the -t flag is specified.
+ */
 void Test() {
     std::cout << Clock::GetDateString() << std::endl;
 }
 
-
+/**
+ * Main entry point for KiwiLight!! This method will analyze the command args and decide what to do.
+ */
 int main(int argc, char *argv[]) {
     if(argc == 1) {
         KiwiLightApp::Create(argc, argv);
@@ -176,6 +183,11 @@ int main(int argc, char *argv[]) {
 
         if(runningConfig) {
             RunConfigs(confsToRun);
+        }
+
+        if(!(runningConfig || showHelp)) {
+            std::cout << "No valid command arguments found.\n";
+            std::cout << "Use \"KiwiLight -h\" to see the command options, or just \"KiwiLight\" to launch the GUI!" << std::endl;
         }
     }
     

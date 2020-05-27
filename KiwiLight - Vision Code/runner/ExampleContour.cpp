@@ -34,7 +34,11 @@ ExampleContour::ExampleContour(int id, SettingPair distX, SettingPair distY, Set
     this->minimumArea = minimumArea;
 }
 
-
+/**
+ * Analyzes the passed contour object and returns whether or not it fits the criteria of this ExampleContour.
+ * @param contour The contour to test.
+ * @return True if the contour represents this ExampleContour, false otherwise.
+ */
 bool ExampleContour::IsContour(Contour contour) {
     bool angleTest = false;
     bool arTest = false;
@@ -60,39 +64,44 @@ bool ExampleContour::IsContour(Contour contour) {
     return (angleTest && arTest && solidTest && areaTest);
 }
 
-// void SetDistX(SettingPair distX);
-// void SetDistY(SettingPair distY);
-// void SetAngle(SettingPair angle);
-// void SetAspectRatio(SettingPair aspectRatio);
-// void SetSolidity(SettingPair solidity);
-// void SetMinimumArea(int minimumArea);
-
-
+/**
+ * Sets the value and allowable error of this ExampleContour's DistX property (target widths from contour center to target center, horizontally).
+ */
 void ExampleContour::SetDistX(SettingPair distX) {
     this->distX = distX;
 }
 
-
+/**
+ * Sets the value and allowable error of this ExampleContour's DistY property (target heights from contour center to target center, vertically).
+ */
 void ExampleContour::SetDistY(SettingPair distY) {
     this->distY = distY;
 }
 
-
+/**
+ * Sets the value and allowable error of this ExampleContour's Angle property (degrees from positive X axis).
+ */
 void ExampleContour::SetAngle(SettingPair angle) {
     this->angle = angle;
 }
 
-
+/**
+ * Sets the value and allowable error of this ExampleContour's Aspect Ratio property (width / height).
+ */
 void ExampleContour::SetAspectRatio(SettingPair aspectRatio) {
     this->aspectRatio = aspectRatio;
 }
 
-
+/**
+ * Sets the value and allowable error of this ExampleContour's Solidity property (shape area / bounding box area)
+ */
 void ExampleContour::SetSolidity(SettingPair solidity) {
     this->solidity = solidity;
 }
 
-
+/**
+ * Sets the value of this ExampleContour's Minimum Area property (area required for any contour to not be ignored).
+ */
 void ExampleContour::SetMinimumArea(int minimumArea) {
     this->minimumArea = minimumArea;
 }

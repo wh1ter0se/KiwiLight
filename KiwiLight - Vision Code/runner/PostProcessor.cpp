@@ -18,6 +18,9 @@ PostProcessor::PostProcessor(std::vector<ExampleTarget> targets, bool debugging)
     ExampleTarget targ = this->targets[0];
 }
 
+/**
+ * Sets the ExampleTarget that this PostProcessor is tasked with finding.
+ */
 void PostProcessor::SetTarget(int id, ExampleTarget target) {
     //find the id to replace
     for(int i=0; i<this->targets.size(); i++) {
@@ -28,6 +31,9 @@ void PostProcessor::SetTarget(int id, ExampleTarget target) {
     }
 }
 
+/**
+ * Returns the number of contours of this PostProcessor's target.
+ */
 int PostProcessor::NumberOfContours(int target) {
     //find the target with the id, and return its contour count
     for(int i=0; i<targets.size(); i++) {
@@ -71,24 +77,37 @@ std::vector<Target> PostProcessor::ProcessImage(cv::Mat img) {
     return foundTargets;
 }
 
-
+/**
+ * Returns a vector containing only contours that have a possiblity of being in the target.
+ */
 std::vector<Contour> PostProcessor::GetValidContoursForTarget(std::vector<Contour> contours) {
     return this->targets[0].GetValidContours(contours);
 }
 
-
+/**
+ * Sets a property of the one of the target's contours.
+ * @param contour The ID of the contour to set the property of.
+ * @param prop The property to set.
+ * @param values The values (value and allowable error) to set the property to.
+ */
 void PostProcessor::SetTargetContourProperty(int contour, TargetProperty prop, SettingPair values) {
     if(this->debugging) {
         this->targets[0].SetContourProperty(contour, prop, values);
     }
 }
 
-
+/**
+ * Reads a property of one of the target's contours.
+ * @param contour The ID of the contour to read from.
+ * @param prop The property to read.
+ */
 SettingPair PostProcessor::GetTargetContourProperty(int contour, TargetProperty prop) {
     return this->targets[0].GetContourProperty(contour, prop);
 }
 
-
+/**
+ * Returns the ExampleTarget at id.
+ */
 ExampleTarget PostProcessor::GetExampleTargetByID(int id) {
     for(int i=0; i<this->targets.size(); i++) {
         if(this->targets[i].ID() == id) {
@@ -100,12 +119,19 @@ ExampleTarget PostProcessor::GetExampleTargetByID(int id) {
     return targets[0];
 }
 
-
+/**
+ * Sets a property of the PostProcessor.
+ * @param prop The property to set.
+ * @param value The value to set the property to.
+ */
 void PostProcessor::SetRunnerProperty(RunnerProperty prop, double value) {
     this->targets[0].SetTargetProperty(prop, value);
 }
 
-
+/**
+ * Reads a property of the PostProcessor.
+ * @param prop The property to read.
+ */
 double PostProcessor::GetRunnerProperty(RunnerProperty prop) {
     return this->targets[0].GetTargetProperty(prop);
 }

@@ -10,6 +10,9 @@ using namespace KiwiLight;
 const int Logger::UPDATE_VECTOR_MAX_SIZE = 500;
 const int Logger::FILE_WRITE_INTERVAL = 2500;
 
+/**
+ * Creates a new Logger object. Output will be directed towards filePath.
+ */
 Logger::Logger(std::string filePath) {
     this->filePath = filePath;
     this->confName = "Unavailable";
@@ -31,19 +34,26 @@ Logger::Logger(std::string filePath) {
     this->lastFileWriteTime = 0;
 }
 
-
+/**
+ * Sets the name of the configuration being logged.
+ */
 void Logger::SetConfName(std::string confName, std::string confFilePath) {
     this->confName = confName;
     this->confFilePath = confFilePath;
 }
 
-
+/**
+ * Sets the clock so that timestamps are accurite.
+ */
 void Logger::Start() {
     beginTime = Clock::GetDateString();
     clock.Start();
 }
 
-
+/**
+ * Logs one Runner frame.
+ * @param runnerOutput The value returned by Runner::Iterate()
+ */
 void Logger::Log(std::string runnerOutput) {
     std::string slicedOutput = runnerOutput.substr(1, runnerOutput.length() - 1);
     std::vector<std::string> segments = StringUtils::SplitString(slicedOutput, ',');
@@ -116,7 +126,9 @@ void Logger::Log(std::string runnerOutput) {
     lastFrameTime = thisFrameTime;
 }
 
-
+/**
+ * Writes all log info to the Logger's file path.
+ */
 void Logger::WriteNewFile() {
     XMLDocument document = XMLDocument();
 

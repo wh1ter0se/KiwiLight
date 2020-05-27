@@ -181,7 +181,9 @@ UDP KiwiLightApp::GetUDP() {
     return KiwiLightApp::udpSender;
 }
 
-
+/**
+ * Returns the path of the file that KiwiLight is currently running/editing, or "" if no file is loaded.
+ */
 std::string KiwiLightApp::GetCurrentFile() {
     switch(mode) {
         case UIMode::UI_RUNNER:
@@ -194,7 +196,7 @@ std::string KiwiLightApp::GetCurrentFile() {
 }
 
 /**
- * Returns KiwiLight's menu bar
+ * Returns KiwiLight's MenuBar widget. This goes at the top of the GUI.
  */
 MenuBar KiwiLightApp::CreateMenuBar() {
     MenuBar menubar = MenuBar();
@@ -349,17 +351,23 @@ void KiwiLightApp::InitCameraOnly(int index) {
     KiwiLightApp::camera = VideoCapture(index);
 }
 
-
+/**
+ * Sets the IPv4 address and port of KiwiLight's socket sender.
+ */
 void KiwiLightApp::ReconnectUDP(std::string newAddress, int newPort) {
     KiwiLightApp::udpSender = UDP(newAddress, newPort, false);
 }
 
-
+/**
+ * Sets the IPv4 address and port of KiwiLight's socket sender. Optionally, you can also set it to wait until it is connected.
+ */
 void KiwiLightApp::ReconnectUDP(std::string newAddress, int newPort, bool block) {
     KiwiLightApp::udpSender = UDP(newAddress, newPort, block);
 }
 
-
+/**
+ * Sends "message" over KiwiLight's socket sender.
+ */
 void KiwiLightApp::SendOverUDP(std::string message) {
     KiwiLightApp::udpSender.Send(message);
 }
@@ -535,7 +543,7 @@ void KiwiLightApp::OpenNewCameraFromMainIndex() {
 }
 
 /**
- * Enables or disables the runner's UDP.
+ * Enables or disables KiwiLight's socket sender.
  */
 void KiwiLightApp::ToggleUDP() {
     KiwiLightApp::udpEnabled = !KiwiLightApp::udpEnabled;
@@ -636,18 +644,24 @@ void KiwiLightApp::Quit() {
     gtk_main_quit();
 }
 
-
+/**
+ * Shows a pop-up dialog asking whether or not the currently loaded file should be started on boot.
+ */
 void KiwiLightApp::ShowCronMenu() {
     KiwiLightApp::cronWindow = CronWindow(GTK_WINDOW_TOPLEVEL);
     cronWindow.Show();
 }
 
-
+/**
+ * Creates a separate thread and calls RunConfigs() from Main.cpp with the currently loaded file.
+ */
 void KiwiLightApp::RunHeadlessly() {
     std::cout << "Run Headlessly" << std::endl;
 }
 
-
+/**
+ * Creates a window which displays information from a specified KiwiLight log.
+ */
 void KiwiLightApp::ShowLog(XMLDocument log) {
     if(logviewerExists) {
         KiwiLightApp::logViewer.Release();
@@ -658,7 +672,9 @@ void KiwiLightApp::ShowLog(XMLDocument log) {
     logviewerExists = true;
 }
 
-
+/**
+ * Creates a file dialog for the user to select a log file to show, then shows it.
+ */
 void KiwiLightApp::ShowLog() {
     FileChooser chooser = FileChooser(false, "");
     std::string fileToOpen = chooser.Show();

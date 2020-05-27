@@ -73,7 +73,15 @@ std::vector<Contour> CameraFrame::GetContoursGrouped() {
     return groupedContours;
 }
 
-
+/**
+ * Calculates a unique value describing the pixel the contour's center is positioned at. Values start at 0 for the topmost, leftmost pixel,
+ * and increase by 1 for each pixel following it to the right and down, such as one would read a book.
+ * Some examples, assuming that this CameraFrame has a width of 240 and a height of 120:
+ * - This method will return 0 for a contour who's center is at (0, 0)
+ * - This method will return 7 for a contour who's center is at (7, 0)
+ * - This method will return 244 for a contour who's center is at (2, 1);
+ * - This method will return 32,948 for a contour who's center is at (68, 137)
+ */
 int CameraFrame::PositionValue(Contour contour) {
     int imgWidth = this->image.cols;
     
@@ -81,7 +89,9 @@ int CameraFrame::PositionValue(Contour contour) {
     return pointValue;
 }
 
-
+/**
+ * Calculates and returns the distance from "contour" to the center of the target, in target widths.
+ */
 Distance CameraFrame::GetContourDistance(Contour contour) {
     Point targetCenter = this->seenTarget.Center();
 

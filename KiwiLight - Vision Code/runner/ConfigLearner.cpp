@@ -8,20 +8,24 @@
 using namespace cv;
 using namespace KiwiLight;
 
-
+/**
+ * Creates a new ConfigLearner which uses the passed preprocessor.
+ */
 ConfigLearner::ConfigLearner(PreProcessor preprocessor) {
     this->preprocessor = preprocessor;
     this->currentlyLearning = false;
     this->failedFrames = 0;
 }
 
-
+/**
+ * Puts this ConfigLearner in a "learning" state, allowing it to be fed frames. No learning will be done unless this method is called first.
+ */
 void ConfigLearner::StartLearning() {
     this->currentlyLearning = true;
 }
 
 /**
- * Feeds an unprocessed image into the learner for possible processing.
+ * Feeds an unprocessed image into the learner for processing.
  */
 void ConfigLearner::FeedImage(Mat img, int minimumContourArea) {
     //if the camera grab has failed and the image doesn't exist...
@@ -73,7 +77,11 @@ void ConfigLearner::FeedImage(Mat img, int minimumContourArea) {
     }
 }
 
-
+/**
+ * Disables this ConfigLearner's ability to be fed frames, and creates an ExampleTarget which represents the target which is being learned.
+ * @param minimumContourArea The minimum area of any contour in the target. Any contours in any frames with areas smaller than this value will be ignored.
+ * @return An ExampleTarget representing the "average" of all targets in all fed frames.
+ */
 ExampleTarget ConfigLearner::StopLearning(int minimumContourArea) {
     this->currentlyLearning = false;
 
@@ -179,7 +187,9 @@ ExampleTarget ConfigLearner::StopLearning(int minimumContourArea) {
     return newTarget;
 }
 
-
+/**
+ * Returns the number of frames that have been "fed" to this ConfigLearner.
+ */
 int ConfigLearner::GetFramesLearned() {
     return this->currentFrames.size();
 }
