@@ -22,6 +22,9 @@ namespace KiwiLight {
         PARTIAL
     };
 
+    /**
+     * KiwiLight Runner Properties.
+     */
     enum RunnerProperty {
         OFFSET_X,
         OFFSET_Y,
@@ -34,7 +37,9 @@ namespace KiwiLight {
         CALC_DIST_BY_HEIGHT
     };
 
-    
+    /**
+     * KiwiLight PreProcessor Properties.
+     */
     enum PreProcessorProperty {
         IS_FULL,
         THRESHOLD,
@@ -47,7 +52,7 @@ namespace KiwiLight {
     };
 
     /**
-     * Describes the names of certain properties of a target.
+     * KiwiLight Target Properties.
      */
     enum TargetProperty {
         DIST_X,
@@ -58,12 +63,17 @@ namespace KiwiLight {
         MINIMUM_AREA
     };
 
+    /**
+     * KiwiLight Distance Calculation Modes.
+     */
     enum DistanceCalcMode {
         BY_WIDTH,
         BY_HEIGHT
     };
 
-
+    /**
+     * KiwiLight Troubleshooter output data.
+     */
     struct TroubleshootingData {
         int missedHorizontalDistances,
             missedVerticalDistances,
@@ -84,7 +94,10 @@ namespace KiwiLight {
                targetAspectRatio;
     };
     
-
+    /**
+     * An object found in a postprocessed image.
+     * This class can be described as a "wrapper class" for vector<Point>'s (output of cv::findContours())
+     */
     class Contour {
         public:
         Contour() {};
@@ -112,7 +125,9 @@ namespace KiwiLight {
         Point center;
     };
 
-    
+    /**
+     * A imaginary template for a real contour. This class compares Contours with itself and can tell if a contour can "represent" itself.
+     */
     class ExampleContour {
         public:
         ExampleContour() {};
@@ -153,7 +168,7 @@ namespace KiwiLight {
     };
 
     /**
-     * Represents a target found in an image
+     * Represents a Target which is found in an image. Provides information useful to the robot for alignment and other auto functions.
      */
     class Target {
         public:
@@ -192,7 +207,10 @@ namespace KiwiLight {
         DistanceCalcMode distMode;
     };
 
-
+    /**
+     * An imaginary template for a real Target.
+     * This class does most of the PostProcessor's heavy lifting, specifically picking Targets out of groups of Contours.
+     */
     class ExampleTarget {
         public:
         ExampleTarget() {};
@@ -225,7 +243,7 @@ namespace KiwiLight {
     };
 
     /**
-     * A module which takes images and gets them ready for work by the PostProcessor.
+     * A module which takes raw images and gets them ready for work by the PostProcessor.
      */
     class PreProcessor {
         public:
@@ -279,6 +297,9 @@ namespace KiwiLight {
         std::vector<Contour> contoursFromLastFrame;
     };
 
+    /**
+     * Calculates and stores data used by the ConfigLearner and the DistanceLearner.
+     */
     class CameraFrame {
         public:
         CameraFrame() {};
@@ -451,7 +472,13 @@ namespace KiwiLight {
         std::vector<double> targetWidths;
     };
 
-
+    /**
+     * A tool which troubleshoots Targets against ExampleTargets and reveals the Target's problems.
+     * 
+     * NOTE: This tool was an early (pre-v1.0) concept which was not actually implemented into current versions of KiwiLight.
+     * As a result, this class does not comply with some of the post-1.0 archetecture, such as the universal KiwiLightApp VideoCapture.
+     * This class has been tested, though not completely. It can be used, but there is no garantee that it will work.
+     */
     class TargetTroubleshooter {
         public:
         TargetTroubleshooter() {};

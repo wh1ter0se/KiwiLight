@@ -34,6 +34,7 @@ void Runner::SetImageResize(Size sz) {
 
 /**
  * Performs one iteration of the main loop, but does not send any file UDP messages.
+ * @return The message that should be sent to the RIO.
  */
 std::string Runner::Iterate() {
     cv::Mat img;
@@ -186,7 +187,9 @@ std::string Runner::Iterate() {
     return rioMessage;
 }
 
-
+/**
+ * Returns the number of contours that make up the target.
+ */
 int Runner::GetNumberOfContours(int target) {
     return this->postprocessor.NumberOfContours(target);
 }
@@ -198,35 +201,59 @@ ExampleTarget Runner::GetExampleTargetByID(int id) {
     return this->postprocessor.GetExampleTargetByID(id);
 }
 
+/**
+ * Sets the ExampleTarget that this runner is tasked with finding.
+ */
 void Runner::SetExampleTarget(int contourID, ExampleTarget target) {
     this->postprocessor.SetTarget(contourID, target);
 }
 
-
+/**
+ * Sets a property of the Runner's PreProcessor.
+ * @param prop The property to set.
+ * @param value The value to set the property to.
+ */
 void Runner::SetPreprocessorProperty(PreProcessorProperty prop, double value) {
     if(this->debug) {
         this->preprocessor.SetProperty(prop, value);
     }
 }
 
-
+/**
+ * Reads a property from the Runner's PreProcessor.
+ * @param prop The property to read.
+ * @return The value of the property.
+ */
 double Runner::GetPreprocessorProperty(PreProcessorProperty prop) {
     return this->preprocessor.GetProperty(prop);
 }
 
-
+/**
+ * Sets a contour property on the Runner's PostProcessor's ExampleTarget.
+ * @param contour The ID of the contour to set.
+ * @param prop The property to set.
+ * @param values The values (value and allowable error) to set the property to.
+ */
 void Runner::SetPostProcessorContourProperty(int contour, TargetProperty prop, SettingPair values) {
     if(this->debug) {
         this->postprocessor.SetTargetContourProperty(contour, prop, values);
     }
 }
 
-
+/**
+ * Reads a contour property on the Runner's PostProcessor's ExampleTarget.
+ * @param contour The ID of the contour to read.
+ * @param prop The property to read.
+ */
 SettingPair Runner::GetPostProcessorContourProperty(int contour, TargetProperty prop) {
     return this->postprocessor.GetTargetContourProperty(contour, prop);
 }
 
-
+/**
+ * Sets a property of the Runner.
+ * @param prop The property to set.
+ * @param value The value to set the property to.
+ */
 void Runner::SetRunnerProperty(RunnerProperty prop, double value) {
     switch(prop) {
         case RunnerProperty::OFFSET_X:
@@ -247,7 +274,11 @@ void Runner::SetRunnerProperty(RunnerProperty prop, double value) {
     }
 }
 
-
+/**
+ * Reads a property from the Runner.
+ * @param prop The property to read.
+ * @return The value of the property.
+ */
 double Runner::GetRunnerProperty(RunnerProperty prop) {
     switch(prop) {
         case RunnerProperty::OFFSET_X:
@@ -265,6 +296,7 @@ double Runner::GetRunnerProperty(RunnerProperty prop) {
 
 /**
  * Parses the XMLdocument doc and initalizes all runner settings and variables.
+ * @param doc The XMLDocument to read.
  */
 void Runner::parseDocument(XMLDocument doc) {
     XMLTag camera = doc.GetTagsByName("camera")[0];
@@ -359,6 +391,7 @@ void Runner::parseDocument(XMLDocument doc) {
 
 /**
  * Applies the camera settings via shell.
+ * @param document The XMLDocument to read the settings from.
  */
 void Runner::applySettings(XMLDocument document) {
     std::vector<XMLTag> camSettings =
