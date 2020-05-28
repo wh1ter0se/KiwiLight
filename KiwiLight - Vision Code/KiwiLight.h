@@ -19,11 +19,12 @@ using namespace cv;
 
 namespace KiwiLight {
 
-    enum UIMode {
+    enum AppMode {
         UI_STREAM,
         UI_RUNNER,
         UI_EDITOR,
-        UI_PAUSING
+        UI_PAUSING,
+        UI_HEADLESS,
     };
 
     /**
@@ -35,9 +36,14 @@ namespace KiwiLight {
         static void Create(int argc, char *argv[]);
         static void Start();
 
+        //logging
+        static void ConfigureLog(std::string runnerNames, std::string runnerFiles);
+        static void Report(std::string runnerOut);
+
         //UI accessors
         static Runner GetRunner();
         static ConfigEditor GetEditor();
+        static bool UIInitalized();
 
         //camera accessors
         static Mat TakeImage();
@@ -49,7 +55,7 @@ namespace KiwiLight {
 
         //general accessors 
         static bool LastImageCaptureSuccessful();
-        static UIMode CurrentMode();
+        static AppMode CurrentMode();
         static UDP GetUDP();
         static std::string GetCurrentFile();
 
@@ -74,7 +80,7 @@ namespace KiwiLight {
         static void SendOverUDP(std::string message);
 
         //thread utilities
-        static void LaunchStreamingThread(UIMode newMode);
+        static void LaunchStreamingThread(AppMode newMode);
         static void StopStreamingThread();
 
         private:
@@ -96,6 +102,7 @@ namespace KiwiLight {
         static void Quit();
         static void ShowCronMenu();
         static void RunHeadlessly();
+        static void RunHeadlesslyCallback();
         static void ShowLog(XMLDocument log);
         static void ShowLog();
         static void ShowAboutWindow();
@@ -105,13 +112,14 @@ namespace KiwiLight {
         static Runner runner;
         static ConfigEditor configeditor;
         static CronWindow cronWindow;
+        static Logger logger;
         static LogViewer logViewer;
         static VideoCapture camera;
         static UDP udpSender;
         static GThread *streamingThread;
 
         //utilities
-        static UIMode mode;
+        static AppMode mode;
         static bool 
             lastImageGrabSuccessful,
             udpEnabled,

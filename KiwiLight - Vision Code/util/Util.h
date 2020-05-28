@@ -190,6 +190,7 @@ namespace KiwiLight {
      */
     class Util {
         public:
+        static std::string ResolveGenericConfFilePath();
         static XMLTag SearchCameraSettingsByID(std::vector<XMLTag> settings, int id);
     };
 

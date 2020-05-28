@@ -26,6 +26,8 @@ void ShowHelp() {
  * Runs the configurations specified in filePaths. A KiwiLight log will be produced.
  */
 void RunConfigs(std::vector<std::string> filePaths) {
+    std::cout << "run configs" << std::endl;
+
     //init needed KiwiLight variables
     KiwiLightApp::ReconnectUDP("127.0.0.1", 3695, false);
 
@@ -54,18 +56,8 @@ void RunConfigs(std::vector<std::string> filePaths) {
         }
     }
 
-    //find HOME so we can put the file in /home/<usr>/KiwiLightData/logs/KiwiLight-Runner-Log-DD-MM-YY-HH-MM-SS.xml
-    std::string logFileBase = "";
-    char *home = getenv("HOME");
-    if(home != NULL) {
-        logFileBase = std::string(home) + "/KiwiLightData/logs/";
-    } else {
-        std::cout << "WARNING: The HOME Environment variable could not be found! The Log file will not be generated!" << std::endl;
-    }
-    std::string logFileName = logFileBase + "KiwiLight-Runner-Log-" + Clock::GetDateString() + ".xml";
-    Logger logger = Logger(logFileName);
-    logger.SetConfName(runnerNames, runnerFiles);
-    logger.Start();
+    //init the KiwiLight logger
+    KiwiLightApp::ConfigureLog(runnerNames, runnerFiles);
 
     //show the cool header in the terminal
     std::cout << "--------------------------------------------" << std::endl;
@@ -129,7 +121,7 @@ void RunConfigs(std::vector<std::string> filePaths) {
         }
         
         KiwiLightApp::SendOverUDP(message);
-        logger.Log(message);
+        KiwiLightApp::Report(message);
     }
 }
 
