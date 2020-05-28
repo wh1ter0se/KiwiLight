@@ -368,6 +368,7 @@ namespace KiwiLight {
 
         Runner() {};
         Runner(std::string filename, bool debugging);
+        Runner(std::string filename, bool debugging, bool applyCameraSettings);
         PreProcessor GetPreProcessor() { return this->preprocessor; };
         PostProcessor GetPostProcessor() { return this->postprocessor; };
         int GetCameraIndex() { return this->cameraIndex; };

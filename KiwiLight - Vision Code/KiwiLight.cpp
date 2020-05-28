@@ -14,10 +14,10 @@ UDP          KiwiLightApp::udpSender;
 Runner       KiwiLightApp::runner;
 ConfigEditor KiwiLightApp::configeditor;
 CronWindow   KiwiLightApp::cronWindow;
-Logger       KiwiLightApp::logger;
+Logger       KiwiLightApp::logger;::
 LogViewer    KiwiLightApp::logViewer;
 GThread     *KiwiLightApp::streamingThread;
-AppMode       KiwiLightApp::mode = AppMode::UI_STREAM;
+AppMode      KiwiLightApp::mode = AppMode::UI_STREAM;
 bool         KiwiLightApp::lastImageGrabSuccessful = false;
 bool         KiwiLightApp::udpEnabled = false;
 bool         KiwiLightApp::streamThreadEnabled = true; //acts as a kind of "enable switch" for the streamthread because it seems to like starting when its not supposed to
@@ -31,6 +31,7 @@ NumberBox    KiwiLightApp::cameraIndexBox;
 Label        KiwiLightApp::cameraStatusLabel;
 Image        KiwiLightApp::outputImage;
 Button       KiwiLightApp::toggleUDPButton;
+SubMenuItem  KiwiLightApp::runHeadlessly;
 int          KiwiLightApp::cameraFailures;
 int          KiwiLightApp::currentCameraIndex = 100;
 
@@ -120,7 +121,7 @@ void KiwiLightApp::Start() {
 /**
  * Configures and starts the KiwiLight log.
  */
-void KiwiLightApp::ConfigureLog(std::string runnerNames, std::string runnerFiles) {
+void KiwiLightApp::ConfigureHeadless(std::string runnerNames, std::string runnerFiles) {
     //find HOME so we can put the file in /home/<usr>/KiwiLightData/logs/KiwiLight-Runner-Log-DD-MM-YY-HH-MM-SS.xml
     std::string logFileBase = "";
     char *home = getenv("HOME");
@@ -133,6 +134,7 @@ void KiwiLightApp::ConfigureLog(std::string runnerNames, std::string runnerFiles
     KiwiLightApp::logger = Logger(logFileName);
     KiwiLightApp::logger.SetConfName(runnerNames, runnerFiles);
     KiwiLightApp::logger.Start();
+    KiwiLightApp::mode = AppMode::UI_HEADLESS;
 }
 
 /**
@@ -140,7 +142,7 @@ void KiwiLightApp::ConfigureLog(std::string runnerNames, std::string runnerFiles
  * If ConfigureLog() has not yet been called, log data will be reported to the junk log.
  * Junk log path: /home/<usr>/KiwiLightData/logs/junk.xml
  */
-void KiwiLightApp::Report(std::string runnerOutput) {
+void KiwiLightApp::ReportHeadless(std::string runnerOutput) {
     KiwiLightApp::logger.Log(runnerOutput);
 }
 
@@ -210,6 +212,13 @@ bool KiwiLightApp::LastImageCaptureSuccessful() {
 }
 
 /**
+ * Returns the current KiwiLight App mode.
+ */
+AppMode KiwiLightApp::CurrentMode() {
+    return KiwiLightApp::mode;
+}
+
+/**
  * Returns KiwiLight's UDP sender.
  */
 UDP KiwiLightApp::GetUDP() {
@@ -220,14 +229,7 @@ UDP KiwiLightApp::GetUDP() {
  * Returns the path of the file that KiwiLight is currently running/editing, or "" if no file is loaded.
  */
 std::string KiwiLightApp::GetCurrentFile() {
-    switch(mode) {
-        case AppMode::UI_RUNNER:
-            return KiwiLightApp::runner.GetFileName();
-        case AppMode::UI_EDITOR:
-            return KiwiLightApp::configeditor.GetFileName();
-        default:
-            return "";
-    }
+    return KiwiLightApp::confInfo.GetConfigFile();
 }
 
 /**
@@ -256,7 +258,8 @@ MenuBar KiwiLightApp::CreateMenuBar() {
             SubMenuItem confCron = SubMenuItem("Configure Auto-Start", KiwiLightApp::ShowCronMenu);
                 config.AddSubmenuItem(confCron);
 
-            SubMenuItem runHeadlessly = SubMenuItem("Run Configuration Headlessly", KiwiLightApp::RunHeadlesslyCallback);
+            //NOTE: runHeadlessly is a member of KiwiLight because the text needs to be changed in runtime. As a result, it is addressed differently.
+            KiwiLightApp::runHeadlessly = SubMenuItem("Run Headlessly", KiwiLightApp::RunHeadlesslyCallback);
                 config.AddSubmenuItem(runHeadlessly);
 
             SubMenuItem viewLog = SubMenuItem("View Log", KiwiLightApp::ShowLog);
@@ -374,6 +377,7 @@ void KiwiLightApp::OpenNewCameraOnIndex(int index) {
 /**
  * This method is ONLY to be used if KiwiLight is working headless (no UI)!!!!!!!
  * Opens new camera without updating UI elements
+ * DEPRECIATED: This method is no longer used and will be removed in the next update.
  */
 void KiwiLightApp::InitCameraOnly(int index) {
     std::cout << "Configuring Auto Exposure setting on new camera" << std::endl;
@@ -461,25 +465,29 @@ void KiwiLightApp::UpdateApp() {
             KiwiLightApp::configeditor.Update();
         }
 
-        //update the camera error label based on how successful thread is being
-        if(lastImageGrabSuccessful) {
-            //wait for the output image to be updated by other thread
-            while(KiwiLightApp::outImgInUse) {
-                usleep(100);
-            }
-            KiwiLightApp::outImgInUse = true;
-            KiwiLightApp::outputImage.Update(KiwiLightApp::lastFrameGrabImage);
-            KiwiLightApp::outImgInUse = false;
-            KiwiLightApp::cameraStatusLabel.SetText(""); 
-        } else {
-            KiwiLightApp::cameraStatusLabel.SetText("Camera Error!");
-            KiwiLightApp::cameraFailures++;
+        if(KiwiLightApp::mode != AppMode::UI_HEADLESS) {
+            //update the camera error label based on how successful thread is being
+            if(lastImageGrabSuccessful) {
+                //wait for the output image to be updated by other thread
+                while(KiwiLightApp::outImgInUse) {
+                    usleep(100);
+                }
+                KiwiLightApp::outImgInUse = true;
+                KiwiLightApp::outputImage.Update(KiwiLightApp::lastFrameGrabImage);
+                KiwiLightApp::outImgInUse = false;
+                KiwiLightApp::cameraStatusLabel.SetText(""); 
+            } else {
+                KiwiLightApp::cameraStatusLabel.SetText("Camera Error!");
+                KiwiLightApp::cameraFailures++;
 
-            if(KiwiLightApp::cameraFailures > 50) {
-                //attempt to reconnect the camera stream
-                OpenNewCameraFromMainIndex();
-                KiwiLightApp::cameraFailures = 0;
+                if(KiwiLightApp::cameraFailures > 50) {
+                    //attempt to reconnect the camera stream
+                    OpenNewCameraFromMainIndex();
+                    KiwiLightApp::cameraFailures = 0;
+                }
             }
+        } else {
+            KiwiLightApp::cameraStatusLabel.SetText("Running Headlessly");
         }
     } catch(cv::Exception ex) {
         std::cout << "An OpenCv Exception was encountered while running the Main thread!" << std::endl;
@@ -611,6 +619,11 @@ void KiwiLightApp::NewConfiguration() {
  * @param currentMode The UIMode active when callback was triggered
  */
 void KiwiLightApp::EditConfiguration() {
+    bool editorClosed = PromptEditorSaveAndClose();
+    if(!editorClosed) {
+        return;
+    }
+
     AppMode currentMode = KiwiLightApp::mode;
     if(currentMode != AppMode::UI_EDITOR) {
         //since this is a callback, close streamer
@@ -624,15 +637,21 @@ void KiwiLightApp::EditConfiguration() {
         } else if(currentMode == AppMode::UI_PAUSING) {
             std::cout << "WARNING: UI mode unclear. Make sure EditConfiguration() is called before stream thread is terminated" << std::endl;
         }
+        KiwiLightApp::confInfo.LoadConfig(pathToOpen);
         KiwiLightApp::configeditor = ConfigEditor(pathToOpen);
         LaunchStreamingThread(AppMode::UI_EDITOR);
     }
 }
 
 /**
- * Causes KiwiLight to open a new configuration.
+ * Causes KiwiLight to open a new configuration after prompting the user with a file dialog.
  */
-void KiwiLightApp::OpenConfiguration() {    
+void KiwiLightApp::OpenConfiguration() {
+    bool editorClosed = PromptEditorSaveAndClose();
+    if(!editorClosed) {
+        return;
+    }
+
     StopStreamingThread();
     FileChooser chooser = FileChooser(false, "");
     std::string fileToOpen = chooser.Show();
@@ -646,15 +665,9 @@ void KiwiLightApp::OpenConfiguration() {
  */
 void KiwiLightApp::OpenConfigurationFromFile(std::string fileName) {
     XMLDocument newDoc = XMLDocument(fileName);
-    AppMode newMode = AppMode::UI_STREAM;
     if(newDoc.HasContents()) {
         KiwiLightApp::confInfo.LoadConfig(newDoc);
         KiwiLightApp::runner = Runner(fileName, true);
-
-        //open the specified camera
-        int camIndex = std::stoi(newDoc.GetTagsByName("camera")[0].GetAttributesByName("index")[0].Value());
-        OpenNewCameraOnIndex(camIndex);
-        newMode = AppMode::UI_RUNNER;
     } else {
         std::cout << "New Document either empty or not specified. Taking no action." << std::endl;
     }
@@ -664,8 +677,46 @@ void KiwiLightApp::OpenConfigurationFromFile(std::string fileName) {
  * Causes KiwiLight to close the currently opened configuration.
  */
 void KiwiLightApp::CloseConfiguration() {
+    bool editorClosed = PromptEditorSaveAndClose();
+    if(!editorClosed) {
+        return;
+    }
+
+    //If the configuration is headless, prompt to close it to prevent mix ups.
+    if(KiwiLightApp::mode == AppMode::UI_HEADLESS) {
+        ConfirmationDialog closeConfirmation = ConfirmationDialog("The current configuration is running headlessly. Would you like to stop it?");
+        bool shouldClose = closeConfirmation.ShowAndGetResponse();
+        if(shouldClose) {
+            StopRunningHeadlessly();
+        } else {
+            return;
+        }
+    }
+
     KiwiLightApp::confInfo.Clear();
     KiwiLightApp::mode = AppMode::UI_STREAM;
+}
+
+/**
+ * Prompts the user to close the editor.
+ * @return true if the editor was either closed, or not opened in the first place, false otherwise.
+ */
+bool KiwiLightApp::PromptEditorSaveAndClose() {
+    if(KiwiLightApp::mode == AppMode::UI_EDITOR) {
+        ConfirmationDialog closeConfirmation = ConfirmationDialog("A Configuration is being edited. Would you like to close it?");
+        bool shouldClose = closeConfirmation.ShowAndGetResponse();
+
+        if(shouldClose) {
+            ConfirmationDialog saveConfirmation = ConfirmationDialog("Save Configuration before closing?");
+            bool shouldSave = saveConfirmation.ShowAndGetResponse();
+            CloseEditor(shouldSave);
+            return true;
+        }
+    } else {
+        return true;
+    }
+
+    return false;
 }
 
 /**
@@ -690,22 +741,51 @@ void KiwiLightApp::ShowCronMenu() {
 void KiwiLightApp::RunHeadlessly() {
     std::string confFile = KiwiLightApp::GetCurrentFile();
     if(confFile == "") {
-        //no file loaded, default to generic
-        confFile = Util::ResolveGenericConfFilePath();
+        std::cout << "WARNING: No conf file detected! Aborting headless run." << std::endl;
+        return;
     }
 
+    //assemble the config vector
     std::vector<std::string> configVector;
     configVector.push_back(confFile);
-    RunConfigs(configVector);
+    RunConfigs(configVector); //sets mode to UI_HEADLESS
+}
+
+
+void KiwiLightApp::StopRunningHeadlessly() {
+    //Terminate the headless task running on the streaming thread by setting mode to pausing, then start streaming thread as normal.
+    KiwiLightApp::mode = AppMode::UI_PAUSING;
+    g_thread_join(KiwiLightApp::streamingThread);
+    runHeadlessly.SetText("Run Headlessly");
+    LaunchStreamingThread(AppMode::UI_RUNNER);
 }
 
 /**
  * Callback for the "Run Headlessly" buttons.
  */
 void KiwiLightApp::RunHeadlesslyCallback() {
-    StopStreamingThread();
-    GThread *headlessThread = g_thread_new("headless runner", GThreadFunc(KiwiLightApp::RunHeadlessly), NULL);
-    // LaunchStreamingThread(AppMode::UI_HEADLESS);
+    if(KiwiLightApp::mode == AppMode::UI_HEADLESS) {
+        StopRunningHeadlessly();
+    } else {
+        //before stopping thread, check to see that we have a valid configuration loaded. If not, load one.
+        if(KiwiLightApp::GetCurrentFile() == "") {
+            //no file loaded, prompt user to load one
+            KiwiLightApp::OpenConfiguration();
+        }
+
+        if(KiwiLightApp::mode == AppMode::UI_EDITOR) {
+            ConfirmationDialog saveConfirmation = ConfirmationDialog(
+                "The current configuration is being edited. Would you like to save your changes?"
+            );
+            bool shouldSave = saveConfirmation.ShowAndGetResponse();
+            KiwiLightApp::CloseEditor(shouldSave);
+        }
+
+        StopStreamingThread();
+
+        KiwiLightApp::streamingThread = g_thread_new("headless runner", GThreadFunc(KiwiLightApp::RunHeadlessly), NULL);
+        runHeadlessly.SetText("Stop Running");
+    }
 }
 
 /**

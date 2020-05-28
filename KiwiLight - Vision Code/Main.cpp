@@ -26,7 +26,7 @@ void ShowHelp() {
  * Runs the configurations specified in filePaths. A KiwiLight log will be produced.
  */
 void RunConfigs(std::vector<std::string> filePaths) {
-    std::cout << "run configs" << std::endl;
+    std::cout << "run file: " << filePaths[0] << std::endl;
 
     //init needed KiwiLight variables
     KiwiLightApp::ReconnectUDP("127.0.0.1", 3695, false);
@@ -57,7 +57,7 @@ void RunConfigs(std::vector<std::string> filePaths) {
     }
 
     //init the KiwiLight logger
-    KiwiLightApp::ConfigureLog(runnerNames, runnerFiles);
+    KiwiLightApp::ConfigureHeadless(runnerNames, runnerFiles);
 
     //show the cool header in the terminal
     std::cout << "--------------------------------------------" << std::endl;
@@ -70,7 +70,7 @@ void RunConfigs(std::vector<std::string> filePaths) {
     std::cout << "                                            " << std::endl;
     std::cout << "--------------------------------------------" << std::endl;
 
-    while(true) {
+    while(KiwiLightApp::CurrentMode() == AppMode::UI_HEADLESS) {
         Target closestTarget;
 
         double 
@@ -121,7 +121,7 @@ void RunConfigs(std::vector<std::string> filePaths) {
         }
         
         KiwiLightApp::SendOverUDP(message);
-        KiwiLightApp::Report(message);
+        KiwiLightApp::ReportHeadless(message);
     }
 }
 

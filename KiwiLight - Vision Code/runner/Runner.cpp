@@ -13,7 +13,10 @@ const std::string Runner::NULL_MESSAGE = ":-1,-1,-1,-1,-1,180,180;";
 /**
  * Creates a new runner which runs the configuration described by the given file
  */
-Runner::Runner(std::string fileName, bool debugging) {
+Runner::Runner(std::string fileName, bool debugging)
+    : Runner(fileName, debugging, true) { }
+
+Runner::Runner(std::string fileName, bool debugging, bool applyCameraSettings) {
     this->src = fileName;
     this->debug = debugging;
     this->postProcessorTargets = std::vector<ExampleTarget>();
@@ -24,7 +27,10 @@ Runner::Runner(std::string fileName, bool debugging) {
     } else {
         std::cout << "sorry! the file " << fileName << " could not be found. " << std::endl;
     }
-    this->applySettings(file);
+    
+    if(applyCameraSettings) {
+        this->applySettings(file);
+    }
     this->stop = false;
 }
 

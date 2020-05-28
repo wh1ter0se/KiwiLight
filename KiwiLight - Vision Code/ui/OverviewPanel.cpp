@@ -110,6 +110,7 @@ OverviewPanel::OverviewPanel(XMLDocument doc) {
 
 /**
  * Updates the overview panel.
+ * DEPRECIATED: This method is no longer used in KiwiLight and will be removed in the next update.
  */
 void OverviewPanel::Update() {
 

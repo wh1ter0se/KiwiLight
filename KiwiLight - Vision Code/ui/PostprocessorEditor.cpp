@@ -20,7 +20,7 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
     } else {
         std::cout << "The postprocessor editor was unable to find HOME" << std::endl;
     }
-    this->storageRunner = Runner(genericFileLocation, true);
+    this->storageRunner = Runner(genericFileLocation, true, false);
     this->lastDesiredContour = 0;
     
     //set storage runner for number of contours

@@ -217,7 +217,9 @@ namespace KiwiLight {
     */
     class SubMenuItem : public Widget {
         public:
+        SubMenuItem() {};
         SubMenuItem(std::string name, void(*callback)());
+        void SetText(std::string newLabel);
     };
 
     /**
@@ -463,7 +465,7 @@ namespace KiwiLight {
         void LoadConfig(XMLDocument file);
         void Clear();
         std::string GetConfigurationName() { return this->configNameString; };
-        std::string GetConfigFile() { return this->configFile; };
+        std::string GetConfigFile();
 
         private:
         Panel panel;

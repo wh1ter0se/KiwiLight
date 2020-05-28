@@ -37,8 +37,8 @@ namespace KiwiLight {
         static void Start();
 
         //logging
-        static void ConfigureLog(std::string runnerNames, std::string runnerFiles);
-        static void Report(std::string runnerOut);
+        static void ConfigureHeadless(std::string runnerNames, std::string runnerFiles);
+        static void ReportHeadless(std::string runnerOut);
 
         //UI accessors
         static Runner GetRunner();
@@ -99,9 +99,11 @@ namespace KiwiLight {
         static void OpenConfiguration();
         static void OpenConfigurationFromFile(std::string fileName);
         static void CloseConfiguration();
+        static bool PromptEditorSaveAndClose();
         static void Quit();
         static void ShowCronMenu();
         static void RunHeadlessly();
+        static void StopRunningHeadlessly();
         static void RunHeadlesslyCallback();
         static void ShowLog(XMLDocument log);
         static void ShowLog();
@@ -116,7 +118,8 @@ namespace KiwiLight {
         static LogViewer logViewer;
         static VideoCapture camera;
         static UDP udpSender;
-        static GThread *streamingThread;
+        static GThread 
+            *streamingThread;
 
         //utilities
         static AppMode mode;
@@ -137,6 +140,7 @@ namespace KiwiLight {
         static Label cameraStatusLabel;
         static Image outputImage;
         static Button toggleUDPButton;
+        static SubMenuItem runHeadlessly;
         
         //counters
         static int cameraFailures;

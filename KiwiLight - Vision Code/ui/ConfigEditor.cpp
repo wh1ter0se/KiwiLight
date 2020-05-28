@@ -139,7 +139,6 @@ ConfigEditor::ConfigEditor(std::string fileName) {
     this->window.SetOnWindowClosed(JustCloseButtonPressed);
     this->window.SetCSS("ui/Style.css");
     this->window.Show();
-
     this->widget = this->window.GetWidget();
 }
 
