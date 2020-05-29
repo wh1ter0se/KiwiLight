@@ -41,6 +41,9 @@ extern void RunConfigs(std::vector<std::string> filePaths); // from Main.cpp
  * Initializes GTK and builds KiwiLight
  */
 void KiwiLightApp::Create(int argc, char *argv[]) {
+    //tmp
+    Flags::RaiseFlag("bruh");
+
     KiwiLightApp::mode = AppMode::UI_PAUSING;
     KiwiLightApp::cameraFailures = 0;
     KiwiLightApp:currentCameraIndex = 100; //just to define index. Camera will only open if currentCameraindex != 100
@@ -305,14 +308,22 @@ void KiwiLightApp::StopStreamingThread() {
 /**
  * Closes the config editor (if it is open)
  * @param saveFirst when true, causes the editor to save the open configuration to file.
+ * @return Whether or not the config editor was closed (true if it was, false otherwise).
+ * The config editor will not close if the user presses "cancel" on the save dialog.
  */
-void KiwiLightApp::CloseEditor(bool saveFirst) {
+bool KiwiLightApp::CloseEditor(bool saveFirst) {
     if(saveFirst) {
-        KiwiLightApp::configeditor.Save();
+        bool fileSaved = KiwiLightApp::configeditor.Save();
+        if(!fileSaved) {
+            //user did not choose a file to save, and most likely hit "cancel." Abort the operation
+            std::cout << "No file specified when saving editor. Not closing." << std::endl;
+            return false;
+        }
     }
     
     KiwiLightApp::configeditor.Close();
     OpenConfigurationFromFile(KiwiLightApp::configeditor.GetFileName());
+    return true;
 }
 
 /**
@@ -377,8 +388,9 @@ void KiwiLightApp::OpenNewCameraOnIndex(int index) {
 /**
  * This method is ONLY to be used if KiwiLight is working headless (no UI)!!!!!!!
  * Opens new camera without updating UI elements
- * DEPRECIATED: This method is no longer used and will be removed in the next update.
+ * DEPRECATED: This method is no longer used and will be removed in the next update.
  */
+[[deprecated("This method is no longer used and will be removed in the next update.")]]
 void KiwiLightApp::InitCameraOnly(int index) {
     std::cout << "Configuring Auto Exposure setting on new camera" << std::endl;
     Shell::ExecuteCommand(

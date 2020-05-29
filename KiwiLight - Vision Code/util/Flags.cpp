@@ -12,8 +12,9 @@ std::vector<std::string> Flags::flagNames = std::vector<std::string>();
 
 /**
  * Raises a flag with the passed name.
- * DEPRECIATED: The Flags class will be removed in the next update.
+ * DEPRECATED: The Flags class will be removed in the next update.
  */
+[[deprecated("The Flags class is no longer used and will be removed in the next update.")]]
 void Flags::RaiseFlag(std::string flagName) {
     if(!Flags::GetFlag(flagName)) { //flag not there, raise it
         Flags::flagNames.push_back(flagName);
@@ -22,8 +23,9 @@ void Flags::RaiseFlag(std::string flagName) {
 
 /**
  * Removes any flag with the given name.
- * DEPRECIATED: The Flags class will be removed in the next update.
+ * DEPRECATED: The Flags class will be removed in the next update.
  */
+[[deprecated("The Flags class is no longer used and will be removed in the next update.")]]
 void Flags::LowerFlag(std::string flagName) {
     //repopulate the flag std::vector without the given flag
     std::vector<std::string> newFlags = std::vector<std::string>();
@@ -38,8 +40,9 @@ void Flags::LowerFlag(std::string flagName) {
 
 /**
  * Raises or lowers the given flag based on the "raised" property.
- * DEPRECIATED: The Flags class will be removed in the next update.
+ * DEPRECATED: The Flags class will be removed in the next update.
  */
+[[deprecated("The Flags class is no longer used and will be removed in the next update.")]]
 void Flags::SetFlagState(std::string flagName, bool raised) {
     if(Flags::GetFlag(flagName) && !raised) {
         Flags::LowerFlag(flagName); // if the flag is there and we want it lowered, lower it
@@ -51,8 +54,9 @@ void Flags::SetFlagState(std::string flagName, bool raised) {
 
 /**
  * Searches for a raised flag with the given name. Returns true for raised, otherwise false.
- * DEPRECIATED: The Flags class will be removed in the next update.
+ * DEPRECATED: The Flags class will be removed in the next update.
  */
+[[deprecated("The Flags class is no longer used and will be removed in the next update.")]]
 bool Flags::GetFlag(std::string flagName) {
     for(int i=0; i<flagNames.size(); i++) {
         if(Flags::flagNames[i] == flagName) {

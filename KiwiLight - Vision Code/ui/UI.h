@@ -52,9 +52,9 @@ namespace KiwiLight {
 
     /**
      * A panel with scrollbars.
-     * DEPRECIATED: This class is not used in KiwiLight and will be removed in the next update.
+     * DEPRECATED: This class is not used in KiwiLight and will be removed in the next update.
      */
-    class Scrollable : public Widget {
+    class [[deprecated("This class is not used in KiwiLight and will be removed in the next update.")]] Scrollable : public Widget {
         public:
         Scrollable() {};
         Scrollable(bool horizontal, bool vertical);
@@ -63,9 +63,9 @@ namespace KiwiLight {
 
     /**
      * A frame with a label.
-     * DEPRECIATED: The Frame class is not used in KiwiLight and will be removed in the next update.
+     * DEPRECATED: The Frame class is not used in KiwiLight and will be removed in the next update.
      */
-    class Frame : public Widget {
+    class [[deprecated("The Frame class is not used in KiwiLight and will be removed in the next update.")]] Frame : public Widget {
         public:
         Frame() {};
         Frame(std::string label);
@@ -285,7 +285,7 @@ namespace KiwiLight {
 
     /**
      * A dialog with a text box.
-     * DEPRECIATED: The PopupTextBox class is not used in KiwiLight and will be removed in the next update.
+     * DEPRECATED: The PopupTextBox class is not used in KiwiLight and will be removed in the next update.
      */
     class PopupTextBox : public Widget {
         public:
@@ -668,7 +668,7 @@ namespace KiwiLight {
         void Update();
         bool UpdateImageOnly();
         std::string GetLastFrameResult();
-        void Save();
+        bool Save();
         void Close();
         void StartLearningTarget();
         void StartLearningDistance();

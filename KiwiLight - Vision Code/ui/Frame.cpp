@@ -10,8 +10,9 @@ using namespace KiwiLight;
 
 /**
  * Creates a new frame with the given text in the label.
- * DEPRECIATED: The Frame class will be removed in the next update.
+ * DEPRECATED: The Frame class is not used and will be removed in the next update.
  */
+[[deprecated("The Frame class is not used and will be removed in the next update.")]]
 Frame::Frame(std::string label) {
     this->widget = gtk_frame_new(label.c_str());
     g_object_ref_sink(this->widget);
@@ -20,16 +21,18 @@ Frame::Frame(std::string label) {
 
 /**
  * Pack the given widget into the frame (is it vertical or horizontal? idk!!!)
- * DEPRECIATED: The Frame class will be removed in the next update.
+ * DEPRECATED: The Frame class will be removed in the next update.
  */
+[[deprecated("The Frame class is not used and will be removed in the next update.")]]
 void Frame::Pack(GtkWidget *widget) {
     gtk_container_add(GTK_CONTAINER(this->widget), widget);
 }
 
 /**
  * Removes the passed Widget.
- * DEPRECIATED: The Frame class will be removed in the next update.
+ * DEPRECATED: The Frame class will be removed in the next update.
  */
+[[deprecated("The Frame class is not used and will be removed in the next update.")]]
 void Frame::Unpack(GtkWidget *widget) {
     gtk_container_remove(GTK_CONTAINER(this->widget), widget);
 }

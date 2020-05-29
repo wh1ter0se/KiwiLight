@@ -144,7 +144,6 @@ int PostprocessorEditor::GetNumContours() {
  * Clears all contours in the target so far and sets the number of contours to contours.
  */
 void PostprocessorEditor::SetNumContours(int contours) {
-    std::cout << "ppe: setting contour count to " << contours << std::endl;
     //create a new exampletarget
     std::vector<ExampleContour> newContours;
     for(int i=0; i<contours; i++) {
@@ -153,7 +152,6 @@ void PostprocessorEditor::SetNumContours(int contours) {
     }
 
     ExampleTarget newTarg = ExampleTarget(0, newContours, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH);
-    std::cout << "ppe: setting target. " << newTarg.Contours().size() << " Contours." << std::endl;
     this->storageRunner.SetExampleTarget(0, newTarg);
 }
 

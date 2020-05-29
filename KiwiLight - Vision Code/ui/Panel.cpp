@@ -12,7 +12,6 @@ using namespace KiwiLight;
  * Creates a new panel.
  */
 Panel::Panel(bool horizontal, int spacing) {
-    //using depreciated gtk_hbox_new() until gtk_box_new() is implemented in current version of gtk.
     this->widget = gtk_box_new((horizontal ? GTK_ORIENTATION_HORIZONTAL : GTK_ORIENTATION_VERTICAL), spacing);
 }
 

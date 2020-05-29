@@ -97,8 +97,9 @@ Settings::Settings(XMLDocument doc) {
 
 /**
  * Performs necessary updates.
- * DEPRECIATED: This method is unused and will be removed in the next update.
+ * DEPRECATED: This method is unused and will be removed in the next update.
  */
+[[deprecated("This method is unused and will be removed in the next update.")]]
 void Settings::Update() {
 
 }

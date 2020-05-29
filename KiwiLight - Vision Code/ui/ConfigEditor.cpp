@@ -41,9 +41,10 @@ static void JustCloseButtonPressed() {
  * Saves the configuration being edited and closes the editor window.
  */
 static void SaveAndCloseButtonPressed() {
+    //save previous file name in case the editor fails to close due to save issues
     KiwiLightApp::StopStreamingThread();
-    KiwiLightApp::CloseEditor(true);
-    KiwiLightApp::LaunchStreamingThread(AppMode::UI_RUNNER);
+    bool editorWasClosed = KiwiLightApp::CloseEditor(true);
+    KiwiLightApp::LaunchStreamingThread(editorWasClosed ? AppMode::UI_RUNNER : AppMode::UI_EDITOR);
 }
 
 /**
@@ -304,7 +305,7 @@ std::string ConfigEditor::GetLastFrameResult() {
 /**
  * Causes the editor to save the config to it's file.
  */
-void ConfigEditor::Save() {
+bool ConfigEditor::Save() {
     //assemble the file structure and write it into a file which the user may designate
     XMLDocument doc = XMLDocument();
     
@@ -523,10 +524,17 @@ void ConfigEditor::Save() {
     if(fileParts[fileParts.size() - 1] == "generic.xml") {
         FileChooser chooser = FileChooser(true, "config.xml");
         fileToSave = chooser.Show();
+        if(fileToSave == "") {
+            //user pressed "cancel" or did not select a file, abort
+            return false;
+        }
+
         this->fileName = fileToSave;
     }
     
     doc.WriteFile(fileToSave);
+
+    return true;
 }
 
 /**

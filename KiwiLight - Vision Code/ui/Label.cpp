@@ -32,8 +32,9 @@ void Label::SetLineWrap(bool enabled) {
 
 /**
  * Sets the justify of the Label.
- * DEPRECIATED: This method is no longer used by KiwiLight and will be removed in the next update.
+ * DEPRECATED: This method is no longer used by KiwiLight and will be removed in the next update.
  */
+[[deprecated("This method is no longer used by KiwiLight and will be removed in the next update.")]]
 void Label::SetJustify(int justify) {
     GtkJustification justification;
     switch(justify) {

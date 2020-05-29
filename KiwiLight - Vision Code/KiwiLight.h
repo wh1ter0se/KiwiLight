@@ -60,7 +60,7 @@ namespace KiwiLight {
         static std::string GetCurrentFile();
 
         //misc. UI callbacks
-        static void CloseEditor(bool saveFirst);
+        static bool CloseEditor(bool saveFirst);
         static void StartEditorLearningTarget();
         static void StartEditorLearningDistance();
         static void EditorReconnectUDP();

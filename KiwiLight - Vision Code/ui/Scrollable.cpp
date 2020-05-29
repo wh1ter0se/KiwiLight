@@ -11,8 +11,9 @@ using namespace KiwiLight;
  * Creates a new Scrollable.
  * @param horizontal Whether or not there should be a horizontal scrollbar.
  * @param vertical Whether or not there should be a vertical scrollbar.
- * DEPRECIATED: The Scrollable class will be removed in the next update.
+ * DEPRECATED: The Scrollable class is not used and will be removed in the next update.
  */
+[[deprecated("The Scrollable class is not used and will be removed in the next update.")]]
 Scrollable::Scrollable(bool horizontal, bool vertical) {
     this->widget = gtk_scrolled_window_new(NULL, NULL);
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(this->widget), 
@@ -24,8 +25,9 @@ Scrollable::Scrollable(bool horizontal, bool vertical) {
 
 /**
  * Sets the widget being scrolled.
- * DEPRECIATED: The Scrollable class will be removed in the next update.
+ * DEPRECATED: The Scrollable class will be removed in the next update.
  */
+[[deprecated("The Scrollable class is not used and will be removed in the next update.")]]
 void Scrollable::PackWidget(GtkWidget *wid) {
     gtk_container_add(GTK_CONTAINER(this->widget), wid);
 }

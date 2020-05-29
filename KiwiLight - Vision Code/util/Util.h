@@ -32,9 +32,10 @@ namespace KiwiLight {
 
     /**
      * An easy event and variable flagging system
-     * DEPRECIATED: This class is no longer used in KiwiLight and will be removed in the next update.
+     * DEPRECATED: This class is no longer used in KiwiLight and will be removed in the next update.
      */
-    class Flags {
+    
+    class [[deprecated("This class is no longer used in KiwiLight and will be removed in the next update.")]] Flags {
         public:
         static void RaiseFlag(std::string flagName);
         static void LowerFlag(std::string flagName);
