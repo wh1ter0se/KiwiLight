@@ -29,7 +29,6 @@ void Button::SetText(std::string text) {
  * Sets the callback of the Button.
  * DEPRECATED: This method has not been implemented and is therfore not used in KiwiLight.
  */
-[[deprecated("This method has not been implemented and is therfore not used in KiwiLight.")]]
 void Button::SetCallback( void(*callback)() ) {
     
 }

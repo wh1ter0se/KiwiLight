@@ -156,7 +156,6 @@ void ConfigEditor::Update() {
     }
     //update the different tabs
     this->configOverview.SetTargetInformationLabelsFromString(this->lastIterationResult);
-    this->cameraSettings.Update();
     this->preprocessorSettings.Update();
     this->postprocessorSettings.Update();
     this->runnerSettings.Update(this->runner.GetClosestTargetToCenter().Distance());
@@ -173,7 +172,7 @@ void ConfigEditor::Update() {
 
     //apply all contour settings to the runner. First, make sure we have all contours needed.
     int numberOfContours = this->postprocessorSettings.GetNumContours();
-    if(this->runner.GetNumberOfContours(0) != numberOfContours) {
+    if(this->runner.NumberOfContours() != numberOfContours) {
         std::cout << "Redefining Target." << std::endl;
         std::vector<ExampleContour> newContours;
         for(int i=0; i<numberOfContours; i++) {
@@ -181,7 +180,7 @@ void ConfigEditor::Update() {
             newContours.push_back(newContour);
         }
         ExampleTarget newTarget = ExampleTarget(0, newContours, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH);
-        this->runner.SetExampleTarget(0, newTarget);
+        this->runner.SetExampleTarget(newTarget);
     }
 
     for(int i=0; i<numberOfContours; i++) {
@@ -256,7 +255,7 @@ bool ConfigEditor::UpdateImageOnly() {
                 if(newContours.size() > 0) {
                     //prepare the editor for the contours
                     this->postprocessorSettings.SetNumContours(newContours.size());
-                    this->runner.SetExampleTarget(0, newTarget);
+                    this->runner.SetExampleTarget(newTarget);
     
                     for(int i=0; i<newContours.size(); i++) {
                         this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_X, newContours[i].DistX());

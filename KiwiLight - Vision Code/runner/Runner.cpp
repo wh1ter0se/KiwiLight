@@ -19,7 +19,6 @@ Runner::Runner(std::string fileName, bool debugging)
 Runner::Runner(std::string fileName, bool debugging, bool applyCameraSettings) {
     this->src = fileName;
     this->debug = debugging;
-    this->postProcessorTargets = std::vector<ExampleTarget>();
     this->lastIterationSuccessful = false;
     XMLDocument file = XMLDocument(fileName);
     if(file.HasContents()) {
@@ -195,23 +194,45 @@ std::string Runner::Iterate() {
 
 /**
  * Returns the number of contours that make up the target.
+ * DEPRECATED: Use NumberOfContours() instead.
  */
 int Runner::GetNumberOfContours(int target) {
-    return this->postprocessor.NumberOfContours(target);
+    return this->postprocessor.NumberOfContours();
+}
+
+
+int Runner::NumberOfContours() {
+    return this->postprocessor.NumberOfContours();
 }
 
 /**
  * Returns the example target at the given id. Returns the 0th exampletarget if id is out of bounds.
+ * DEPRECATED: Use GetExampleTarget() instead.
  */
 ExampleTarget Runner::GetExampleTargetByID(int id) {
-    return this->postprocessor.GetExampleTargetByID(id);
+    return this->postprocessor.GetTarget();
+}
+
+/**
+ * Returns the Runner's ExampleTarget.
+ */
+ExampleTarget Runner::GetExampleTarget() {
+    return this->postprocessor.GetTarget();
 }
 
 /**
  * Sets the ExampleTarget that this runner is tasked with finding.
+ * DEPRECATED: No longer used in KiwiLight. Use SetExampleTarget(ExampleTarget) instead.
  */
 void Runner::SetExampleTarget(int contourID, ExampleTarget target) {
-    this->postprocessor.SetTarget(contourID, target);
+    this->postprocessor.SetTarget(target);
+}
+
+/**
+ * Sets the runner's ExampleTarget.
+ */
+void Runner::SetExampleTarget(ExampleTarget target) {
+    this->postprocessor.SetTarget(target);
 }
 
 /**
@@ -342,56 +363,52 @@ void Runner::parseDocument(XMLDocument doc) {
                 std::string udpAddr = udp.GetTagsByName("address")[0].Content();
                 int udpPort = std::stoi(udp.GetTagsByName("port")[0].Content());
 
-            std::vector<XMLTag> targets = postprocess.GetTagsByName("target");
-            for(int i=0; i<targets.size(); i++) {
-                XMLTag targetTag = targets[i];
-                std::vector<XMLTag> targContours = targetTag.GetTagsByName("contour");
-                
-                int targetId = std::stoi(targetTag.GetAttributesByName("id")[0].Value());
-                std::vector<ExampleContour> contours;
+            XMLTag targetTag = postprocess.GetTagsByName("target")[0];
+            std::vector<XMLTag> targContours = targetTag.GetTagsByName("contour");
+            
+            int targetId = std::stoi(targetTag.GetAttributesByName("id")[0].Value());
+            std::vector<ExampleContour> contours;
 
-                //find all contours and populate the vector
-                for(int k=0; k<targContours.size(); k++) {
-                    XMLTag contour = targContours[k];
-                    int id = std::stoi(contour.GetAttributesByName("id")[0].Value());
-                    double x = std::stod(contour.GetTagsByName("x")[0].Content());
-                    double y = std::stod(contour.GetTagsByName("y")[0].Content());
-                    double distXError = std::stod(contour.GetTagsByName("x")[0].GetAttributesByName("error")[0].Value());
-                    double distYError = std::stod(contour.GetTagsByName("y")[0].GetAttributesByName("error")[0].Value());
-                    int angle = std::stoi(contour.GetTagsByName("angle")[0].Content());
-                    int angleError = std::stoi(contour.GetTagsByName("angle")[0].GetAttributesByName("error")[0].Value());
-                    double solidity = std::stod(contour.GetTagsByName("solidity")[0].Content());
-                    double solidError = std::stod(contour.GetTagsByName("solidity")[0].GetAttributesByName("error")[0].Value());
-                    double ar = std::stod(contour.GetTagsByName("aspectRatio")[0].Content());
-                    double arError = std::stod(contour.GetTagsByName("aspectRatio")[0].GetAttributesByName("error")[0].Value());
-                    int minArea = std::stoi(contour.GetTagsByName("minimumArea")[0].Content());
+            //find all contours and populate the vector
+            for(int k=0; k<targContours.size(); k++) {
+                XMLTag contour = targContours[k];
+                int id = std::stoi(contour.GetAttributesByName("id")[0].Value());
+                double x = std::stod(contour.GetTagsByName("x")[0].Content());
+                double y = std::stod(contour.GetTagsByName("y")[0].Content());
+                double distXError = std::stod(contour.GetTagsByName("x")[0].GetAttributesByName("error")[0].Value());
+                double distYError = std::stod(contour.GetTagsByName("y")[0].GetAttributesByName("error")[0].Value());
+                int angle = std::stoi(contour.GetTagsByName("angle")[0].Content());
+                int angleError = std::stoi(contour.GetTagsByName("angle")[0].GetAttributesByName("error")[0].Value());
+                double solidity = std::stod(contour.GetTagsByName("solidity")[0].Content());
+                double solidError = std::stod(contour.GetTagsByName("solidity")[0].GetAttributesByName("error")[0].Value());
+                double ar = std::stod(contour.GetTagsByName("aspectRatio")[0].Content());
+                double arError = std::stod(contour.GetTagsByName("aspectRatio")[0].GetAttributesByName("error")[0].Value());
+                int minArea = std::stoi(contour.GetTagsByName("minimumArea")[0].Content());
 
-                    SettingPair distXPair = SettingPair(x, distXError);
-                    SettingPair distYPair = SettingPair(y, distYError);
-                    SettingPair anglePair = SettingPair(angle, angleError);
-                    SettingPair solidPair = SettingPair(solidity, solidError);
-                    SettingPair arPair    = SettingPair(ar, arError);
+                SettingPair distXPair = SettingPair(x, distXError);
+                SettingPair distYPair = SettingPair(y, distYError);
+                SettingPair anglePair = SettingPair(angle, angleError);
+                SettingPair solidPair = SettingPair(solidity, solidError);
+                SettingPair arPair    = SettingPair(ar, arError);
 
-                    ExampleContour newContour = ExampleContour(id, distXPair, distYPair, anglePair, arPair, solidPair, minArea);
-                    contours.push_back(newContour);
-                }
-
-                //knownWidth, focalWidth, calibratedDistance, distErrorCorrect
-                double knownWidth = std::stod(targetTag.GetTagsByName("knownWidth")[0].Content());
-                double focalWidth = std::stod(targetTag.GetTagsByName("focalWidth")[0].Content());
-                double calibratedDistance = std::stod(targetTag.GetTagsByName("calibratedDistance")[0].Content());
-                double distErrorCorrect = std::stod(targetTag.GetTagsByName("distErrorCorrect")[0].Content());
-
-                bool calcByHeight = targetTag.GetTagsByName("calcByHeight")[0].Content() == "true";
-                DistanceCalcMode distMode = (calcByHeight ? DistanceCalcMode::BY_HEIGHT : DistanceCalcMode::BY_WIDTH);
-
-                ExampleTarget newTarget = ExampleTarget(targetId, contours, knownWidth, focalWidth, distErrorCorrect, calibratedDistance, distMode);
-                this->postProcessorTargets.push_back(newTarget);
+                ExampleContour newContour = ExampleContour(id, distXPair, distYPair, anglePair, arPair, solidPair, minArea);
+                contours.push_back(newContour);
             }
+
+            //knownWidth, focalWidth, calibratedDistance, distErrorCorrect
+            double knownWidth = std::stod(targetTag.GetTagsByName("knownWidth")[0].Content());
+            double focalWidth = std::stod(targetTag.GetTagsByName("focalWidth")[0].Content());
+            double calibratedDistance = std::stod(targetTag.GetTagsByName("calibratedDistance")[0].Content());
+            double distErrorCorrect = std::stod(targetTag.GetTagsByName("distErrorCorrect")[0].Content());
+
+            bool calcByHeight = targetTag.GetTagsByName("calcByHeight")[0].Content() == "true";
+            DistanceCalcMode distMode = (calcByHeight ? DistanceCalcMode::BY_HEIGHT : DistanceCalcMode::BY_WIDTH);
+
+            this->postProcessorTarget = ExampleTarget(targetId, contours, knownWidth, focalWidth, distErrorCorrect, calibratedDistance, distMode);
 
     //init the preprocessor and postprocessor here
     this->preprocessor = PreProcessor(preprocessorTypeIsFull, preprocessorColor, preprocessorThreshold, preprocessorErosion, preprocessorDilation, this->debug);
-    this->postprocessor = PostProcessor(this->postProcessorTargets, this->debug);
+    this->postprocessor = PostProcessor(this->postProcessorTarget, this->debug);
     KiwiLightApp::ReconnectUDP(udpAddr, udpPort);
 }
 

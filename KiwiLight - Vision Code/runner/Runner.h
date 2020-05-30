@@ -225,6 +225,9 @@ namespace KiwiLight {
         SettingPair GetContourProperty(int contour, TargetProperty prop);
         void SetTargetProperty(RunnerProperty prop, double value);
         double GetTargetProperty(RunnerProperty prop);
+
+        //DEPRECATED
+        [[deprecated("This method is no longer used and will be removed in the next update.")]] 
         void AddGenericContour();
 
         private:
@@ -278,22 +281,37 @@ namespace KiwiLight {
     class PostProcessor {
         public:
         PostProcessor() {};
-        PostProcessor(std::vector<ExampleTarget> targets, bool debugging);
-        void SetTarget(int id, ExampleTarget target);
-        int NumberOfTargets() { return this->targets.size(); };
-        int NumberOfContours(int target);
+        PostProcessor(ExampleTarget target, bool debugging);
+        void SetTarget(ExampleTarget target);
+        int NumberOfContours();
+        std::vector<Target> ProcessImage(cv::Mat img);
+        std::vector<Contour> GetValidContoursForTarget(std::vector<Contour> contours);
         void SetTargetContourProperty(int contour, TargetProperty prop, SettingPair values);
         SettingPair GetTargetContourProperty(int contour, TargetProperty prop);
         void SetRunnerProperty(RunnerProperty prop, double value);
         double GetRunnerProperty(RunnerProperty prop);
-        ExampleTarget GetExampleTargetByID(int id);
-        std::vector<Target> ProcessImage(cv::Mat img);
-        std::vector<Contour> GetValidContoursForTarget(std::vector<Contour> contours);
+        ExampleTarget GetTarget();
         std::vector<Contour> GetContoursFromLastFrame() { return this->contoursFromLastFrame; };
+
+        //DEPRECATED STUFF
+        [[deprecated("Use PostProcessor(ExampleTarget, bool) instead.")]] 
+        PostProcessor(std::vector<ExampleTarget> targets, bool debugging); //deprecated
+
+        [[deprecated("Use SetTarget(ExampleTarget) instead.")]] 
+        void SetTarget(int id, ExampleTarget target); //deprecated
+
+        [[deprecated("The PostProcessor will no longer support multi-targeting.")]] 
+        int NumberOfTargets(); //deprecated
+
+        [[deprecated("PostProcessor is moving away from using multiple targets. Use NumberOfContours() instead.")]] 
+        int NumberOfContours(int target); //deprecated
+
+        [[deprecated("PostProcessor is moving away from using multiple targets. use GetTarget() instead.")]] 
+        ExampleTarget GetExampleTargetByID(int id); //deprecated
 
         private:
         bool debugging;
-        std::vector<ExampleTarget> targets;
+        ExampleTarget target;
         std::vector<Contour> contoursFromLastFrame;
     };
 
@@ -374,8 +392,6 @@ namespace KiwiLight {
         int GetCameraIndex() { return this->cameraIndex; };
         void SetImageResize(Size sz);
         std::string Iterate();
-        int GetNumberOfTargets() { return this->postprocessor.NumberOfTargets(); };
-        int GetNumberOfContours(int target);
         bool GetLastFrameSuccessful() { return this->lastIterationSuccessful; };
         std::vector<Target> GetLastFrameTargets() { return this->lastFrameTargets; };
         Target GetClosestTargetToCenter() { return this->closestTarget; };
@@ -385,14 +401,28 @@ namespace KiwiLight {
         cv::Mat GetOriginalImage() { return this->originalImage; };
         cv::Mat GetOutputImage() { return this->outputImage; };
         Size GetConstantSize() { return this->constantResize; };
-        ExampleTarget GetExampleTargetByID(int id);
-        void SetExampleTarget(int targetID, ExampleTarget target);
+        int NumberOfContours();
+        ExampleTarget GetExampleTarget();
+        void SetExampleTarget(ExampleTarget target);
         void SetPreprocessorProperty(PreProcessorProperty prop, double value);
         double GetPreprocessorProperty(PreProcessorProperty prop);
         void SetPostProcessorContourProperty(int contour, TargetProperty prop, SettingPair values);
         SettingPair GetPostProcessorContourProperty(int contour, TargetProperty prop);
         void SetRunnerProperty(RunnerProperty prop, double value);
         double GetRunnerProperty(RunnerProperty prop);
+
+        //DEPRECATED:
+        [[deprecated("This method will be removed in the next update.")]]
+        int GetNumberOfTargets() { return 1; };
+
+        [[deprecated("Use SetExampleTarget(ExampleTarget) instead.")]]
+        void SetExampleTarget(int targetID, ExampleTarget target);
+
+        [[deprecated("Use GetExampleTarget() instead.")]]
+        ExampleTarget GetExampleTargetByID(int id);
+
+        [[deprecated("Use NumberOfContours() instead.")]]
+        int GetNumberOfContours(int target);
 
         private:
         void parseDocument(XMLDocument doc);
@@ -412,7 +442,7 @@ namespace KiwiLight {
         cv::Mat outputImage,
                 originalImage;
 
-        std::vector<ExampleTarget> postProcessorTargets;
+        ExampleTarget postProcessorTarget;
         std::vector<Target> lastFrameTargets;
         Point lastFrameCenterPoint;
         bool lastIterationSuccessful;

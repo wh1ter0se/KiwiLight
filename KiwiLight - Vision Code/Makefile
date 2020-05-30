@@ -109,13 +109,16 @@ bin/ui/ConfigEditor.o: ui/ConfigEditor.cpp
 bin/ui/CameraSetting.o: ui/CameraSetting.cpp
 	$(CXX) $(FLAGS) bin/ui/CameraSetting.o ui/CameraSetting.cpp $(GTK)
 
-lib/UI.a: bin/ui/Widget.o bin/ui/ConfirmationDialog.o bin/ui/SubMenuItem.o bin/ui/MenuItem.o bin/ui/MenuBar.o bin/ui/Button.o bin/ui/Label.o bin/ui/LabeledSlider.o bin/ui/AboutWindow.o bin/ui/HelpWindow.o bin/ui/CronWindow.o bin/ui/LogViewer.o bin/ui/Panel.o bin/ui/Scrollable.o bin/ui/Frame.o bin/ui/Separator.o bin/ui/Slider.o bin/ui/CheckBox.o bin/ui/TextBox.o bin/ui/NumberBox.o bin/ui/FileChooser.o bin/ui/TabView.o bin/ui/PopupTextBox.o bin/ui/Image.o bin/ui/Window.o bin/ui/ConfigPanel.o bin/ui/OverviewPanel.o bin/ui/Settings.o bin/ui/PreprocessorEditor.o bin/ui/PostprocessorEditor.o bin/ui/RunnerEditor.o bin/ui/ConfigEditor.o bin/ui/CameraSetting.o
-	ar rs lib/UI.a bin/ui/Widget.o bin/ui/ConfirmationDialog.o bin/ui/SubMenuItem.o bin/ui/MenuItem.o bin/ui/MenuBar.o bin/ui/Button.o bin/ui/Label.o bin/ui/LabeledSlider.o bin/ui/AboutWindow.o bin/ui/HelpWindow.o bin/ui/CronWindow.o bin/ui/LogViewer.o bin/ui/Panel.o bin/ui/Scrollable.o bin/ui/Frame.o bin/ui/Separator.o bin/ui/Slider.o bin/ui/CheckBox.o bin/ui/TextBox.o bin/ui/NumberBox.o bin/ui/FileChooser.o bin/ui/TabView.o bin/ui/PopupTextBox.o bin/ui/Image.o bin/ui/Window.o bin/ui/ConfigPanel.o bin/ui/OverviewPanel.o bin/ui/Settings.o bin/ui/PreprocessorEditor.o bin/ui/PostprocessorEditor.o bin/ui/RunnerEditor.o bin/ui/ConfigEditor.o bin/ui/CameraSetting.o
+bin/ui/UDPPanel.o: ui/UDPPanel.cpp
+	$(CXX) $(FLAGS) bin/ui/UDPPanel.o ui/UDPPanel.cpp $(GTK)
+
+lib/UI.a: bin/ui/Widget.o bin/ui/ConfirmationDialog.o bin/ui/SubMenuItem.o bin/ui/MenuItem.o bin/ui/MenuBar.o bin/ui/Button.o bin/ui/Label.o bin/ui/LabeledSlider.o bin/ui/AboutWindow.o bin/ui/HelpWindow.o bin/ui/CronWindow.o bin/ui/LogViewer.o bin/ui/Panel.o bin/ui/Scrollable.o bin/ui/Frame.o bin/ui/Separator.o bin/ui/Slider.o bin/ui/CheckBox.o bin/ui/TextBox.o bin/ui/NumberBox.o bin/ui/FileChooser.o bin/ui/TabView.o bin/ui/PopupTextBox.o bin/ui/Image.o bin/ui/Window.o bin/ui/ConfigPanel.o bin/ui/OverviewPanel.o bin/ui/Settings.o bin/ui/PreprocessorEditor.o bin/ui/PostprocessorEditor.o bin/ui/RunnerEditor.o bin/ui/ConfigEditor.o bin/ui/CameraSetting.o bin/ui/UDPPanel.o
+	ar rs lib/UI.a bin/ui/Widget.o bin/ui/ConfirmationDialog.o bin/ui/SubMenuItem.o bin/ui/MenuItem.o bin/ui/MenuBar.o bin/ui/Button.o bin/ui/Label.o bin/ui/LabeledSlider.o bin/ui/AboutWindow.o bin/ui/HelpWindow.o bin/ui/CronWindow.o bin/ui/LogViewer.o bin/ui/Panel.o bin/ui/Scrollable.o bin/ui/Frame.o bin/ui/Separator.o bin/ui/Slider.o bin/ui/CheckBox.o bin/ui/TextBox.o bin/ui/NumberBox.o bin/ui/FileChooser.o bin/ui/TabView.o bin/ui/PopupTextBox.o bin/ui/Image.o bin/ui/Window.o bin/ui/ConfigPanel.o bin/ui/OverviewPanel.o bin/ui/Settings.o bin/ui/PreprocessorEditor.o bin/ui/PostprocessorEditor.o bin/ui/RunnerEditor.o bin/ui/ConfigEditor.o bin/ui/CameraSetting.o bin/ui/UDPPanel.o
 
 #UTIL
 bin/util/Flags.o: util/Flags.cpp
 	$(CXX) $(FLAGS) bin/util/Flags.o util/Flags.cpp $(SUPPRESS_DEP)
-
+	
 bin/util/Shell.o: util/Shell.cpp
 	$(CXX) $(FLAGS) bin/util/Shell.o util/Shell.cpp
 
@@ -202,7 +205,7 @@ lib/Runner.a: bin/runner/Contour.o bin/runner/ExampleContour.o bin/runner/Exampl
 bin/KiwiLight.o: KiwiLight.cpp
 	$(CXX) $(FLAGS) bin/KiwiLight.o KiwiLight.cpp $(GTK) $(CV)
 
-KiwiLight: Main.cpp bin/KiwiLight.o lib/UI.a lib/Util.a lib/Runner.a
+KiwiLight: Main.cpp lib/UI.a lib/Util.a lib/Runner.a bin/KiwiLight.o
 	$(CXX) -o KiwiLight Main.cpp bin/KiwiLight.o lib/UI.a  lib/Runner.a lib/Util.a $(GTK) $(CV)
 
 #SET UP THE FILES AND FOLDERS

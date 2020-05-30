@@ -37,10 +37,10 @@ namespace KiwiLight {
     
     class [[deprecated("This class is no longer used in KiwiLight and will be removed in the next update.")]] Flags {
         public:
-        static void RaiseFlag(std::string flagName);
-        static void LowerFlag(std::string flagName);
-        static void SetFlagState(std::string flagName, bool state);
-        static bool GetFlag(std::string flagName);
+        [[deprecated("The Flags class is no longer used and will be removed in the next update.")]] static void RaiseFlag(std::string flagName);
+        [[deprecated("The Flags class is no longer used and will be removed in the next update.")]] static void LowerFlag(std::string flagName);
+        [[deprecated("The Flags class is no longer used and will be removed in the next update.")]] static void SetFlagState(std::string flagName, bool state);
+        [[deprecated("The Flags class is no longer used and will be removed in the next update.")]] static bool GetFlag(std::string flagName);
 
         private:
         static std::vector<std::string> flagNames;
@@ -97,7 +97,6 @@ namespace KiwiLight {
         public:
         UDP(){};
         UDP(std::string dest_ip, int port, bool blockUntilConnected);
-        UDP(std::string this_ip, std::string dest_ip, int port, bool blockUntilConnected);
         bool AttemptToConnect();
         bool Connected() { return this->connected; };
         void Send(std::string msg);
@@ -105,6 +104,11 @@ namespace KiwiLight {
         void Close();
         std::string GetAddress() { return this->address; };
         int GetPort() { return this->port; };
+
+        //DEPRECATED
+        [[deprecated("This constructor is not used in KiwiLight and will be removed in the next update.")]] 
+        UDP(std::string this_ip, std::string dest_ip, int port, bool blockUntilConnected);
+
 
         private:
         int sock; //sock fd returned by socket() call

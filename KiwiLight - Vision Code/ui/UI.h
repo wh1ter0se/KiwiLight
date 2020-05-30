@@ -56,9 +56,9 @@ namespace KiwiLight {
      */
     class [[deprecated("This class is not used in KiwiLight and will be removed in the next update.")]] Scrollable : public Widget {
         public:
-        Scrollable() {};
-        Scrollable(bool horizontal, bool vertical);
-        void PackWidget(GtkWidget *wid);
+        [[deprecated("The Scrollable class is not used and will be removed in the next update.")]] Scrollable() {};
+        [[deprecated("The Scrollable class is not used and will be removed in the next update.")]] Scrollable(bool horizontal, bool vertical);
+        [[deprecated("The Scrollable class is not used and will be removed in the next update.")]] void PackWidget(GtkWidget *wid);
     };
 
     /**
@@ -68,9 +68,9 @@ namespace KiwiLight {
     class [[deprecated("The Frame class is not used in KiwiLight and will be removed in the next update.")]] Frame : public Widget {
         public:
         Frame() {};
-        Frame(std::string label);
-        void Pack(GtkWidget *widget);
-        void Unpack(GtkWidget *widget);
+        [[deprecated("The Frame class is not used and will be removed in the next update.")]] Frame(std::string label);
+        [[deprecated("The Frame class is not used and will be removed in the next update.")]] void Pack(GtkWidget *widget);
+        [[deprecated("The Frame class is not used and will be removed in the next update.")]] void Unpack(GtkWidget *widget);
     };
 
     /**
@@ -189,6 +189,9 @@ namespace KiwiLight {
         Button(std::string text, void(*callback)() );
         void SetText(std::string text);
         std::string GetText() { return text; };
+
+        //DEPRECATED
+        [[deprecated("This method has not been implemented and is therfore not used in KiwiLight.")]]
         void SetCallback( void(*callback)() );
         
         private:
@@ -287,11 +290,11 @@ namespace KiwiLight {
      * A dialog with a text box.
      * DEPRECATED: The PopupTextBox class is not used in KiwiLight and will be removed in the next update.
      */
-    class PopupTextBox : public Widget {
+    class [[deprecated("The PopupTextBox class is no longer used and will be removed in the next update.")]] PopupTextBox : public Widget {
         public:
         PopupTextBox() {};
-        PopupTextBox(std::string name, std::string prompt, std::string initValue);
-        std::string Show();
+        [[deprecated("The PopupTextBox class is no longer used and will be removed in the next update.")]] PopupTextBox(std::string name, std::string prompt, std::string initValue);
+        [[deprecated("The PopupTextBox class is no longer used and will be removed in the next update.")]] std::string Show();
 
         private:
         TextBox textbox;
@@ -454,6 +457,30 @@ namespace KiwiLight {
     };
 
     /**
+     * Panel widget that displays the properties of the KiwiLight UDP socket sender.
+     */
+    class UDPPanel : public Widget {
+        public:
+        UDPPanel() {};
+        UDPPanel(bool enabled);
+        void SetAddress(std::string address);
+        void SetPort(int port);
+        void SetEnabled(bool enabled);
+        void SetConnected(bool connected);
+        void ReadAndSetInfo();
+
+        private:
+        void createHorizontalReadout(std::string header, Label readout);
+        Panel readouts;
+        Label
+            address,
+            port,
+            connected;
+
+        Button toggleButton;
+    };
+
+    /**
      * Panel where configuration can be viewed
      */
     class ConfigPanel : public Widget {
@@ -489,7 +516,6 @@ namespace KiwiLight {
         public:
         OverviewPanel() {};
         OverviewPanel(XMLDocument doc);
-        void Update();
         void SetConfigName(std::string name);
         std::string GetConfigName();
         void SetTargetInformationLabels(
@@ -510,6 +536,11 @@ namespace KiwiLight {
         int GetUDPPort();
         void SetUDPEnabledLabels(bool UDPEnabled);
         void SetTargetInformationLabelsFromString(std::string iterOutput);
+
+        //DEPRECATED
+        [[deprecated("This method is not needed in KiwiLight and will be removed in the next update.")]] 
+        void Update();
+
 
         private:
         TextBox configName;
@@ -534,7 +565,6 @@ namespace KiwiLight {
         public:
         Settings() {};
         Settings(XMLDocument doc);
-        void Update();
         void UpdateValue();
         void Show() { gtk_widget_show_all(this->widget); };
         XMLTag GetFinishedTag();
@@ -543,6 +573,11 @@ namespace KiwiLight {
         void SetCameraIndex(int index);
         int GetCameraIndex();
         std::vector<int> GetSettingIDs();
+
+        //DEPRECATED
+        [[deprecated("This method is unused and will be removed in the next update.")]] 
+        void Update();
+
 
         private:
         NumberBox cameraIndex;

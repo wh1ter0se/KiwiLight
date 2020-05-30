@@ -56,6 +56,7 @@ Settings::Settings(XMLDocument doc) {
             editor.Pack_start(hsep.GetWidget(), true, true, 0);
 
         Label settingsHeader = Label("Other Settings");
+            settingsHeader.SetName("subHeader");
             editor.Pack_start(settingsHeader.GetWidget(), true, true, 0);
 
         //exposure auto
@@ -99,7 +100,6 @@ Settings::Settings(XMLDocument doc) {
  * Performs necessary updates.
  * DEPRECATED: This method is unused and will be removed in the next update.
  */
-[[deprecated("This method is unused and will be removed in the next update.")]]
 void Settings::Update() {
 
 }

@@ -14,7 +14,6 @@ using namespace KiwiLight;
  * @param initValue The inital value of the text box.
  * DEPRECATED: The PopupTextBox class is no longer used and will be removed in the next update.
  */
-[[deprecated("The PopupTextBox class is no longer used and will be removed in the next update.")]]
 PopupTextBox::PopupTextBox(std::string name, std::string prompt, std::string initValue) {
     GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     this->widget = gtk_dialog_new_with_buttons(name.c_str(), GTK_WINDOW(window), GTK_DIALOG_MODAL, "OK", GTK_RESPONSE_ACCEPT, NULL);
@@ -34,7 +33,6 @@ PopupTextBox::PopupTextBox(std::string name, std::string prompt, std::string ini
  * Shows the dialog and returns the user's response.
  * DEPRECATED: The PopupTextBox class will be removed in the next update.
  */
-[[deprecated("The PopupTextBox class will be removed in the next update.")]]
 std::string PopupTextBox::Show() {
     gtk_widget_show_all(this->widget);
     gtk_dialog_run(GTK_DIALOG(this->widget));

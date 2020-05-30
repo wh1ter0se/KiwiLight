@@ -50,7 +50,7 @@ OverviewPanel::OverviewPanel(XMLDocument doc) {
             this->targetVAngle = Label("Target Vertical Angle: N/A");
                 targetInformationPanel.Pack_start(this->targetVAngle.GetWidget(), false, false, 0);
 
-            editor.Pack_start(targetInformationPanel.GetWidget(), true, true, 0);
+            editor.Pack_start(targetInformationPanel.GetWidget(), false, false, 0);
 
         Label cameraHeader = Label("Camera");
             cameraHeader.SetName("subHeader");
@@ -112,7 +112,6 @@ OverviewPanel::OverviewPanel(XMLDocument doc) {
  * Updates the overview panel.
  * DEPRECATED: This method is not needed in KiwiLight and will be removed in the next update.
  */
-[[deprecated("This method is not needed in KiwiLight and will be removed in the next update.")]]
 void OverviewPanel::Update() {
 
 }

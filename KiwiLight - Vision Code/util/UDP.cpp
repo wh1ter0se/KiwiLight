@@ -62,7 +62,6 @@ UDP::UDP(std::string dest_ip, int port, bool blockUntilConnected) {
  * @param blockUntilConnected True if this call should block until connected, false otherwise.
  * DEPRECATED: This constructor is not used in KiwiLight and will be removed in the next update.
  */
-[[deprecated("This constructor is not used in KiwiLight and will be removed in the next update.")]]
 UDP::UDP(std::string this_ip, std::string dest_ip, int port, bool blockUntilConnected) {
     this->address = dest_ip;
     this->port = port; 

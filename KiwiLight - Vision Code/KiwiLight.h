@@ -57,6 +57,7 @@ namespace KiwiLight {
         static bool LastImageCaptureSuccessful();
         static AppMode CurrentMode();
         static UDP GetUDP();
+        static bool GetUDPEnabled();
         static std::string GetCurrentFile();
 
         //misc. UI callbacks
@@ -74,7 +75,6 @@ namespace KiwiLight {
         static void ToggleLogPlot();
         static void GenerateLogPlot();
         static void OpenNewCameraOnIndex(int index);
-        static void InitCameraOnly(int index);
         static void ReconnectUDP(std::string newAddress, int newPort);
         static void ReconnectUDP(std::string newAddress, int newPort, bool block);
         static void SendOverUDP(std::string message);
@@ -82,6 +82,11 @@ namespace KiwiLight {
         //thread utilities
         static void LaunchStreamingThread(AppMode newMode);
         static void StopStreamingThread();
+
+        //DEPRECATED
+        [[deprecated("This method is no longer used and will be removed in the next update.")]] 
+        static void InitCameraOnly(int index);
+
 
         private:
         //menu bar utility
@@ -127,20 +132,24 @@ namespace KiwiLight {
             lastImageGrabSuccessful,
             udpEnabled,
             streamThreadEnabled,
-            outImgInUse,
+            lfgImgInUse,
             uiInitalized,
             logviewerExists;
-        static Mat lastFrameGrabImage;
+        static Mat 
+            lastFrameGrabImage,
+            defaultOutImage;
         static int currentCameraIndex;
 
         //ui widgets
         static Window win;
+        static UDPPanel udpPanel;
         static ConfigPanel confInfo;
         static NumberBox cameraIndexBox;
         static Label cameraStatusLabel;
         static Image outputImage;
-        static Button toggleUDPButton;
         static SubMenuItem runHeadlessly;
+        static Button toggleRunningButton;
+
         
         //counters
         static int cameraFailures;

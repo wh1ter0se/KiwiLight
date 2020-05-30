@@ -45,11 +45,10 @@ void RunConfigs(std::vector<std::string> filePaths) {
     int totalContours = 0;
     for(int i=0; i<filePaths.size(); i++) {
         runners[i] = Runner(filePaths[i], false);
-        totalContours += runners[i].GetNumberOfContours(0);
+        totalContours += runners[i].NumberOfContours();
 
         runnerNames += runners[i].GetConfName();
         runnerFiles += runners[i].GetFileName();
-
         if(i < filePaths.size() - 1) {
             runnerNames += ",";
             runnerFiles += ",";

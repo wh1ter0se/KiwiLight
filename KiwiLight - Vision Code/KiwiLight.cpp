@@ -19,19 +19,21 @@ LogViewer    KiwiLightApp::logViewer;
 GThread     *KiwiLightApp::streamingThread;
 AppMode      KiwiLightApp::mode = AppMode::UI_STREAM;
 bool         KiwiLightApp::lastImageGrabSuccessful = false;
-bool         KiwiLightApp::udpEnabled = false;
+bool         KiwiLightApp::udpEnabled = true;
 bool         KiwiLightApp::streamThreadEnabled = true; //acts as a kind of "enable switch" for the streamthread because it seems to like starting when its not supposed to
-bool         KiwiLightApp::outImgInUse = false;
+bool         KiwiLightApp::lfgImgInUse = false;
 bool         KiwiLightApp::uiInitalized = false;
 bool         KiwiLightApp::logviewerExists = false;
 Mat          KiwiLightApp::lastFrameGrabImage;
+Mat          KiwiLightApp::defaultOutImage;
 Window       KiwiLightApp::win;
+UDPPanel     KiwiLightApp::udpPanel;
 ConfigPanel  KiwiLightApp::confInfo;
 NumberBox    KiwiLightApp::cameraIndexBox;
 Label        KiwiLightApp::cameraStatusLabel;
 Image        KiwiLightApp::outputImage;
-Button       KiwiLightApp::toggleUDPButton;
 SubMenuItem  KiwiLightApp::runHeadlessly;
+Button       KiwiLightApp::toggleRunningButton;
 int          KiwiLightApp::cameraFailures;
 int          KiwiLightApp::currentCameraIndex = 100;
 
@@ -41,14 +43,11 @@ extern void RunConfigs(std::vector<std::string> filePaths); // from Main.cpp
  * Initializes GTK and builds KiwiLight
  */
 void KiwiLightApp::Create(int argc, char *argv[]) {
-    //tmp
-    Flags::RaiseFlag("bruh");
-
     KiwiLightApp::mode = AppMode::UI_PAUSING;
     KiwiLightApp::cameraFailures = 0;
     KiwiLightApp:currentCameraIndex = 100; //just to define index. Camera will only open if currentCameraindex != 100
-
     KiwiLightApp::udpSender = UDP("127.0.0.1", 3695, false);
+    KiwiLightApp::defaultOutImage = imread("noimg.png");
     
     gtk_init(&argc, &argv);
     win = Window(GTK_WINDOW_TOPLEVEL);
@@ -81,6 +80,15 @@ void KiwiLightApp::Create(int argc, char *argv[]) {
                 KiwiLightApp::cameraStatusLabel = Label("");
                     ribbon.Pack_start(cameraStatusLabel.GetWidget(), false, false, 0);
 
+                Separator sep2 = Separator(false);
+                    ribbon.Pack_start(sep2.GetWidget(), false, false, 5);
+
+                KiwiLightApp::udpPanel = UDPPanel(udpEnabled);
+                    ribbon.Pack_start(udpPanel.GetWidget(), false, false, 0);
+
+                Separator sep3 = Separator(false);
+                    ribbon.Pack_start(sep3.GetWidget(), false, false, 5);
+
             content.Pack_start(ribbon.GetWidget(), false, false, 0);
 
             Panel body = Panel(true, 0);
@@ -92,8 +100,8 @@ void KiwiLightApp::Create(int argc, char *argv[]) {
                         Button editButton = Button("Edit", KiwiLightApp::EditConfiguration);
                             configButtonPanel.Pack_start(editButton.GetWidget(), true, true, 0);
 
-                        KiwiLightApp::toggleUDPButton = Button("Enable UDP", ToggleUDP);
-                            configButtonPanel.Pack_start(KiwiLightApp::toggleUDPButton.GetWidget(), true, true, 0);
+                        KiwiLightApp::toggleRunningButton = Button("Run", KiwiLightApp::RunHeadlesslyCallback);
+                            configButtonPanel.Pack_start(toggleRunningButton.GetWidget() ,true, true, 0);
 
                         configInfoPanel.Pack_start(configButtonPanel.GetWidget(), true, false, 0);
                     body.Pack_start(configInfoPanel.GetWidget(), true, true, 0);
@@ -229,6 +237,13 @@ UDP KiwiLightApp::GetUDP() {
 }
 
 /**
+ * Returns true if the UDP sender is enabled, false otherwise.
+ */
+bool KiwiLightApp::GetUDPEnabled() {
+    return KiwiLightApp::udpEnabled;
+}
+
+/**
  * Returns the path of the file that KiwiLight is currently running/editing, or "" if no file is loaded.
  */
 std::string KiwiLightApp::GetCurrentFile() {
@@ -248,9 +263,11 @@ MenuBar KiwiLightApp::CreateMenuBar() {
             SubMenuItem openConfig = SubMenuItem("Open Configuration", KiwiLightApp::OpenConfiguration);
                 file.AddSubmenuItem(openConfig);
 
-            SubMenuItem stopConfig = SubMenuItem("Close Config", KiwiLightApp::CloseConfiguration);
-                file.AddSubmenuItem(stopConfig);
+            SubMenuItem editConfig = SubMenuItem("Edit Configuration", KiwiLightApp::EditConfiguration);
+                file.AddSubmenuItem(editConfig);
 
+            SubMenuItem stopConfig = SubMenuItem("Close Configuration", KiwiLightApp::CloseConfiguration);
+                file.AddSubmenuItem(stopConfig);
 
             SubMenuItem quit = SubMenuItem("Quit", KiwiLightApp::Quit);
                 file.AddSubmenuItem(quit);
@@ -390,7 +407,6 @@ void KiwiLightApp::OpenNewCameraOnIndex(int index) {
  * Opens new camera without updating UI elements
  * DEPRECATED: This method is no longer used and will be removed in the next update.
  */
-[[deprecated("This method is no longer used and will be removed in the next update.")]]
 void KiwiLightApp::InitCameraOnly(int index) {
     std::cout << "Configuring Auto Exposure setting on new camera" << std::endl;
     Shell::ExecuteCommand(
@@ -406,7 +422,7 @@ void KiwiLightApp::InitCameraOnly(int index) {
  * Sets the IPv4 address and port of KiwiLight's socket sender.
  */
 void KiwiLightApp::ReconnectUDP(std::string newAddress, int newPort) {
-    KiwiLightApp::udpSender = UDP(newAddress, newPort, false);
+    ReconnectUDP(newAddress, newPort, false);
 }
 
 /**
@@ -414,6 +430,7 @@ void KiwiLightApp::ReconnectUDP(std::string newAddress, int newPort) {
  */
 void KiwiLightApp::ReconnectUDP(std::string newAddress, int newPort, bool block) {
     KiwiLightApp::udpSender = UDP(newAddress, newPort, block);
+    KiwiLightApp::udpPanel.ReadAndSetInfo();
 }
 
 /**
@@ -481,16 +498,17 @@ void KiwiLightApp::UpdateApp() {
             //update the camera error label based on how successful thread is being
             if(lastImageGrabSuccessful) {
                 //wait for the output image to be updated by other thread
-                while(KiwiLightApp::outImgInUse) {
+                while(KiwiLightApp::lfgImgInUse) {
                     usleep(100);
                 }
-                KiwiLightApp::outImgInUse = true;
+                KiwiLightApp::lfgImgInUse = true;
                 KiwiLightApp::outputImage.Update(KiwiLightApp::lastFrameGrabImage);
-                KiwiLightApp::outImgInUse = false;
+                KiwiLightApp::lfgImgInUse = false;
                 KiwiLightApp::cameraStatusLabel.SetText(""); 
             } else {
                 KiwiLightApp::cameraStatusLabel.SetText("Camera Error!");
                 KiwiLightApp::cameraFailures++;
+                KiwiLightApp::outputImage.Update(KiwiLightApp::defaultOutImage);
 
                 if(KiwiLightApp::cameraFailures > 50) {
                     //attempt to reconnect the camera stream
@@ -578,12 +596,12 @@ void KiwiLightApp::UpdateStreams() {
         // if successful, update the display image
         if(KiwiLightApp::lastImageGrabSuccessful) {            
             //wait for out image to be used by other thread
-            while(KiwiLightApp::outImgInUse) {
+            while(KiwiLightApp::lfgImgInUse) {
                 usleep(10);
             }
-            KiwiLightApp::outImgInUse = true;
+            KiwiLightApp::lfgImgInUse = true;
             KiwiLightApp::lastFrameGrabImage = displayImage;
-            KiwiLightApp::outImgInUse = false;
+            KiwiLightApp::lfgImgInUse = false;
         }
     } catch(cv::Exception ex) {
         std::cout << "An OpenCv Exception was encountered while running the Streaming thread!" << std::endl;
@@ -609,7 +627,7 @@ void KiwiLightApp::ToggleUDP() {
     KiwiLightApp::udpEnabled = !KiwiLightApp::udpEnabled;
     
     //set the button text
-    KiwiLightApp::toggleUDPButton.SetText((KiwiLightApp::udpEnabled ? "Disable UDP" : "Enable UDP"));
+    KiwiLightApp::udpPanel.SetEnabled (udpEnabled);
 
     //set the buttons in the config editor if necessary
     if(KiwiLightApp::mode == AppMode::UI_EDITOR) {
@@ -769,6 +787,7 @@ void KiwiLightApp::StopRunningHeadlessly() {
     KiwiLightApp::mode = AppMode::UI_PAUSING;
     g_thread_join(KiwiLightApp::streamingThread);
     runHeadlessly.SetText("Run Headlessly");
+    toggleRunningButton.SetText("Run");
     LaunchStreamingThread(AppMode::UI_RUNNER);
 }
 
@@ -776,27 +795,29 @@ void KiwiLightApp::StopRunningHeadlessly() {
  * Callback for the "Run Headlessly" buttons.
  */
 void KiwiLightApp::RunHeadlesslyCallback() {
-    if(KiwiLightApp::mode == AppMode::UI_HEADLESS) {
+    if(mode == AppMode::UI_HEADLESS) {
         StopRunningHeadlessly();
     } else {
         //before stopping thread, check to see that we have a valid configuration loaded. If not, load one.
-        if(KiwiLightApp::GetCurrentFile() == "") {
+        if(GetCurrentFile() == "") {
             //no file loaded, prompt user to load one
-            KiwiLightApp::OpenConfiguration();
+            OpenConfiguration();
         }
 
-        if(KiwiLightApp::mode == AppMode::UI_EDITOR) {
+        if(mode == AppMode::UI_EDITOR) {
             ConfirmationDialog saveConfirmation = ConfirmationDialog(
                 "The current configuration is being edited. Would you like to save your changes?"
             );
             bool shouldSave = saveConfirmation.ShowAndGetResponse();
-            KiwiLightApp::CloseEditor(shouldSave);
+            CloseEditor(shouldSave);
         }
 
         StopStreamingThread();
 
-        KiwiLightApp::streamingThread = g_thread_new("headless runner", GThreadFunc(KiwiLightApp::RunHeadlessly), NULL);
+        streamingThread = g_thread_new("headless runner", GThreadFunc(KiwiLightApp::RunHeadlessly), NULL);
         runHeadlessly.SetText("Stop Running");
+        toggleRunningButton.SetText("Stop");
+        outputImage.Update(defaultOutImage);
     }
 }
 

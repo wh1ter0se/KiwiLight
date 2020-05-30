@@ -328,7 +328,6 @@ double ExampleTarget::GetTargetProperty(RunnerProperty prop) {
  * Adds a "generic" contour to this target, increasing the contour count by 1.
  * DEPRECATED: This method is no longer used and will be removed in the next update.
  */
-[[deprecated("This method is no longer used and will be removed in the next update.")]]
 void ExampleTarget::AddGenericContour() {
     SettingPair genericDistX = SettingPair(0.0, 0.4);
     SettingPair genericDistY = SettingPair(0.0, 0.4);
