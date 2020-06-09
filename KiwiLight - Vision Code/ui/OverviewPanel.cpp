@@ -100,7 +100,7 @@ OverviewPanel::OverviewPanel(XMLDocument doc) {
             Button reconnectUDP = Button("Reconnect", KiwiLightApp::EditorConnectUDPFromOverview);
                 udpPanel.Pack_start(reconnectUDP.GetWidget(), true, true, 0);
 
-            this->enableUDP = Button("Enable", KiwiLightApp::ToggleUDP);
+            this->enableUDP = Button("Disable", KiwiLightApp::ToggleUDP);
                 udpPanel.Pack_start(this->enableUDP.GetWidget(), true, true, 0);
 
             editor.Pack_start(udpPanel.GetWidget(), true, true, 0);

@@ -58,6 +58,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
     this->fileName = fileName;
     this->lastIterationResult = "";
     this->out = Mat(Size(50, 50), CV_8UC3);
+    this->updateShouldSkip = false;
     this->confName = this->currentDoc.GetTagsByName("configuration")[0].GetAttributesByName("name")[0].Value();
     
     this->window = Window(GTK_WINDOW_TOPLEVEL, false);
@@ -147,87 +148,88 @@ ConfigEditor::ConfigEditor(std::string fileName) {
  * Updates the editor tools and checks for button presses, etc.
  */
 void ConfigEditor::Update() {
-    Mat displayable;
-
-    try {
-        vconcat(this->original, this->out, displayable);
-        this->outputImage.Update(displayable);
-    } catch(cv::Exception ex) {
-    }
-    //update the different tabs
-    this->configOverview.SetTargetInformationLabelsFromString(this->lastIterationResult);
-    this->preprocessorSettings.Update();
-    this->postprocessorSettings.Update();
-    this->runnerSettings.Update(this->runner.GetClosestTargetToCenter().Distance());
-
-    //apply the preprocessor settings
-    this->runner.SetPreprocessorProperty(PreProcessorProperty::IS_FULL, this->preprocessorSettings.GetProperty(PreProcessorProperty::IS_FULL));
-    this->runner.SetPreprocessorProperty(PreProcessorProperty::THRESHOLD, this->preprocessorSettings.GetProperty(PreProcessorProperty::THRESHOLD));
-    this->runner.SetPreprocessorProperty(PreProcessorProperty::EROSION, this->preprocessorSettings.GetProperty(PreProcessorProperty::EROSION));
-    this->runner.SetPreprocessorProperty(PreProcessorProperty::DILATION, this->preprocessorSettings.GetProperty(PreProcessorProperty::DILATION));
-    this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_HUE, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_HUE));
-    this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_SATURATION, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_SATURATION));
-    this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_VALUE, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_VALUE));
-    this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_ERROR, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_ERROR));
-
-    //apply all contour settings to the runner. First, make sure we have all contours needed.
-    int numberOfContours = this->postprocessorSettings.GetNumContours();
-    if(this->runner.NumberOfContours() != numberOfContours) {
-        std::cout << "Redefining Target." << std::endl;
-        std::vector<ExampleContour> newContours;
-        for(int i=0; i<numberOfContours; i++) {
-            ExampleContour newContour = ExampleContour(i);
-            newContours.push_back(newContour);
-        }
-        ExampleTarget newTarget = ExampleTarget(0, newContours, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH);
-        this->runner.SetExampleTarget(newTarget);
-    }
-
-    for(int i=0; i<numberOfContours; i++) {
-        this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_X, this->postprocessorSettings.GetProperty(i, TargetProperty::DIST_X));
-        this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_Y, this->postprocessorSettings.GetProperty(i, TargetProperty::DIST_Y));
-        this->runner.SetPostProcessorContourProperty(i, TargetProperty::ANGLE, this->postprocessorSettings.GetProperty(i, TargetProperty::ANGLE));
-        this->runner.SetPostProcessorContourProperty(i, TargetProperty::ASPECT_RATIO, this->postprocessorSettings.GetProperty(i, TargetProperty::ASPECT_RATIO));
-        this->runner.SetPostProcessorContourProperty(i, TargetProperty::SOLIDITY, this->postprocessorSettings.GetProperty(i, TargetProperty::SOLIDITY));
-        this->runner.SetPostProcessorContourProperty(i, TargetProperty::MINIMUM_AREA, this->postprocessorSettings.GetProperty(i, TargetProperty::MINIMUM_AREA));
-    }
-
-    //apply runner properties
-    this->runner.SetRunnerProperty(RunnerProperty::OFFSET_X, this->runnerSettings.GetProperty(RunnerProperty::OFFSET_X));
-    this->runner.SetRunnerProperty(RunnerProperty::OFFSET_Y, this->runnerSettings.GetProperty(RunnerProperty::OFFSET_Y));
-    this->runner.SetRunnerProperty(RunnerProperty::IMAGE_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::IMAGE_WIDTH));
-    this->runner.SetRunnerProperty(RunnerProperty::IMAGE_HEIGHT, this->runnerSettings.GetProperty(RunnerProperty::IMAGE_HEIGHT));
-    this->runner.SetRunnerProperty(RunnerProperty::TRUE_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::TRUE_WIDTH));
-    this->runner.SetRunnerProperty(RunnerProperty::PERCEIVED_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::PERCEIVED_WIDTH));
-    this->runner.SetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE, this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE));
-    this->runner.SetRunnerProperty(RunnerProperty::ERROR_CORRECTION, this->runnerSettings.GetProperty(RunnerProperty::ERROR_CORRECTION));
-    this->runner.SetRunnerProperty(RunnerProperty::CALC_DIST_BY_HEIGHT, this->runnerSettings.GetProperty(RunnerProperty::CALC_DIST_BY_HEIGHT));
-
-    //set service labels
-    if(this->learnerActivated && this->learner.GetLearning()) {
-        this->serviceMonitor.SetText("Learning Target");
-
-        std::string progressString = "Capturing Frames (" +
-                                  std::to_string(this->learner.GetFramesLearned()) +
-                                  "/" +
-                                  std::to_string(LEARNER_FRAMES) + 
-                                  ")";
-        
-        this->serviceLabel.SetText(progressString);
-    } else if(this->distanceLearnerRunning) {
-        this->serviceMonitor.SetText("Learning Distance Constants");
-
-        std::string progressString = "Capturing Frames (" +
-                                  std::to_string(this->distanceLearner.GetFramesLearned()) +
-                                  "/" +
-                                  std::to_string(LEARNER_FRAMES) + 
-                                  ")";
-        this->serviceLabel.SetText(progressString);
-    } else {
-        this->serviceMonitor.SetText("No Service Running.");
-        this->serviceLabel.SetText("");
-    }
+    if(!this->updateShouldSkip) {
+        Mat displayable;
     
+        try {
+            vconcat(this->original, this->out, displayable);
+            this->outputImage.Update(displayable);
+        } catch(cv::Exception ex) {
+        }
+        //update the different tabs
+        this->configOverview.SetTargetInformationLabelsFromString(this->lastIterationResult);
+        this->preprocessorSettings.Update();
+        this->postprocessorSettings.Update();
+        this->runnerSettings.Update(this->runner.GetClosestTargetToCenter().Distance());
+    
+        //apply the preprocessor settings
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::IS_FULL, this->preprocessorSettings.GetProperty(PreProcessorProperty::IS_FULL));
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::THRESHOLD, this->preprocessorSettings.GetProperty(PreProcessorProperty::THRESHOLD));
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::EROSION, this->preprocessorSettings.GetProperty(PreProcessorProperty::EROSION));
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::DILATION, this->preprocessorSettings.GetProperty(PreProcessorProperty::DILATION));
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_HUE, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_HUE));
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_SATURATION, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_SATURATION));
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_VALUE, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_VALUE));
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_ERROR, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_ERROR));
+    
+        //apply all contour settings to the runner. First, make sure we have all contours needed.
+        int numberOfContours = this->postprocessorSettings.GetNumContours();
+        if(this->runner.NumberOfContours() != numberOfContours) {
+            std::cout << "Redefining Target." << std::endl;
+            std::vector<ExampleContour> newContours;
+            for(int i=0; i<numberOfContours; i++) {
+                ExampleContour newContour = ExampleContour(i);
+                newContours.push_back(newContour);
+            }
+            ExampleTarget newTarget = ExampleTarget(0, newContours, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH);
+            this->runner.SetExampleTarget(newTarget);
+        }
+    
+        for(int i=0; i<numberOfContours; i++) {
+            this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_X, this->postprocessorSettings.GetProperty(i, TargetProperty::DIST_X));
+            this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_Y, this->postprocessorSettings.GetProperty(i, TargetProperty::DIST_Y));
+            this->runner.SetPostProcessorContourProperty(i, TargetProperty::ANGLE, this->postprocessorSettings.GetProperty(i, TargetProperty::ANGLE));
+            this->runner.SetPostProcessorContourProperty(i, TargetProperty::ASPECT_RATIO, this->postprocessorSettings.GetProperty(i, TargetProperty::ASPECT_RATIO));
+            this->runner.SetPostProcessorContourProperty(i, TargetProperty::SOLIDITY, this->postprocessorSettings.GetProperty(i, TargetProperty::SOLIDITY));
+            this->runner.SetPostProcessorContourProperty(i, TargetProperty::MINIMUM_AREA, this->postprocessorSettings.GetProperty(i, TargetProperty::MINIMUM_AREA));
+        }
+    
+        //apply runner properties
+        this->runner.SetRunnerProperty(RunnerProperty::OFFSET_X, this->runnerSettings.GetProperty(RunnerProperty::OFFSET_X));
+        this->runner.SetRunnerProperty(RunnerProperty::OFFSET_Y, this->runnerSettings.GetProperty(RunnerProperty::OFFSET_Y));
+        this->runner.SetRunnerProperty(RunnerProperty::IMAGE_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::IMAGE_WIDTH));
+        this->runner.SetRunnerProperty(RunnerProperty::IMAGE_HEIGHT, this->runnerSettings.GetProperty(RunnerProperty::IMAGE_HEIGHT));
+        this->runner.SetRunnerProperty(RunnerProperty::TRUE_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::TRUE_WIDTH));
+        this->runner.SetRunnerProperty(RunnerProperty::PERCEIVED_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::PERCEIVED_WIDTH));
+        this->runner.SetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE, this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE));
+        this->runner.SetRunnerProperty(RunnerProperty::ERROR_CORRECTION, this->runnerSettings.GetProperty(RunnerProperty::ERROR_CORRECTION));
+        this->runner.SetRunnerProperty(RunnerProperty::CALC_DIST_BY_HEIGHT, this->runnerSettings.GetProperty(RunnerProperty::CALC_DIST_BY_HEIGHT));
+    
+        //set service labels
+        if(this->learnerActivated && this->learner.GetLearning()) {
+            this->serviceMonitor.SetText("Learning Target");
+    
+            std::string progressString = "Capturing Frames (" +
+                                      std::to_string(this->learner.GetFramesLearned()) +
+                                      "/" +
+                                      std::to_string(LEARNER_FRAMES) + 
+                                      ")";
+            
+            this->serviceLabel.SetText(progressString);
+        } else if(this->distanceLearnerRunning) {
+            this->serviceMonitor.SetText("Learning Distance Constants");
+    
+            std::string progressString = "Capturing Frames (" +
+                                      std::to_string(this->distanceLearner.GetFramesLearned()) +
+                                      "/" +
+                                      std::to_string(LEARNER_FRAMES) + 
+                                      ")";
+            this->serviceLabel.SetText(progressString);
+        } else {
+            this->serviceMonitor.SetText("No Service Running.");
+            this->serviceLabel.SetText("");
+        }
+    }
 }
 
 
@@ -247,6 +249,7 @@ bool ConfigEditor::UpdateImageOnly() {
 
         if(this->learner.GetLearning()) {
             if(this->learner.GetFramesLearned() >= LEARNER_FRAMES) {
+                this->updateShouldSkip = true;
                 int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
                 ExampleTarget newTarget = this->learner.StopLearning(minimumArea);
                 std::vector<ExampleContour> newContours = newTarget.Contours();
@@ -266,6 +269,7 @@ bool ConfigEditor::UpdateImageOnly() {
                         this->postprocessorSettings.SetProperty(i, TargetProperty::MINIMUM_AREA, SettingPair(newContours[i].MinimumArea(), 0));
                     }
                 }
+                this->updateShouldSkip = false;
             }
 
             if(this->learner.GetHasFailed()) {
@@ -284,11 +288,13 @@ bool ConfigEditor::UpdateImageOnly() {
         this->distanceLearner.FeedTarget(this->runner.GetClosestTargetToCenter());
 
         if(this->distanceLearner.GetFramesLearned() >= LEARNER_FRAMES) {
+            this->updateShouldSkip = true;
             double trueDistance = this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE);
             double trueWidth = this->runnerSettings.GetProperty(RunnerProperty::TRUE_WIDTH);
             double newFocalWidth = this->distanceLearner.GetFocalWidth(trueDistance, trueWidth);
             this->runnerSettings.SetProperty(RunnerProperty::PERCEIVED_WIDTH, newFocalWidth);
             this->distanceLearnerRunning = false;
+            this->updateShouldSkip = false;
         }
     }
     return retval;

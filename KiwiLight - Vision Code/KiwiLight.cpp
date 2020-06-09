@@ -23,7 +23,6 @@ bool         KiwiLightApp::udpEnabled = true;
 bool         KiwiLightApp::streamThreadEnabled = true; //acts as a kind of "enable switch" for the streamthread because it seems to like starting when its not supposed to
 bool         KiwiLightApp::lfgImgInUse = false;
 bool         KiwiLightApp::uiInitalized = false;
-bool         KiwiLightApp::logviewerExists = false;
 Mat          KiwiLightApp::lastFrameGrabImage;
 Mat          KiwiLightApp::defaultOutImage;
 Window       KiwiLightApp::win;
@@ -34,7 +33,7 @@ Label        KiwiLightApp::cameraStatusLabel;
 Image        KiwiLightApp::outputImage;
 SubMenuItem  KiwiLightApp::runHeadlessly;
 Button       KiwiLightApp::toggleRunningButton;
-int          KiwiLightApp::cameraFailures;
+int          KiwiLightApp::cameraFailures = 0;
 int          KiwiLightApp::currentCameraIndex = 100;
 
 extern void RunConfigs(std::vector<std::string> filePaths); // from Main.cpp
@@ -129,6 +128,13 @@ void KiwiLightApp::Start() {
     win.Main();
 }
 
+
+void KiwiLightApp::WaitForSocket() {
+    while(!udpSender.Connected()) {
+        udpSender.AttemptToConnect();
+    }
+}
+
 /**
  * Configures and starts the KiwiLight log.
  */
@@ -150,7 +156,7 @@ void KiwiLightApp::ConfigureHeadless(std::string runnerNames, std::string runner
 
 /**
  * Reports a runner iteration result to KiwiLight to log.
- * If ConfigureLog() has not yet been called, log data will be reported to the junk log.
+ * If ConfigureHeadless() has not yet been called, log data will be reported to the junk log.
  * Junk log path: /home/<usr>/KiwiLightData/logs/junk.xml
  */
 void KiwiLightApp::ReportHeadless(std::string runnerOutput) {
@@ -430,7 +436,11 @@ void KiwiLightApp::ReconnectUDP(std::string newAddress, int newPort) {
  */
 void KiwiLightApp::ReconnectUDP(std::string newAddress, int newPort, bool block) {
     KiwiLightApp::udpSender = UDP(newAddress, newPort, block);
-    KiwiLightApp::udpPanel.ReadAndSetInfo();
+    if(KiwiLightApp::uiInitalized) {
+        udpPanel.SetAddress(udpSender.GetAddress());
+        udpPanel.SetPort(udpSender.GetPort());
+        udpPanel.SetConnected(udpSender.Connected());
+    }
 }
 
 /**
@@ -639,6 +649,9 @@ void KiwiLightApp::ToggleUDP() {
  * Causes KiwiLight to create and open a new configuration.
  */
 void KiwiLightApp::NewConfiguration() {
+    if(!PromptEditorSaveAndClose()) { return; }
+    if(!PromptHeadlessStop()) { return; }
+    
     //set mode to stream and open a new editor.
     KiwiLightApp::mode = AppMode::UI_STREAM;
     EditConfiguration();
@@ -649,10 +662,8 @@ void KiwiLightApp::NewConfiguration() {
  * @param currentMode The UIMode active when callback was triggered
  */
 void KiwiLightApp::EditConfiguration() {
-    bool editorClosed = PromptEditorSaveAndClose();
-    if(!editorClosed) {
-        return;
-    }
+    if(!PromptEditorSaveAndClose()) { return; }
+    if(!PromptHeadlessStop()) { return; }
 
     AppMode currentMode = KiwiLightApp::mode;
     if(currentMode != AppMode::UI_EDITOR) {
@@ -677,17 +688,17 @@ void KiwiLightApp::EditConfiguration() {
  * Causes KiwiLight to open a new configuration after prompting the user with a file dialog.
  */
 void KiwiLightApp::OpenConfiguration() {
-    bool editorClosed = PromptEditorSaveAndClose();
-    if(!editorClosed) {
-        return;
-    }
+    if(!PromptEditorSaveAndClose()) { return; }
+    if(!PromptHeadlessStop()) { return; }
 
-    StopStreamingThread();
     FileChooser chooser = FileChooser(false, "");
     std::string fileToOpen = chooser.Show();
     
-    OpenConfigurationFromFile(fileToOpen);
-    LaunchStreamingThread(AppMode::UI_RUNNER);
+    if(fileToOpen != "") {
+        StopStreamingThread();
+        OpenConfigurationFromFile(fileToOpen);
+        LaunchStreamingThread(AppMode::UI_RUNNER);
+    }
 }
 
 /**
@@ -707,21 +718,8 @@ void KiwiLightApp::OpenConfigurationFromFile(std::string fileName) {
  * Causes KiwiLight to close the currently opened configuration.
  */
 void KiwiLightApp::CloseConfiguration() {
-    bool editorClosed = PromptEditorSaveAndClose();
-    if(!editorClosed) {
-        return;
-    }
-
-    //If the configuration is headless, prompt to close it to prevent mix ups.
-    if(KiwiLightApp::mode == AppMode::UI_HEADLESS) {
-        ConfirmationDialog closeConfirmation = ConfirmationDialog("The current configuration is running headlessly. Would you like to stop it?");
-        bool shouldClose = closeConfirmation.ShowAndGetResponse();
-        if(shouldClose) {
-            StopRunningHeadlessly();
-        } else {
-            return;
-        }
-    }
+    if(!PromptEditorSaveAndClose()) { return; }
+    if(!PromptHeadlessStop()) { return; }
 
     KiwiLightApp::confInfo.Clear();
     KiwiLightApp::mode = AppMode::UI_STREAM;
@@ -747,6 +745,25 @@ bool KiwiLightApp::PromptEditorSaveAndClose() {
     }
 
     return false;
+}
+
+/**
+ * Prompts the user to stop the headless configuration.
+ * @return true if the configuration was stopped, or not started in the first place, false otherwise.
+ */
+bool KiwiLightApp::PromptHeadlessStop() {
+    //If the configuration is headless, prompt to close it to prevent mix ups.
+    if(KiwiLightApp::mode == AppMode::UI_HEADLESS) {
+        ConfirmationDialog closeConfirmation = ConfirmationDialog("The current configuration is running headlessly. Would you like to stop it?");
+        bool shouldClose = closeConfirmation.ShowAndGetResponse();
+        if(shouldClose) {
+            StopRunningHeadlessly();
+        } else {
+            return false;
+        }
+    }
+    
+    return true;
 }
 
 /**
@@ -778,7 +795,8 @@ void KiwiLightApp::RunHeadlessly() {
     //assemble the config vector
     std::vector<std::string> configVector;
     configVector.push_back(confFile);
-    RunConfigs(configVector); //sets mode to UI_HEADLESS
+    RunConfigs(configVector);
+    KiwiLightApp::mode = AppMode::UI_HEADLESS;
 }
 
 
@@ -802,16 +820,14 @@ void KiwiLightApp::RunHeadlesslyCallback() {
         if(GetCurrentFile() == "") {
             //no file loaded, prompt user to load one
             OpenConfiguration();
+            
+            if(GetCurrentFile() == "") {
+                // the user has pressed cancel or did not select a file when opening a configuration.
+                return;
+            }
         }
 
-        if(mode == AppMode::UI_EDITOR) {
-            ConfirmationDialog saveConfirmation = ConfirmationDialog(
-                "The current configuration is being edited. Would you like to save your changes?"
-            );
-            bool shouldSave = saveConfirmation.ShowAndGetResponse();
-            CloseEditor(shouldSave);
-        }
-
+        if(!PromptEditorSaveAndClose()) { return; }
         StopStreamingThread();
 
         streamingThread = g_thread_new("headless runner", GThreadFunc(KiwiLightApp::RunHeadlessly), NULL);
@@ -825,13 +841,9 @@ void KiwiLightApp::RunHeadlesslyCallback() {
  * Creates a window which displays information from a specified KiwiLight log.
  */
 void KiwiLightApp::ShowLog(XMLDocument log) {
-    if(logviewerExists) {
-        KiwiLightApp::logViewer.Release();
-    }
-
+    KiwiLightApp::logViewer.Release();
     KiwiLightApp::logViewer = LogViewer(log);
     logViewer.Show();
-    logviewerExists = true;
 }
 
 /**

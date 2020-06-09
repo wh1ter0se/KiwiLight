@@ -74,12 +74,6 @@ void Logger::Log(std::string runnerOutput) {
     expandedFPS += thisFrameFPS;
     runningFPSAvg = expandedFPS / totalFrames;
 
-    //get distance
-    int distance = std::stoi(segments[4]);
-    double expandedDistance = runningDistanceAvg * (totalFrames - 1);
-    expandedDistance += distance;
-    runningDistanceAvg = expandedDistance / totalFrames;
-
     //store events
     if(thisFrameFPS > fastestFPSEvent.GetRecord()) {
         fastestFPSEvent = LogEvent(LogEvent::RECORD_HIGH_FPS, thisFrameTime, thisFrameFPS);
@@ -89,6 +83,8 @@ void Logger::Log(std::string runnerOutput) {
         slowestFPSEvent = LogEvent(LogEvent::RECORD_LOW_FPS, thisFrameTime, thisFrameFPS);
     }
 
+    //get distance
+    int distance = std::stoi(segments[4]);
     if(distance > -1) {
         if(distance > farthestDistanceEvent.GetRecord()) {
             farthestDistanceEvent = LogEvent(LogEvent::RECORD_HIGH_DIST, thisFrameTime, distance);
@@ -97,6 +93,10 @@ void Logger::Log(std::string runnerOutput) {
         if(distance < closestDistanceEvent.GetRecord()) {
             closestDistanceEvent = LogEvent(LogEvent::RECORD_LOW_DIST, thisFrameTime, distance);
         }
+        
+        double expandedDistance = runningDistanceAvg * (totalFrames - 1);
+        expandedDistance += distance;
+        runningDistanceAvg = expandedDistance / totalFrames;
     }
 
     //do we have to do a general update?

@@ -35,6 +35,7 @@ namespace KiwiLight {
         //UI building and starting
         static void Create(int argc, char *argv[]);
         static void Start();
+        static void WaitForSocket();
 
         //logging
         static void ConfigureHeadless(std::string runnerNames, std::string runnerFiles);
@@ -105,6 +106,7 @@ namespace KiwiLight {
         static void OpenConfigurationFromFile(std::string fileName);
         static void CloseConfiguration();
         static bool PromptEditorSaveAndClose();
+        static bool PromptHeadlessStop();
         static void Quit();
         static void ShowCronMenu();
         static void RunHeadlessly();
@@ -133,8 +135,7 @@ namespace KiwiLight {
             udpEnabled,
             streamThreadEnabled,
             lfgImgInUse,
-            uiInitalized,
-            logviewerExists;
+            uiInitalized;
         static Mat 
             lastFrameGrabImage,
             defaultOutImage;
@@ -149,7 +150,6 @@ namespace KiwiLight {
         static Image outputImage;
         static SubMenuItem runHeadlessly;
         static Button toggleRunningButton;
-
         
         //counters
         static int cameraFailures;

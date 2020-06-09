@@ -214,7 +214,9 @@ void LogViewer::GenerateAndShowPlot() {
  * Deletes the events array.
  */
 void LogViewer::Release() {
-    delete[] events;
+    if(this->initalized) {
+        delete[] events;
+    }
 }
 
 /**

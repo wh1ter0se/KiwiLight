@@ -121,7 +121,7 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
                 solidityPanel.Pack_start(this->solidity.GetWidget(), true, true, 0);
 
             double realSolidityErr = postprocessor.GetTargetContourProperty(0, TargetProperty::SOLIDITY).Error();
-            this->solidityErr = LabeledSlider("Range", 0.0, 1.0, 0.1, realSolidityErr);
+            this->solidityErr = LabeledSlider("Range", 0.0, 1.0, 0.01, realSolidityErr);
                 solidityPanel.Pack_start(this->solidityErr.GetWidget(), true, true, 0);
 
             editor.Pack_start(solidityPanel.GetWidget(), true, true, 0);

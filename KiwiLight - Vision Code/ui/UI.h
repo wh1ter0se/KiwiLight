@@ -1,7 +1,6 @@
 #ifndef KiwiLight_UI_H
 #define KiwiLight_UI_H
 
-// #include "gnuplot_i.hpp"
 #include <iostream>
 #include <stdlib.h>
 #include <string.h>
@@ -718,7 +717,7 @@ namespace KiwiLight {
 
         private:
         void UpdateImage();
-
+        
         //universal config learning utility
         ConfigLearner learner;
         bool learnerActivated;
@@ -738,6 +737,7 @@ namespace KiwiLight {
         std::string 
                 fileName,
                 confName;
+        bool updateShouldSkip;
                 
         std::string lastIterationResult;
 
