@@ -32,7 +32,7 @@ HelpWindow::HelpWindow(GtkWindowType type) {
                     labels.Pack_start(header.GetWidget(), false, false, 0);
 
                 Label content = Label(
-                    std::string("For KiwiLight help, check out the tutorial at <insert link here>\n\n") +
+                    std::string("For KiwiLight help, check out the tutorial at https://github.com/BTK203/KiwiLight/blob/master/Manual.pdf\n\n") +
                     std::string("You can also email brach2003@gmail.com with any questions, comments, concerns, etc.")
                 );
                     content.SetLineWrap(true);

@@ -155,16 +155,18 @@ LogViewer::LogViewer(XMLDocument log) {
             this->slowestFrameTime = Label(slowestFrameTimeString);
             createHorizontalReadout("Slowest Frame Time: ", slowestFrameTime, false);
 
+            bool distUnknown = (closestDistanceNum == DBL_MAX && farthestDistanceNum == 0);
+
             //average distance readout
-            this->averageDistance = Label(std::to_string(averageDistanceNum));
+            this->averageDistance = Label(distUnknown ? "Unknown" : std::to_string(averageDistanceNum));
             createHorizontalReadout("Average Distance: ", averageDistance, true);
 
             //closest distance readout
-            this->closestDistance = Label(std::to_string(closestDistanceNum));
+            this->closestDistance = Label(distUnknown ? "Unknown" : std::to_string(closestDistanceNum));
             createHorizontalReadout("Closest Distance: ", closestDistance, false);
 
             //farthest distance readout
-            this->farthestDistance = Label(std::to_string(farthestDistanceNum));
+            this->farthestDistance = Label(distUnknown ? "Unknown" : std::to_string(farthestDistanceNum));
             createHorizontalReadout("Farthest Distance: ", farthestDistance, false);
 
             //show plot button
@@ -204,8 +206,8 @@ void LogViewer::TogglePlotShowing() {
  */
 void LogViewer::GenerateAndShowPlot() {
     int elapsedTimeMS = totalFramesNum * (1000 / averageFPSNum);
-    int maxFPS = (int) (fastestFPSNum * 1.1);
-    int maxDist = (int) (farthestDistanceNum * 1.1);
+    int maxFPS = (int) fastestFPSNum;
+    double maxDist = farthestDistanceNum;
     generatePlot(elapsedTimeMS, maxFPS, maxDist, events, (const int) numEvents);
 }
 
@@ -246,11 +248,19 @@ void LogViewer::createHorizontalReadout(std::string header, Label readout, bool 
 /**
  * Generates two graphs: one for FPS, one for Distance, and returns an opencv Mat with the image.
  */
-void LogViewer::generatePlot(long elapsedTime, int maxFPS, int maxDist, LogEvent events[], const int numEvents) {
+void LogViewer::generatePlot(long elapsedTime, int maxFPS, double maxDist, LogEvent events[], const int numEvents) {
     Gnuplot plot;
+    
+    maxFPS *= 1.1;
+    maxDist *= 1.1;
     
     //resolve the height of the image
     int imageHeight = (maxFPS > maxDist ? maxFPS : maxDist);
+    
+    if(maxDist == 0) {
+        imageHeight = maxFPS;
+    }
+    
     int elapsedTimeSeconds = elapsedTime / 1000;
     
     //configure plot legend and color palette
@@ -306,6 +316,10 @@ void LogViewer::generatePlot(long elapsedTime, int maxFPS, int maxDist, LogEvent
     int fpsHeight = DataUtils::MaxWithoutOutliers(fpsReadings, 30);
     int distHeight = DataUtils::MaxWithoutOutliers(distanceWithoutNegatives, 150);
     int plotHeight = (fpsHeight > distHeight ? fpsHeight : distHeight);
+    
+    if(distHeight > 5000) {
+        plotHeight = fpsHeight;
+    }
     plot.set_xrange(0, elapsedTimeSeconds);
     plot.set_yrange(0, plotHeight);
 

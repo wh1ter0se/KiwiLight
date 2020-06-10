@@ -795,8 +795,8 @@ void KiwiLightApp::RunHeadlessly() {
     //assemble the config vector
     std::vector<std::string> configVector;
     configVector.push_back(confFile);
-    RunConfigs(configVector);
     KiwiLightApp::mode = AppMode::UI_HEADLESS;
+    RunConfigs(configVector);
 }
 
 

@@ -25,8 +25,8 @@ Logger::Logger(std::string filePath) {
     this->lastFrameMessage = Runner::NULL_MESSAGE;
 
     this->fastestFPSEvent = LogEvent(LogEvent::RECORD_HIGH_FPS, 0L, 0.0);
-    this->slowestFPSEvent = LogEvent(LogEvent::RECORD_LOW_FPS, 0, 10000000.0);
-    this->closestDistanceEvent = LogEvent(LogEvent::RECORD_LOW_DIST, 0, 1000000.0);
+    this->slowestFPSEvent = LogEvent(LogEvent::RECORD_LOW_FPS, 0, DBL_MAX);
+    this->closestDistanceEvent = LogEvent(LogEvent::RECORD_LOW_DIST, 0, DBL_MAX);
     this->farthestDistanceEvent = LogEvent(LogEvent::RECORD_HIGH_DIST, 0, 0.0);
 
     this->lastGeneralUpdateTime = 0;
@@ -117,11 +117,11 @@ void Logger::Log(std::string runnerOutput) {
         generalUpdateInterval *= 2;
     }
 
-    if(thisFrameTime - lastFileWriteTime > FILE_WRITE_INTERVAL) {
+    if(thisFrameTime - lastFileWriteTime > FILE_WRITE_INTERVAL) {        
         WriteNewFile();
         lastFileWriteTime = thisFrameTime;
     }
-
+    
     //store previous variables
     lastFrameTime = thisFrameTime;
 }
@@ -179,4 +179,7 @@ void Logger::WriteNewFile() {
         document.AddTag(KiwiLightLog);
 
     document.WriteFile(this->filePath);
+    
+    std::string backupPath = this->filePath + ".bkp";
+    document.WriteFile(backupPath);
 }

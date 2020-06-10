@@ -383,7 +383,7 @@ namespace KiwiLight {
 
         private:
         void createHorizontalReadout(std::string header, Label readout, bool isBig);
-        void generatePlot(long elapsedTime, int maxFPS, int maxDist, LogEvent events[], const int numEvents);
+        void generatePlot(long elapsedTime, int maxFPS, double maxDist, LogEvent events[], const int numEvents);
         LogEvent eventFromTag(XMLTag tag);
         std::string timeFromMS(long ms);
 
