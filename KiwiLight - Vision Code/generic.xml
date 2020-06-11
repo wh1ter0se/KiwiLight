@@ -1,15 +1,13 @@
+<!-- Generic FRC Vision Configuration -->
 <camera index="0">
     <settings>
         <setting id="3">600</setting>
         <setting id="4">400</setting>
         <setting id="21">1</setting>
-        <setting id="15">512</setting>
-        <setting id="44">1</setting>
-        <setting id="45">512</setting>
-        <setting id="39">1</setting>
-        <setting id="10">512</setting>
-        <setting id="14">512</setting>
-        <setting id="22">512</setting>
+        <setting id="15">0</setting>
+        <setting id="44">0</setting>
+        <setting id="45">0</setting>
+        <setting id="10">0</setting>
     </settings>
 </camera>
 <configuration name="Generic Configuration">

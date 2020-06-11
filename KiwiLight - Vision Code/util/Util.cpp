@@ -9,6 +9,21 @@ using namespace cv;
 using namespace KiwiLight;
 
 /**
+ * Returns the file path to KiwiLight's generic.xml, or "" if none was found.
+ */
+std::string Util::ResolveGenericConfFilePath() {
+    std::string pathToOpen = "";
+    char *homedir = getenv("HOME");
+    if(homedir == NULL) {
+        std::cout << "The HOME environment variable could not be found." << std::endl;
+    } else {
+        pathToOpen = std::string(homedir) + "/KiwiLightData/confs/generic.xml";
+    }
+
+    return pathToOpen;
+}
+
+/**
  * Searches the vector of camera setting XMLTags and returns the one with the correct ID.
  * @param settings The list of camera settings to search through. See precondition for more details.
  * @param id The Camera property ID to search for.

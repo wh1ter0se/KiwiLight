@@ -8,7 +8,9 @@
 
 using namespace KiwiLight;
 
-
+/**
+ * Creates a new HelpWindow with the given window type.
+ */
 HelpWindow::HelpWindow(GtkWindowType type) {
     this->window = Window(type, false);
     this->window.SetSize(550, 200);
@@ -30,7 +32,7 @@ HelpWindow::HelpWindow(GtkWindowType type) {
                     labels.Pack_start(header.GetWidget(), false, false, 0);
 
                 Label content = Label(
-                    std::string("For KiwiLight help, check out the tutorial at <insert link here>\n\n") +
+                    std::string("For KiwiLight help, check out the tutorial at https://github.com/BTK203/KiwiLight/blob/master/Manual.pdf\n\n") +
                     std::string("You can also email brach2003@gmail.com with any questions, comments, concerns, etc.")
                 );
                     content.SetLineWrap(true);
@@ -40,15 +42,12 @@ HelpWindow::HelpWindow(GtkWindowType type) {
 
             this->window.SetPane(main);
 
-    this->helpwindow = this->window.GetWidget();
+    this->widget = this->window.GetWidget();
 }
 
-
+/**
+ * Shows the help window.
+ */
 void HelpWindow::Show() {
     this->window.Show();
-}
-
-
-void HelpWindow::SetName(std::string name) {
-    gtk_widget_set_name(this->helpwindow, name.c_str());
 }

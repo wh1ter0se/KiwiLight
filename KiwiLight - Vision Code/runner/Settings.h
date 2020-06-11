@@ -9,6 +9,10 @@
  */
 
 namespace KiwiLight {
+    /**
+     * Defines debugging settings for the Runner to use.
+     * For a release, USE_CAMERA should be true.
+     */
     class RunnerSettings {
         public:
         static const bool USE_CAMERA;

@@ -8,6 +8,7 @@
 #include "util/Util.h"
 #include "runner/Runner.h"
 
+
 /**
  * the main header for the KiwiLight program and namespace
  * Written by: Brach Knutson
@@ -18,11 +19,12 @@ using namespace cv;
 
 namespace KiwiLight {
 
-    enum UIMode {
+    enum AppMode {
         UI_STREAM,
         UI_RUNNER,
         UI_EDITOR,
-        UI_PAUSING
+        UI_PAUSING,
+        UI_HEADLESS,
     };
 
     /**
@@ -33,10 +35,16 @@ namespace KiwiLight {
         //UI building and starting
         static void Create(int argc, char *argv[]);
         static void Start();
+        static void WaitForSocket();
+
+        //logging
+        static void ConfigureHeadless(std::string runnerNames, std::string runnerFiles);
+        static void ReportHeadless(std::string runnerOut);
 
         //UI accessors
         static Runner GetRunner();
         static ConfigEditor GetEditor();
+        static bool UIInitalized();
 
         //camera accessors
         static Mat TakeImage();
@@ -48,11 +56,13 @@ namespace KiwiLight {
 
         //general accessors 
         static bool LastImageCaptureSuccessful();
-        static UIMode CurrentMode();
+        static AppMode CurrentMode();
         static UDP GetUDP();
+        static bool GetUDPEnabled();
+        static std::string GetCurrentFile();
 
         //misc. UI callbacks
-        static void CloseEditor(bool saveFirst);
+        static bool CloseEditor(bool saveFirst);
         static void StartEditorLearningTarget();
         static void StartEditorLearningDistance();
         static void EditorReconnectUDP();
@@ -61,15 +71,23 @@ namespace KiwiLight {
         static void EditorConnectUDPFromOverview();
         static void EditorApplyCameraSettings();
         static void EditorOpenNewCameraFromOverview();
+        static void SaveConfigShouldRun();
+        static void SaveConfigShouldNotRun();
+        static void ToggleLogPlot();
+        static void GenerateLogPlot();
         static void OpenNewCameraOnIndex(int index);
-        static void InitCameraOnly(int index);
         static void ReconnectUDP(std::string newAddress, int newPort);
         static void ReconnectUDP(std::string newAddress, int newPort, bool block);
         static void SendOverUDP(std::string message);
 
         //thread utilities
-        static void LaunchStreamingThread(UIMode newMode);
+        static void LaunchStreamingThread(AppMode newMode);
         static void StopStreamingThread();
+
+        //DEPRECATED
+        [[deprecated("This method is no longer used and will be removed in the next update.")]] 
+        static void InitCameraOnly(int index);
+
 
         private:
         //menu bar utility
@@ -87,33 +105,51 @@ namespace KiwiLight {
         static void OpenConfiguration();
         static void OpenConfigurationFromFile(std::string fileName);
         static void CloseConfiguration();
+        static bool PromptEditorSaveAndClose();
+        static bool PromptHeadlessStop();
         static void Quit();
+        static void ShowCronMenu();
+        static void RunHeadlessly();
+        static void StopRunningHeadlessly();
+        static void RunHeadlesslyCallback();
+        static void ShowLog(XMLDocument log);
+        static void ShowLog();
         static void ShowAboutWindow();
         static void ShowHelpWindow();
 
         //essential objects
         static Runner runner;
         static ConfigEditor configeditor;
+        static CronWindow cronWindow;
+        static Logger logger;
+        static LogViewer logViewer;
         static VideoCapture camera;
         static UDP udpSender;
-        static GThread *streamingThread;
+        static GThread 
+            *streamingThread;
 
         //utilities
-        static UIMode mode;
-        static bool lastImageGrabSuccessful;
-        static bool udpEnabled;
-        static bool streamThreadEnabled;
-        static bool outImgInUse;
-        static Mat lastFrameGrabImage;
+        static AppMode mode;
+        static bool 
+            lastImageGrabSuccessful,
+            udpEnabled,
+            streamThreadEnabled,
+            lfgImgInUse,
+            uiInitalized;
+        static Mat 
+            lastFrameGrabImage,
+            defaultOutImage;
         static int currentCameraIndex;
 
         //ui widgets
         static Window win;
+        static UDPPanel udpPanel;
         static ConfigPanel confInfo;
         static NumberBox cameraIndexBox;
         static Label cameraStatusLabel;
         static Image outputImage;
-        static Button toggleUDPButton;
+        static SubMenuItem runHeadlessly;
+        static Button toggleRunningButton;
         
         //counters
         static int cameraFailures;

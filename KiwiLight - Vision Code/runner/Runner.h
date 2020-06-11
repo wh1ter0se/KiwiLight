@@ -22,6 +22,9 @@ namespace KiwiLight {
         PARTIAL
     };
 
+    /**
+     * KiwiLight Runner Properties.
+     */
     enum RunnerProperty {
         OFFSET_X,
         OFFSET_Y,
@@ -34,7 +37,9 @@ namespace KiwiLight {
         CALC_DIST_BY_HEIGHT
     };
 
-    
+    /**
+     * KiwiLight PreProcessor Properties.
+     */
     enum PreProcessorProperty {
         IS_FULL,
         THRESHOLD,
@@ -47,7 +52,7 @@ namespace KiwiLight {
     };
 
     /**
-     * Describes the names of certain properties of a target.
+     * KiwiLight Target Properties.
      */
     enum TargetProperty {
         DIST_X,
@@ -58,12 +63,17 @@ namespace KiwiLight {
         MINIMUM_AREA
     };
 
+    /**
+     * KiwiLight Distance Calculation Modes.
+     */
     enum DistanceCalcMode {
         BY_WIDTH,
         BY_HEIGHT
     };
 
-
+    /**
+     * KiwiLight Troubleshooter output data.
+     */
     struct TroubleshootingData {
         int missedHorizontalDistances,
             missedVerticalDistances,
@@ -84,7 +94,10 @@ namespace KiwiLight {
                targetAspectRatio;
     };
     
-
+    /**
+     * An object found in a postprocessed image.
+     * This class can be described as a "wrapper class" for vector<Point>'s (output of cv::findContours())
+     */
     class Contour {
         public:
         Contour() {};
@@ -112,7 +125,9 @@ namespace KiwiLight {
         Point center;
     };
 
-    
+    /**
+     * A imaginary template for a real contour. This class compares Contours with itself and can tell if a contour can "represent" itself.
+     */
     class ExampleContour {
         public:
         ExampleContour() {};
@@ -153,7 +168,7 @@ namespace KiwiLight {
     };
 
     /**
-     * Represents a target found in an image
+     * Represents a Target which is found in an image. Provides information useful to the robot for alignment and other auto functions.
      */
     class Target {
         public:
@@ -192,7 +207,10 @@ namespace KiwiLight {
         DistanceCalcMode distMode;
     };
 
-
+    /**
+     * An imaginary template for a real Target.
+     * This class does most of the PostProcessor's heavy lifting, specifically picking Targets out of groups of Contours.
+     */
     class ExampleTarget {
         public:
         ExampleTarget() {};
@@ -207,6 +225,9 @@ namespace KiwiLight {
         SettingPair GetContourProperty(int contour, TargetProperty prop);
         void SetTargetProperty(RunnerProperty prop, double value);
         double GetTargetProperty(RunnerProperty prop);
+
+        //DEPRECATED
+        [[deprecated("This method is no longer used and will be removed in the next update.")]] 
         void AddGenericContour();
 
         private:
@@ -225,7 +246,7 @@ namespace KiwiLight {
     };
 
     /**
-     * A module which takes images and gets them ready for work by the PostProcessor.
+     * A module which takes raw images and gets them ready for work by the PostProcessor.
      */
     class PreProcessor {
         public:
@@ -260,25 +281,43 @@ namespace KiwiLight {
     class PostProcessor {
         public:
         PostProcessor() {};
-        PostProcessor(std::vector<ExampleTarget> targets, bool debugging);
-        void SetTarget(int id, ExampleTarget target);
-        int NumberOfTargets() { return this->targets.size(); };
-        int NumberOfContours(int target);
+        PostProcessor(ExampleTarget target, bool debugging);
+        void SetTarget(ExampleTarget target);
+        int NumberOfContours();
+        std::vector<Target> ProcessImage(cv::Mat img);
+        std::vector<Contour> GetValidContoursForTarget(std::vector<Contour> contours);
         void SetTargetContourProperty(int contour, TargetProperty prop, SettingPair values);
         SettingPair GetTargetContourProperty(int contour, TargetProperty prop);
         void SetRunnerProperty(RunnerProperty prop, double value);
         double GetRunnerProperty(RunnerProperty prop);
-        ExampleTarget GetExampleTargetByID(int id);
-        std::vector<Target> ProcessImage(cv::Mat img);
-        std::vector<Contour> GetValidContoursForTarget(std::vector<Contour> contours);
+        ExampleTarget GetTarget();
         std::vector<Contour> GetContoursFromLastFrame() { return this->contoursFromLastFrame; };
+
+        //DEPRECATED STUFF
+        [[deprecated("Use PostProcessor(ExampleTarget, bool) instead.")]] 
+        PostProcessor(std::vector<ExampleTarget> targets, bool debugging); //deprecated
+
+        [[deprecated("Use SetTarget(ExampleTarget) instead.")]] 
+        void SetTarget(int id, ExampleTarget target); //deprecated
+
+        [[deprecated("The PostProcessor will no longer support multi-targeting.")]] 
+        int NumberOfTargets(); //deprecated
+
+        [[deprecated("PostProcessor is moving away from using multiple targets. Use NumberOfContours() instead.")]] 
+        int NumberOfContours(int target); //deprecated
+
+        [[deprecated("PostProcessor is moving away from using multiple targets. use GetTarget() instead.")]] 
+        ExampleTarget GetExampleTargetByID(int id); //deprecated
 
         private:
         bool debugging;
-        std::vector<ExampleTarget> targets;
+        ExampleTarget target;
         std::vector<Contour> contoursFromLastFrame;
     };
 
+    /**
+     * Calculates and stores data used by the ConfigLearner and the DistanceLearner.
+     */
     class CameraFrame {
         public:
         CameraFrame() {};
@@ -296,6 +335,49 @@ namespace KiwiLight {
     };
 
     /**
+     * Utility which logs Runner activity into a log file which can be read by a LogViewer.
+     */
+    class Logger {
+        public:
+        static const int UPDATE_VECTOR_MAX_SIZE;
+        static const int FILE_WRITE_INTERVAL;
+
+        Logger() {};
+        Logger(std::string filePath);
+        void SetConfName(std::string confName, std::string confFilePath);
+        void Start();
+        void Log(std::string runnerOutput);
+
+        private:
+        void WriteNewFile();
+
+        std::string 
+            filePath,
+            confFilePath,
+            confName,
+            beginTime,
+            lastFrameMessage;
+        Clock clock;
+        long lastFrameTime;
+        double 
+            runningFPSAvg,
+            runningDistanceAvg;
+        int 
+            totalFrames,            
+            framesWithTargetSeen,
+            lastGeneralUpdateTime,
+            generalUpdateInterval,
+            lastFileWriteTime;
+
+        std::vector<LogEvent> updates;
+        LogEvent 
+            fastestFPSEvent,
+            slowestFPSEvent,
+            closestDistanceEvent,
+            farthestDistanceEvent;
+    };
+
+    /**
      * Handles everything vision from taking images to send coordinates to a RoboRIO(or other UDP destination)
      */
     class Runner {
@@ -304,29 +386,43 @@ namespace KiwiLight {
 
         Runner() {};
         Runner(std::string filename, bool debugging);
+        Runner(std::string filename, bool debugging, bool applyCameraSettings);
         PreProcessor GetPreProcessor() { return this->preprocessor; };
         PostProcessor GetPostProcessor() { return this->postprocessor; };
         int GetCameraIndex() { return this->cameraIndex; };
         void SetImageResize(Size sz);
         std::string Iterate();
-        int GetNumberOfTargets() { return this->postprocessor.NumberOfTargets(); };
-        int GetNumberOfContours(int target);
         bool GetLastFrameSuccessful() { return this->lastIterationSuccessful; };
         std::vector<Target> GetLastFrameTargets() { return this->lastFrameTargets; };
         Target GetClosestTargetToCenter() { return this->closestTarget; };
         Point GetLastFrameCenterPoint() { return this->lastFrameCenterPoint; };
         std::string GetFileName() { return this->src; };
+        std::string GetConfName() { return this->configName; };
         cv::Mat GetOriginalImage() { return this->originalImage; };
         cv::Mat GetOutputImage() { return this->outputImage; };
         Size GetConstantSize() { return this->constantResize; };
-        ExampleTarget GetExampleTargetByID(int id);
-        void SetExampleTarget(int targetID, ExampleTarget target);
+        int NumberOfContours();
+        ExampleTarget GetExampleTarget();
+        void SetExampleTarget(ExampleTarget target);
         void SetPreprocessorProperty(PreProcessorProperty prop, double value);
         double GetPreprocessorProperty(PreProcessorProperty prop);
         void SetPostProcessorContourProperty(int contour, TargetProperty prop, SettingPair values);
         SettingPair GetPostProcessorContourProperty(int contour, TargetProperty prop);
         void SetRunnerProperty(RunnerProperty prop, double value);
         double GetRunnerProperty(RunnerProperty prop);
+
+        //DEPRECATED:
+        [[deprecated("This method will be removed in the next update.")]]
+        int GetNumberOfTargets() { return 1; };
+
+        [[deprecated("Use SetExampleTarget(ExampleTarget) instead.")]]
+        void SetExampleTarget(int targetID, ExampleTarget target);
+
+        [[deprecated("Use GetExampleTarget() instead.")]]
+        ExampleTarget GetExampleTargetByID(int id);
+
+        [[deprecated("Use NumberOfContours() instead.")]]
+        int GetNumberOfContours(int target);
 
         private:
         void parseDocument(XMLDocument doc);
@@ -346,7 +442,7 @@ namespace KiwiLight {
         cv::Mat outputImage,
                 originalImage;
 
-        std::vector<ExampleTarget> postProcessorTargets;
+        ExampleTarget postProcessorTarget;
         std::vector<Target> lastFrameTargets;
         Point lastFrameCenterPoint;
         bool lastIterationSuccessful;
@@ -407,7 +503,13 @@ namespace KiwiLight {
         std::vector<double> targetWidths;
     };
 
-
+    /**
+     * A tool which troubleshoots Targets against ExampleTargets and reveals the Target's problems.
+     * 
+     * NOTE: This tool was an early (pre-v1.0) concept which was not actually implemented into current versions of KiwiLight.
+     * As a result, this class does not comply with some of the post-1.0 archetecture, such as the universal KiwiLightApp VideoCapture.
+     * This class has been tested, though not completely. It can be used, but there is no garantee that it will work.
+     */
     class TargetTroubleshooter {
         public:
         TargetTroubleshooter() {};

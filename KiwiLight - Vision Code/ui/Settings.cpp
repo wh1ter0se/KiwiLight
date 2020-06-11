@@ -9,7 +9,7 @@
 using namespace KiwiLight;
 
 /**
- * Create a new Settings menu.
+ * Create a new Camera Settings menu.
  */
 Settings::Settings(XMLDocument doc) {
 
@@ -56,6 +56,7 @@ Settings::Settings(XMLDocument doc) {
             editor.Pack_start(hsep.GetWidget(), true, true, 0);
 
         Label settingsHeader = Label("Other Settings");
+            settingsHeader.SetName("subHeader");
             editor.Pack_start(settingsHeader.GetWidget(), true, true, 0);
 
         //exposure auto
@@ -92,9 +93,13 @@ Settings::Settings(XMLDocument doc) {
         Button apply = Button("Apply", KiwiLightApp::EditorApplyCameraSettings);
             editor.Pack_start(apply.GetWidget(), true, true, 0);
 
-    this->settingsWidget = editor.GetWidget();
+    this->widget = editor.GetWidget();
 }
 
+/**
+ * Performs necessary updates.
+ * DEPRECATED: This method is unused and will be removed in the next update.
+ */
 void Settings::Update() {
 
 }
@@ -142,17 +147,23 @@ double Settings::GetSettingValueFromID(int id) {
     return -1;
 }
 
-
+/**
+ * Sets the index of the camera being used.
+ */
 void Settings::SetCameraIndex(int index) {
     this->cameraIndex.SetValue((double) index);
 }
 
-
+/**
+ * Return the index of the camera being used.
+ */
 int Settings::GetCameraIndex() {
     return this->cameraIndex.GetValue();
 }
 
-
+/**
+ * Returns the IDs of the settings being used.
+ */
 std::vector<int> Settings::GetSettingIDs() {
     std::vector<int> ids;
     for(int i=0; i<this->settings.size(); i++) {
@@ -160,9 +171,4 @@ std::vector<int> Settings::GetSettingIDs() {
     }
 
     return ids;
-}
-
-
-void Settings::SetName(std::string name) {
-    gtk_widget_set_name(this->settingsWidget, name.c_str());
 }

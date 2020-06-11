@@ -4,6 +4,8 @@
 #include <iostream>
 #include <stdlib.h>
 #include <fstream>
+#include <chrono>
+#include <ctime>
 #include "opencv2/opencv.hpp"
 #include "netdb.h"
 #include "unistd.h"
@@ -16,6 +18,9 @@ using namespace cv;
 
 namespace KiwiLight {
 
+    /**
+     * A struct representing a 2D distance on both axis.
+     */
     struct Distance {
         Distance(double x, double y) {
             this->x = x;
@@ -27,13 +32,15 @@ namespace KiwiLight {
 
     /**
      * An easy event and variable flagging system
+     * DEPRECATED: This class is no longer used in KiwiLight and will be removed in the next update.
      */
-    class Flags {
+    
+    class [[deprecated("This class is no longer used in KiwiLight and will be removed in the next update.")]] Flags {
         public:
-        static void RaiseFlag(std::string flagName);
-        static void LowerFlag(std::string flagName);
-        static void SetFlagState(std::string flagName, bool state);
-        static bool GetFlag(std::string flagName);
+        [[deprecated("The Flags class is no longer used and will be removed in the next update.")]] static void RaiseFlag(std::string flagName);
+        [[deprecated("The Flags class is no longer used and will be removed in the next update.")]] static void LowerFlag(std::string flagName);
+        [[deprecated("The Flags class is no longer used and will be removed in the next update.")]] static void SetFlagState(std::string flagName, bool state);
+        [[deprecated("The Flags class is no longer used and will be removed in the next update.")]] static bool GetFlag(std::string flagName);
 
         private:
         static std::vector<std::string> flagNames;
@@ -47,6 +54,9 @@ namespace KiwiLight {
         static std::string ExecuteCommand(std::string command);
     };
 
+    /**
+     * Utilities for handling strings.
+     */
     class StringUtils {
         public:
         static std::vector<std::string> SplitString(std::string str, char character);
@@ -55,10 +65,13 @@ namespace KiwiLight {
         static int CountCharacters(std::string str, char character);
     };
 
-
+    /**
+     * Utilities for handling sets of doubles.
+     */
     class DataUtils {
         public:
         static std::vector<double> SortLeastGreatestDouble(std::vector<double> data);
+        static double MaxWithoutOutliers(std::vector<double> data, double allowableDeviation);
         static double Total(std::vector<double> data);
         static double Average(std::vector<double> data);
         static double Median(std::vector<double> data);
@@ -69,6 +82,7 @@ namespace KiwiLight {
         static double MostCommonValue(std::vector<double> data);
         static bool IsOutlier(std::vector<double> data, int indexOfValue, double allowableError);
         static std::vector<double> RemoveOutliers(std::vector<double> data, double allowableError);
+        static std::vector<double> RemoveOccurances(std::vector<double> data, double occurance);
         static std::string VectorToString(std::vector<double> data);
 
         std::vector<int> VectorDoubleToInt(std::vector<double> data);
@@ -83,7 +97,6 @@ namespace KiwiLight {
         public:
         UDP(){};
         UDP(std::string dest_ip, int port, bool blockUntilConnected);
-        UDP(std::string this_ip, std::string dest_ip, int port, bool blockUntilConnected);
         bool AttemptToConnect();
         bool Connected() { return this->connected; };
         void Send(std::string msg);
@@ -91,6 +104,11 @@ namespace KiwiLight {
         void Close();
         std::string GetAddress() { return this->address; };
         int GetPort() { return this->port; };
+
+        //DEPRECATED
+        [[deprecated("This constructor is not used in KiwiLight and will be removed in the next update.")]] 
+        UDP(std::string this_ip, std::string dest_ip, int port, bool blockUntilConnected);
+
 
         private:
         int sock; //sock fd returned by socket() call
@@ -102,6 +120,11 @@ namespace KiwiLight {
         int port;
     };
 
+    /**
+     * An attribute of an XML Tag.
+     * ex: <tag attribute="">
+     *          ^^^^^^^^^^^^
+     */
     class XMLTagAttribute {
         public:
         XMLTagAttribute(std::string name, std::string value);
@@ -172,6 +195,7 @@ namespace KiwiLight {
      */
     class Util {
         public:
+        static std::string ResolveGenericConfFilePath();
         static XMLTag SearchCameraSettingsByID(std::vector<XMLTag> settings, int id);
     };
 
@@ -217,6 +241,58 @@ namespace KiwiLight {
             hError,
             sError,
             vError;
+    };
+
+    /**
+     * Basic timer utility, which increments time since Start() is called. 
+     */
+    class Clock {
+        public:
+        Clock();
+        void Start();
+        long GetTime();
+        static long GetSystemTime();
+        static std::string GetDateString();
+
+        private:
+        long startTime;
+    };
+
+    /**
+     * Logger Event, such as a general update, or a record time or distance.
+     */
+    class LogEvent {
+        public:
+        static const std::string
+            RECORD_LOW_FPS,
+            RECORD_HIGH_FPS,
+            RECORD_LOW_DIST,
+            RECORD_HIGH_DIST,
+            GENERAL_UPDATE;
+
+        LogEvent() {};
+        LogEvent(const std::string evName, long timestamp, double record); //for RECORD events only
+        LogEvent(const std::string evName, long timestamp, double fps, int distance, bool targetSeen); // for GENERAL_UPDATE event only
+        std::string GetEventType();
+        long GetTimestamp();
+        double GetRecord();
+        double GetFPS();
+        int GetDistance();
+        bool GetTargetSeen();
+        XMLTag EncodeXMLTag();
+
+        private:
+        void InitBlank(const std::string evName, long timetamp);
+        std::string evName;
+        long timestamp;
+        
+        //record events
+        double record;
+
+        //generate update events
+        double fps;
+        int distance;
+        bool targetSeen;
     };
 }
 

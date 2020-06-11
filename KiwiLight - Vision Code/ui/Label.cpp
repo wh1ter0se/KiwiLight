@@ -12,27 +12,28 @@ using namespace KiwiLight;
  * Creates a new label.
  */
 Label::Label(std::string text) {
-    this->label = gtk_label_new(text.c_str()); 
+    this->widget = gtk_label_new(text.c_str()); 
 }
 
 /**
  * Sets the text of the label to the given std::string.
  */
 void Label::SetText(std::string text) {
-    gtk_label_set_text(GTK_LABEL(this->label), text.c_str());
+    gtk_label_set_text(GTK_LABEL(this->widget), text.c_str());
     this->text = text;
 }
 
-
-void Label::SetName(std::string name) {
-    gtk_widget_set_name(this->label, name.c_str());
-}
-
-
+/**
+ * Enables/Disables line wrapping.
+ */
 void Label::SetLineWrap(bool enabled) {
-    gtk_label_set_line_wrap(GTK_LABEL(this->label), enabled);
+    gtk_label_set_line_wrap(GTK_LABEL(this->widget), enabled);
 }
 
+/**
+ * Sets the justify of the Label.
+ * DEPRECATED: This method is no longer used by KiwiLight and will be removed in the next update.
+ */
 void Label::SetJustify(int justify) {
     GtkJustification justification;
     switch(justify) {
@@ -48,5 +49,5 @@ void Label::SetJustify(int justify) {
         justification = GTK_JUSTIFY_CENTER;
     }
 
-    gtk_label_set_justify(GTK_LABEL(this->label), justification);
+    gtk_label_set_justify(GTK_LABEL(this->widget), justification);
 }

@@ -10,28 +10,45 @@ using namespace KiwiLight;
 
 static int LEARNER_FRAMES = 50;
 
+/**
+ * Called when the "Learn Target" editor button is pressed. 
+ * This method activates the learner.
+ */
 static void LearnTargetButtonPressed() {
     KiwiLightApp::StartEditorLearningTarget();
 }
 
+/**
+ * Called when the "Learn Distance" editor button is pressed.
+ * Activates the distance learner.
+ */
 static void LearnDistanceButtonPressed() {
     KiwiLightApp::StartEditorLearningDistance();
 }
 
+/**
+ * Called when the "Just Close" editor button is pressed.
+ * Closes the editor window without saving the current configuration.
+ */
 static void JustCloseButtonPressed() {
     KiwiLightApp::StopStreamingThread();
     KiwiLightApp::CloseEditor(false);
-    KiwiLightApp::LaunchStreamingThread(UIMode::UI_RUNNER);
-}
-
-static void SaveAndCloseButtonPressed() {
-    KiwiLightApp::StopStreamingThread();
-    KiwiLightApp::CloseEditor(true);
-    KiwiLightApp::LaunchStreamingThread(UIMode::UI_RUNNER);
+    KiwiLightApp::LaunchStreamingThread(AppMode::UI_RUNNER);
 }
 
 /**
- * Creates a window to edit the bassed file.
+ * Called when the "Save and Close" editor button is pressed.
+ * Saves the configuration being edited and closes the editor window.
+ */
+static void SaveAndCloseButtonPressed() {
+    //save previous file name in case the editor fails to close due to save issues
+    KiwiLightApp::StopStreamingThread();
+    bool editorWasClosed = KiwiLightApp::CloseEditor(true);
+    KiwiLightApp::LaunchStreamingThread(editorWasClosed ? AppMode::UI_RUNNER : AppMode::UI_EDITOR);
+}
+
+/**
+ * Creates a window to edit the passed file.
  */
 ConfigEditor::ConfigEditor(std::string fileName) {
     this->learnerActivated = false;
@@ -41,6 +58,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
     this->fileName = fileName;
     this->lastIterationResult = "";
     this->out = Mat(Size(50, 50), CV_8UC3);
+    this->updateShouldSkip = false;
     this->confName = this->currentDoc.GetTagsByName("configuration")[0].GetAttributesByName("name")[0].Value();
     
     this->window = Window(GTK_WINDOW_TOPLEVEL, false);
@@ -123,96 +141,95 @@ ConfigEditor::ConfigEditor(std::string fileName) {
     this->window.SetOnWindowClosed(JustCloseButtonPressed);
     this->window.SetCSS("ui/Style.css");
     this->window.Show();
-
-    this->configeditor = this->window.GetWidget();
+    this->widget = this->window.GetWidget();
 }
 
 /**
- * Updates the editor and checks for button presses, etc.
+ * Updates the editor tools and checks for button presses, etc.
  */
 void ConfigEditor::Update() {
-    Mat displayable;
-
-    try {
-        vconcat(this->original, this->out, displayable);
-        this->outputImage.Update(displayable);
-    } catch(cv::Exception ex) {
-    }
-    //update the different tabs
-    this->configOverview.SetTargetInformationLabelsFromString(this->lastIterationResult);
-    this->cameraSettings.Update();
-    this->preprocessorSettings.Update();
-    this->postprocessorSettings.Update();
-    this->runnerSettings.Update(this->runner.GetClosestTargetToCenter().Distance());
-
-    //apply the preprocessor settings
-    this->runner.SetPreprocessorProperty(PreProcessorProperty::IS_FULL, this->preprocessorSettings.GetProperty(PreProcessorProperty::IS_FULL));
-    this->runner.SetPreprocessorProperty(PreProcessorProperty::THRESHOLD, this->preprocessorSettings.GetProperty(PreProcessorProperty::THRESHOLD));
-    this->runner.SetPreprocessorProperty(PreProcessorProperty::EROSION, this->preprocessorSettings.GetProperty(PreProcessorProperty::EROSION));
-    this->runner.SetPreprocessorProperty(PreProcessorProperty::DILATION, this->preprocessorSettings.GetProperty(PreProcessorProperty::DILATION));
-    this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_HUE, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_HUE));
-    this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_SATURATION, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_SATURATION));
-    this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_VALUE, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_VALUE));
-    this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_ERROR, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_ERROR));
-
-    //apply all contour settings to the runner. First, make sure we have all contours needed.
-    int numberOfContours = this->postprocessorSettings.GetNumContours();
-    if(this->runner.GetNumberOfContours(0) != numberOfContours) {
-        std::cout << "Redefining Target." << std::endl;
-        std::vector<ExampleContour> newContours;
-        for(int i=0; i<numberOfContours; i++) {
-            ExampleContour newContour = ExampleContour(i);
-            newContours.push_back(newContour);
-        }
-        ExampleTarget newTarget = ExampleTarget(0, newContours, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH);
-        this->runner.SetExampleTarget(0, newTarget);
-    }
-
-    for(int i=0; i<numberOfContours; i++) {
-        this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_X, this->postprocessorSettings.GetProperty(i, TargetProperty::DIST_X));
-        this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_Y, this->postprocessorSettings.GetProperty(i, TargetProperty::DIST_Y));
-        this->runner.SetPostProcessorContourProperty(i, TargetProperty::ANGLE, this->postprocessorSettings.GetProperty(i, TargetProperty::ANGLE));
-        this->runner.SetPostProcessorContourProperty(i, TargetProperty::ASPECT_RATIO, this->postprocessorSettings.GetProperty(i, TargetProperty::ASPECT_RATIO));
-        this->runner.SetPostProcessorContourProperty(i, TargetProperty::SOLIDITY, this->postprocessorSettings.GetProperty(i, TargetProperty::SOLIDITY));
-        this->runner.SetPostProcessorContourProperty(i, TargetProperty::MINIMUM_AREA, this->postprocessorSettings.GetProperty(i, TargetProperty::MINIMUM_AREA));
-    }
-
-    //apply runner properties
-    this->runner.SetRunnerProperty(RunnerProperty::OFFSET_X, this->runnerSettings.GetProperty(RunnerProperty::OFFSET_X));
-    this->runner.SetRunnerProperty(RunnerProperty::OFFSET_Y, this->runnerSettings.GetProperty(RunnerProperty::OFFSET_Y));
-    this->runner.SetRunnerProperty(RunnerProperty::IMAGE_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::IMAGE_WIDTH));
-    this->runner.SetRunnerProperty(RunnerProperty::IMAGE_HEIGHT, this->runnerSettings.GetProperty(RunnerProperty::IMAGE_HEIGHT));
-    this->runner.SetRunnerProperty(RunnerProperty::TRUE_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::TRUE_WIDTH));
-    this->runner.SetRunnerProperty(RunnerProperty::PERCEIVED_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::PERCEIVED_WIDTH));
-    this->runner.SetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE, this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE));
-    this->runner.SetRunnerProperty(RunnerProperty::ERROR_CORRECTION, this->runnerSettings.GetProperty(RunnerProperty::ERROR_CORRECTION));
-    this->runner.SetRunnerProperty(RunnerProperty::CALC_DIST_BY_HEIGHT, this->runnerSettings.GetProperty(RunnerProperty::CALC_DIST_BY_HEIGHT));
-
-    //set service labels
-    if(this->learnerActivated && this->learner.GetLearning()) {
-        this->serviceMonitor.SetText("Learning Target");
-
-        std::string progressString = "Capturing Frames (" +
-                                  std::to_string(this->learner.GetFramesLearned()) +
-                                  "/" +
-                                  std::to_string(LEARNER_FRAMES) + 
-                                  ")";
-        
-        this->serviceLabel.SetText(progressString);
-    } else if(this->distanceLearnerRunning) {
-        this->serviceMonitor.SetText("Learning Distance Constants");
-
-        std::string progressString = "Capturing Frames (" +
-                                  std::to_string(this->distanceLearner.GetFramesLearned()) +
-                                  "/" +
-                                  std::to_string(LEARNER_FRAMES) + 
-                                  ")";
-        this->serviceLabel.SetText(progressString);
-    } else {
-        this->serviceMonitor.SetText("No Service Running.");
-        this->serviceLabel.SetText("");
-    }
+    if(!this->updateShouldSkip) {
+        Mat displayable;
     
+        try {
+            vconcat(this->original, this->out, displayable);
+            this->outputImage.Update(displayable);
+        } catch(cv::Exception ex) {
+        }
+        //update the different tabs
+        this->configOverview.SetTargetInformationLabelsFromString(this->lastIterationResult);
+        this->preprocessorSettings.Update();
+        this->postprocessorSettings.Update();
+        this->runnerSettings.Update(this->runner.GetClosestTargetToCenter().Distance());
+    
+        //apply the preprocessor settings
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::IS_FULL, this->preprocessorSettings.GetProperty(PreProcessorProperty::IS_FULL));
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::THRESHOLD, this->preprocessorSettings.GetProperty(PreProcessorProperty::THRESHOLD));
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::EROSION, this->preprocessorSettings.GetProperty(PreProcessorProperty::EROSION));
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::DILATION, this->preprocessorSettings.GetProperty(PreProcessorProperty::DILATION));
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_HUE, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_HUE));
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_SATURATION, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_SATURATION));
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_VALUE, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_VALUE));
+        this->runner.SetPreprocessorProperty(PreProcessorProperty::COLOR_ERROR, this->preprocessorSettings.GetProperty(PreProcessorProperty::COLOR_ERROR));
+    
+        //apply all contour settings to the runner. First, make sure we have all contours needed.
+        int numberOfContours = this->postprocessorSettings.GetNumContours();
+        if(this->runner.NumberOfContours() != numberOfContours) {
+            std::cout << "Redefining Target." << std::endl;
+            std::vector<ExampleContour> newContours;
+            for(int i=0; i<numberOfContours; i++) {
+                ExampleContour newContour = ExampleContour(i);
+                newContours.push_back(newContour);
+            }
+            ExampleTarget newTarget = ExampleTarget(0, newContours, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH);
+            this->runner.SetExampleTarget(newTarget);
+        }
+    
+        for(int i=0; i<numberOfContours; i++) {
+            this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_X, this->postprocessorSettings.GetProperty(i, TargetProperty::DIST_X));
+            this->runner.SetPostProcessorContourProperty(i, TargetProperty::DIST_Y, this->postprocessorSettings.GetProperty(i, TargetProperty::DIST_Y));
+            this->runner.SetPostProcessorContourProperty(i, TargetProperty::ANGLE, this->postprocessorSettings.GetProperty(i, TargetProperty::ANGLE));
+            this->runner.SetPostProcessorContourProperty(i, TargetProperty::ASPECT_RATIO, this->postprocessorSettings.GetProperty(i, TargetProperty::ASPECT_RATIO));
+            this->runner.SetPostProcessorContourProperty(i, TargetProperty::SOLIDITY, this->postprocessorSettings.GetProperty(i, TargetProperty::SOLIDITY));
+            this->runner.SetPostProcessorContourProperty(i, TargetProperty::MINIMUM_AREA, this->postprocessorSettings.GetProperty(i, TargetProperty::MINIMUM_AREA));
+        }
+    
+        //apply runner properties
+        this->runner.SetRunnerProperty(RunnerProperty::OFFSET_X, this->runnerSettings.GetProperty(RunnerProperty::OFFSET_X));
+        this->runner.SetRunnerProperty(RunnerProperty::OFFSET_Y, this->runnerSettings.GetProperty(RunnerProperty::OFFSET_Y));
+        this->runner.SetRunnerProperty(RunnerProperty::IMAGE_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::IMAGE_WIDTH));
+        this->runner.SetRunnerProperty(RunnerProperty::IMAGE_HEIGHT, this->runnerSettings.GetProperty(RunnerProperty::IMAGE_HEIGHT));
+        this->runner.SetRunnerProperty(RunnerProperty::TRUE_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::TRUE_WIDTH));
+        this->runner.SetRunnerProperty(RunnerProperty::PERCEIVED_WIDTH, this->runnerSettings.GetProperty(RunnerProperty::PERCEIVED_WIDTH));
+        this->runner.SetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE, this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE));
+        this->runner.SetRunnerProperty(RunnerProperty::ERROR_CORRECTION, this->runnerSettings.GetProperty(RunnerProperty::ERROR_CORRECTION));
+        this->runner.SetRunnerProperty(RunnerProperty::CALC_DIST_BY_HEIGHT, this->runnerSettings.GetProperty(RunnerProperty::CALC_DIST_BY_HEIGHT));
+    
+        //set service labels
+        if(this->learnerActivated && this->learner.GetLearning()) {
+            this->serviceMonitor.SetText("Learning Target");
+    
+            std::string progressString = "Capturing Frames (" +
+                                      std::to_string(this->learner.GetFramesLearned()) +
+                                      "/" +
+                                      std::to_string(LEARNER_FRAMES) + 
+                                      ")";
+            
+            this->serviceLabel.SetText(progressString);
+        } else if(this->distanceLearnerRunning) {
+            this->serviceMonitor.SetText("Learning Distance Constants");
+    
+            std::string progressString = "Capturing Frames (" +
+                                      std::to_string(this->distanceLearner.GetFramesLearned()) +
+                                      "/" +
+                                      std::to_string(LEARNER_FRAMES) + 
+                                      ")";
+            this->serviceLabel.SetText(progressString);
+        } else {
+            this->serviceMonitor.SetText("No Service Running.");
+            this->serviceLabel.SetText("");
+        }
+    }
 }
 
 
@@ -232,6 +249,7 @@ bool ConfigEditor::UpdateImageOnly() {
 
         if(this->learner.GetLearning()) {
             if(this->learner.GetFramesLearned() >= LEARNER_FRAMES) {
+                this->updateShouldSkip = true;
                 int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
                 ExampleTarget newTarget = this->learner.StopLearning(minimumArea);
                 std::vector<ExampleContour> newContours = newTarget.Contours();
@@ -240,7 +258,7 @@ bool ConfigEditor::UpdateImageOnly() {
                 if(newContours.size() > 0) {
                     //prepare the editor for the contours
                     this->postprocessorSettings.SetNumContours(newContours.size());
-                    this->runner.SetExampleTarget(0, newTarget);
+                    this->runner.SetExampleTarget(newTarget);
     
                     for(int i=0; i<newContours.size(); i++) {
                         this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_X, newContours[i].DistX());
@@ -251,6 +269,7 @@ bool ConfigEditor::UpdateImageOnly() {
                         this->postprocessorSettings.SetProperty(i, TargetProperty::MINIMUM_AREA, SettingPair(newContours[i].MinimumArea(), 0));
                     }
                 }
+                this->updateShouldSkip = false;
             }
 
             if(this->learner.GetHasFailed()) {
@@ -269,11 +288,13 @@ bool ConfigEditor::UpdateImageOnly() {
         this->distanceLearner.FeedTarget(this->runner.GetClosestTargetToCenter());
 
         if(this->distanceLearner.GetFramesLearned() >= LEARNER_FRAMES) {
+            this->updateShouldSkip = true;
             double trueDistance = this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE);
             double trueWidth = this->runnerSettings.GetProperty(RunnerProperty::TRUE_WIDTH);
             double newFocalWidth = this->distanceLearner.GetFocalWidth(trueDistance, trueWidth);
             this->runnerSettings.SetProperty(RunnerProperty::PERCEIVED_WIDTH, newFocalWidth);
             this->distanceLearnerRunning = false;
+            this->updateShouldSkip = false;
         }
     }
     return retval;
@@ -287,9 +308,9 @@ std::string ConfigEditor::GetLastFrameResult() {
 }
 
 /**
- * Causes the editor to save the config to file.
+ * Causes the editor to save the config to it's file.
  */
-void ConfigEditor::Save() {
+bool ConfigEditor::Save() {
     //assemble the file structure and write it into a file which the user may designate
     XMLDocument doc = XMLDocument();
     
@@ -508,18 +529,29 @@ void ConfigEditor::Save() {
     if(fileParts[fileParts.size() - 1] == "generic.xml") {
         FileChooser chooser = FileChooser(true, "config.xml");
         fileToSave = chooser.Show();
+        if(fileToSave == "") {
+            //user pressed "cancel" or did not select a file, abort
+            return false;
+        }
+
         this->fileName = fileToSave;
     }
     
     doc.WriteFile(fileToSave);
+
+    return true;
 }
 
-
+/**
+ * Closes and destroys the editor window.
+ */
 void ConfigEditor::Close() {
-    gtk_widget_destroy(this->configeditor);
+    gtk_widget_destroy(this->widget);
 }
 
-
+/**
+ * Activates the target learning tool and prompts instructions for the user to follow to learn the target.
+ */
 void ConfigEditor::StartLearningTarget() {
     if(KiwiLightApp::CameraOpen()) {
         //reinstantiate the learner to apply the preprocessor settings
@@ -549,7 +581,9 @@ void ConfigEditor::StartLearningTarget() {
     }
 }
 
-
+/**
+ * Activates the Distance learner and prompts instructions for the user to follow to learn distance.
+ */
 void ConfigEditor::StartLearningDistance() {
     //check for video errors
     if(KiwiLightApp::CameraOpen()) {
@@ -603,7 +637,9 @@ void ConfigEditor::StartLearningDistance() {
     }
 }
 
-
+/**
+ * Reconnects the KiwiLight socket sender to the IPv4 address and port found in the Runner tab.
+ */
 void ConfigEditor::ReconnectUDPFromEditor() {
     std::string newUDPAddr = this->runnerSettings.GetUDPAddr();
     int newUDPPort = this->runnerSettings.GetUDPPort();
@@ -614,7 +650,9 @@ void ConfigEditor::ReconnectUDPFromEditor() {
     this->configOverview.SetUDPPort(newUDPPort);
 }
 
-
+/**
+ * Sets the "Enable/Disable" UDP button texts based on the value of "UDPEnabled"
+ */
 void ConfigEditor::SetUDPEnabledLabels(bool UDPEnabled) {
     this->configOverview.SetUDPEnabledLabels(UDPEnabled);
     this->runnerSettings.SetUDPEnabledLabels(UDPEnabled);
@@ -645,13 +683,17 @@ void ConfigEditor::ApplyCameraSettings() {
     }
 }
 
-
+/**
+ * Sets the text of the Camera ID number boxes to the value of "index."
+ */
 void ConfigEditor::SetCameraIndexBoxes(int index) {
     this->configOverview.SetCameraIndex(index);
     this->cameraSettings.SetCameraIndex(index);
 }
 
-
+/**
+ * Reconnects the KiwiLight socket sender to the IPv4 address and port found in the Runner tab.
+ */
 void ConfigEditor::ReconnectUDPFromOverview() {
     std::string newAddr = this->configOverview.GetUDPAddr();
     int newPort = this->configOverview.GetUDPPort();
@@ -662,7 +704,9 @@ void ConfigEditor::ReconnectUDPFromOverview() {
     this->runnerSettings.SetUDPPort(newPort);
 }
 
-
+/**
+ * Sets the index of the KiwiLight camera to the value found on the Overview ID widget.
+ */
 void ConfigEditor::OpenNewCameraFromOverview() {
     int newCameraIndex = this->configOverview.GetCameraIndex();
 
@@ -671,12 +715,9 @@ void ConfigEditor::OpenNewCameraFromOverview() {
     KiwiLightApp::OpenNewCameraOnIndex(newCameraIndex);
 }
 
-
-void ConfigEditor::SetName(std::string name) {
-    gtk_widget_set_name(this->configeditor, name.c_str());
-}
-
-
+/**
+ * Updates the Image widget found to the right side of the editor.
+ */
 void ConfigEditor::UpdateImage() {
     this->runner.Iterate();
     Mat displayable;

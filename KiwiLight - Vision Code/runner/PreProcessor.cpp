@@ -8,7 +8,15 @@
 using namespace cv;
 using namespace KiwiLight;
 
-
+/**
+ * Creates a new PreProcessor.
+ * @param fullPreprocessor True if the preprocessor should preprocess raw images, false if the image is already preprocessed.
+ * @param targetColor The color of the objects.
+ * @param threshold The amount of light required to highlight objects.
+ * @param erosion The amount of erosion to apply to an image (to reduce noise)
+ * @param dilation The amount of dilation to apply to an image (to make objects more solid)
+ * @param debug True if the preprocessor is in debug mode, false otherwise.
+ */
 PreProcessor::PreProcessor(bool fullPreprocessor, Color targetColor, int threshold, int erosion, int dilation, bool debug) {
     this->isFullPreprocessor = fullPreprocessor;
     this->debugging = debug;
@@ -19,7 +27,6 @@ PreProcessor::PreProcessor(bool fullPreprocessor, Color targetColor, int thresho
     this->erode = erosion;
     this->dilate = dilation;
 }
-
 
 /**
  * Takes the given generic image and makes it usable for the PostProcessor.
@@ -46,7 +53,11 @@ cv::Mat PreProcessor::ProcessImage(cv::Mat img) {
     return out;
 }
 
-
+/**
+ * Sets a property of the preprocessor.
+ * @param prop The property to set.
+ * @param value The value to set the property to.
+ */
 void PreProcessor::SetProperty(PreProcessorProperty prop, double value) {
     switch(prop) {
         case PreProcessorProperty::IS_FULL:
@@ -89,7 +100,11 @@ void PreProcessor::SetProperty(PreProcessorProperty prop, double value) {
     }
 }
 
-
+/**
+ * Reads a property from the PreProcessor.
+ * @param prop The property to read.
+ * @return The value of the property.
+ */
 double PreProcessor::GetProperty(PreProcessorProperty prop) {
     double finalValue = -1.0;
 
@@ -126,7 +141,9 @@ double PreProcessor::GetProperty(PreProcessorProperty prop) {
     return finalValue;
 }
 
-
+/**
+ * Returns a string summary of this PreProcessor.
+ */
 std::string PreProcessor::toString() {
     std::string endline = "\n";
     std::string thisString = "";

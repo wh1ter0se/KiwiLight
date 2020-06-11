@@ -23,6 +23,8 @@ TargetTroubleshooter::TargetTroubleshooter(VideoCapture cap, PreProcessor prepro
  * @param allowableMissedTests how many tests a contour is allowed to miss before it cannot be part of the target.
  * @param dataOut an array of TroubleshootingData that test results and values will be dumped in by the method.
  * Precondition: dataOut is the same size as target.Contours.size()
+ * 
+ * NOTE: If this class is to ever make its way back into KiwiLight, it must be changed to a "feeding" system!
  */
 bool TargetTroubleshooter::Troubleshoot(TroubleshootingData dataOut[]) {
     CameraFrame frames[TROUBLESHOOT_FRAMES];
