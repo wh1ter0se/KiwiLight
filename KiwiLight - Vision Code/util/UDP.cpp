@@ -10,13 +10,24 @@ using namespace KiwiLight;
 
 /**
  * literally kills everything
+ * DEPRECATED: This method will be removed in the next update.
  */
+[[deprecated("This method will be removed in the next update.")]]
 void err(const char *msg) {
     perror(msg);
     exit(1);
 }
 
+void reportErr(const char *msg) {
+    std::cerr << "ERROR: " << msg << std::endl;
+}
 
+/**
+ * Creates a new UDP sender.
+ * @param dest_ip The desination IPv4 address.
+ * @param port The port
+ * @param blockUntilConnected True if this call should block until connected, false otherwise.
+ */
 UDP::UDP(std::string dest_ip, int port, bool blockUntilConnected) {
     this->address = dest_ip;
     this->port = port;
@@ -24,7 +35,7 @@ UDP::UDP(std::string dest_ip, int port, bool blockUntilConnected) {
 
     this->sock = socket(AF_INET, SOCK_DGRAM, 0); //"0" for wildcard of what protocol is best
     if(this->sock < 0) //socket creation didnt be like that tho
-        err("SOCKET FAILED");
+        reportErr("SOCKET FAILED");
 
     memset(&this->client_address, 0, sizeof(this->client_address));
     this->client_address.sin_family = AF_INET;
@@ -33,7 +44,7 @@ UDP::UDP(std::string dest_ip, int port, bool blockUntilConnected) {
     //do inet_pton(), translating information from our stringed ip address into the address object
     int pton_result = inet_pton(AF_INET, dest_ip.c_str(), &this->client_address.sin_addr);
     if(pton_result <= 0) 
-        err("PTON FAILED");
+        reportErr("PTON FAILED");
 
     //wait for the connect to succeed before we go
     while(true) {
@@ -43,7 +54,14 @@ UDP::UDP(std::string dest_ip, int port, bool blockUntilConnected) {
     }
 }
 
-
+/**
+ * Creates a new UDP Sender.
+ * @param this_ip The address to bind to.
+ * @param dest_ip The destination IPv4 address.
+ * @param port The port
+ * @param blockUntilConnected True if this call should block until connected, false otherwise.
+ * DEPRECATED: This constructor is not used in KiwiLight and will be removed in the next update.
+ */
 UDP::UDP(std::string this_ip, std::string dest_ip, int port, bool blockUntilConnected) {
     this->address = dest_ip;
     this->port = port; 
@@ -51,7 +69,7 @@ UDP::UDP(std::string this_ip, std::string dest_ip, int port, bool blockUntilConn
 
     this->sock = socket(AF_INET, SOCK_DGRAM, 0); //"0" for wildcard of what protocol is best
     if(this->sock < 0) //socket creation didnt be like that tho
-        err("SOCKET FAILED");
+        reportErr("SOCKET FAILED");
 
     //define destination address
     memset(&this->client_address, 0, sizeof(this->client_address));
@@ -67,18 +85,18 @@ UDP::UDP(std::string this_ip, std::string dest_ip, int port, bool blockUntilConn
     //convert "this_ip" to a usable address struct
     int pton_result_1 = inet_pton(AF_INET, this_ip.c_str(), &this->client_address.sin_addr);
     if(pton_result_1 <= 0)
-        err("THIS PTON FAILED");
+        reportErr("THIS PTON FAILED");
 
     //convert "dest_ip" to a usable address struct
     int pton_result_2 = inet_pton(AF_INET, dest_ip.c_str(), &this->client_address.sin_addr);
     if(pton_result_2 <= 0) 
-        err("DEST PTON FAILED");
+        reportErr("DEST PTON FAILED");
         
     
     //"bind" our address to the socket
     int bind_result = bind(this->sock, (sockaddr*) &server_address, sizeof(server_address));
     if(bind_result < 0)
-        err("BIND FAILED");
+        reportErr("BIND FAILED");
 
     //wait for the connect to succeed before we go
     std::cout << "Waiting to connect..." << std::endl;
@@ -128,7 +146,7 @@ std::string UDP::Recieve() {
 }
 
 /**
- * closes the UDP socket
+ * Closes the UDP socket
  */
 void UDP::Close() {
     close(this->sock);

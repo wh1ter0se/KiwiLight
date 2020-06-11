@@ -7,27 +7,35 @@
 
 using namespace KiwiLight;
 
-
+/**
+ * Creates a new XMLTag with the given name.
+ */
 XMLTag::XMLTag(std::string name) {
     this->containsChildren = true;
     this->name = name;
 }
 
-
+/**
+ * Creates a new XMLTag with the given name and attributes.
+ */
 XMLTag::XMLTag(std::string name, std::vector<XMLTagAttribute> attributes) {
     this->containsChildren = true;
     this->name = name;
     this->attributes = attributes;
 }
 
-
+/**
+ * Creates a new XMLTag with the given name and children.
+ */
 XMLTag::XMLTag(std::string name, std::vector<XMLTag> children) {
     this->containsChildren = true;
     this->name = name;
     this->children = children;
 }
 
-
+/**
+ * Creates a new XMLTag with the given name, children, and attributes.
+ */
 XMLTag::XMLTag(std::string name, std::vector<XMLTag> children, std::vector<XMLTagAttribute> attributes) {
     this->containsChildren = true;
     this->name = name;
@@ -35,7 +43,9 @@ XMLTag::XMLTag(std::string name, std::vector<XMLTag> children, std::vector<XMLTa
     this->attributes = attributes;
 }
 
-
+/**
+ * Creates a new XMLTag with the given name, content, and attributes.
+ */
 XMLTag::XMLTag(std::string name, std::string content, std::vector<XMLTagAttribute> attributes) {
     this->containsChildren = false;
     this->name = name;
@@ -43,31 +53,42 @@ XMLTag::XMLTag(std::string name, std::string content, std::vector<XMLTagAttribut
     this->attributes = attributes;
 }
 
-
+/**
+ * Creates a new XMLTag with the given name and content.
+ */
 XMLTag::XMLTag(std::string name, std::string content) {
     this->containsChildren = false;
     this->name = name;
     this->content = content;
 }
 
-
+/**
+ * Adds a child tag to this XMLTag.
+ */
 void XMLTag::AddTag(XMLTag tag) {
     this->containsChildren = true;
     this->children.push_back(tag);
 }
 
-
+/**
+ * Add an attribute to this XMLTag.
+ */
 void XMLTag::AddAttribute(XMLTagAttribute attribute) {
     this->attributes.push_back(attribute);
 }
 
-
+/**
+ * Adds content to this XMLTag.
+ */
 void XMLTag::AddContent(std::string content) {
     this->containsChildren = false;
     this->content += content;
 }
 
-
+/**
+ * Searches existing children and returns all child tags with names matching "name."
+ * @param name The XML Tag name to search for.
+ */
 std::vector<XMLTag> XMLTag::GetTagsByName(std::string name) {
     std::vector<XMLTag> results = std::vector<XMLTag>();
 
@@ -86,7 +107,10 @@ std::vector<XMLTag> XMLTag::GetTagsByName(std::string name) {
     return results;
 }
 
-
+/**
+ * Searches existing attributes and returns all attributes with names matching "name"
+ * @name The XML Tag Attribute name to search for.
+ */
 std::vector<XMLTagAttribute> XMLTag::GetAttributesByName(std::string name) {
     std::vector<XMLTagAttribute> results = std::vector<XMLTagAttribute>();
 
@@ -105,7 +129,10 @@ std::vector<XMLTagAttribute> XMLTag::GetAttributesByName(std::string name) {
     return results;
 }
 
-
+/**
+ * Returns a std::string encoded in XML representing this tag.
+ * @param prefix A string prefix to insert before the tag. This is used to add tabs to the document.
+ */
 std::string XMLTag::ReturnString(std::string prefix) {
     std::string finalString = prefix + "<" + this->name;
     for(int i=0; i<this->attributes.size(); i++) {
@@ -131,7 +158,9 @@ std::string XMLTag::ReturnString(std::string prefix) {
     return finalString;
 }
 
-
+/**
+ * Returns a std::string encoded in XML representing this tag.
+ */
 std::string XMLTag::ReturnString() {
     return this->ReturnString("");
 }

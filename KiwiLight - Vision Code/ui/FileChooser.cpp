@@ -16,7 +16,7 @@ FileChooser::FileChooser(bool writing, std::string defaultFileName) {
     GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
     if(writing) {
-        this->filechooser = gtk_file_chooser_dialog_new("Save File",
+        this->widget = gtk_file_chooser_dialog_new("Save File",
                                         GTK_WINDOW(window),
                                         GTK_FILE_CHOOSER_ACTION_SAVE,
                                         "Cancel",
@@ -27,9 +27,9 @@ FileChooser::FileChooser(bool writing, std::string defaultFileName) {
                                         );
 
         // gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(this->filechooser), defaultFileName.c_str());
-        gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(this->filechooser), defaultFileName.c_str());
+        gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(this->widget), defaultFileName.c_str());
     } else {
-        this->filechooser = gtk_file_chooser_dialog_new ("Open File",
+        this->widget = gtk_file_chooser_dialog_new ("Open File",
                                         GTK_WINDOW(window),
                                         GTK_FILE_CHOOSER_ACTION_OPEN,
                                         "Cancel",
@@ -40,21 +40,19 @@ FileChooser::FileChooser(bool writing, std::string defaultFileName) {
                                         );
     }
 
-    gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(this->filechooser), getenv("HOME"));
+    gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(this->widget), getenv("HOME"));
 }
 
-
+/**
+ * Shows the FileChooser as a dialog and returns the path of the file that the user chooses.
+ */
 std::string FileChooser::Show() {
-    gint result = gtk_dialog_run(GTK_DIALOG(this->filechooser));
+    gint result = gtk_dialog_run(GTK_DIALOG(this->widget));
     std::string file = "";
     if(result == GTK_RESPONSE_ACCEPT) {
-        file =  gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(this->filechooser));
+        file =  gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(this->widget));
     }
 
-    gtk_widget_destroy(this->filechooser);
+    gtk_widget_destroy(this->widget);
     return file;
-}
-
-void FileChooser::SetName(std::string name) {
-    gtk_widget_set_name(this->filechooser, name.c_str());
 }

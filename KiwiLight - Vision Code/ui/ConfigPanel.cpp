@@ -7,10 +7,9 @@
 
 using namespace KiwiLight;
 
-extern void EditSelected(); //from Main.cpp
-extern void ToggleUDP(); //from Main.cpp
-
-
+/**
+ * Creates a new ConfigPanel displaying information from "file"
+ */
 ConfigPanel::ConfigPanel(XMLDocument file) {
     this->panel = Panel(false, 5);
 
@@ -95,10 +94,12 @@ ConfigPanel::ConfigPanel(XMLDocument file) {
         
             this->panel.Pack_start(udpPortPanel.GetWidget(), false, false, 0);
 
-    this->configPanel = this->panel.GetWidget();
+    this->widget = this->panel.GetWidget();
 }
 
-
+/**
+ * Loads config information from fileName.
+ */
 void ConfigPanel::LoadConfig(std::string fileName) {
     this->LoadConfig(XMLDocument(fileName));
 }
@@ -119,9 +120,12 @@ void ConfigPanel::LoadConfig(XMLDocument file) {
             std::string udpAddress = UDPTag.GetTagsByName("address")[0].Content();
             std::string udpPort    = UDPTag.GetTagsByName("port")[0].Content();
 
+    //set the file name
+    this->configFile = file.FileName();
+
     //set the label texts for the informational panel with the found information
     this->header.SetText("Configuration: " + name);
-    this->fileLabel.SetText(file.FileName());
+    this->fileLabel.SetText(this->configFile);
     this->PreProcessorLabel.SetText(preProcessorType);
     this->TargetLabel.SetText(numContours);
     this->UDPAddressLabel.SetText(udpAddress);
@@ -130,16 +134,24 @@ void ConfigPanel::LoadConfig(XMLDocument file) {
     this->configNameString = name;
 }
 
-
+/**
+ * Sets the panel information to reflect that no config is loaded.
+ */
 void ConfigPanel::Clear() {
-    this->header.SetText("Configuration: (none loaded)");
-    this->fileLabel.SetText("(none)");
+    this->configFile = "(none)";
+    this->header.SetText("Configuration: (none)");
+    this->fileLabel.SetText(configFile);
     this->PreProcessorLabel.SetText("(none)");
     this->TargetLabel.SetText("(none)");
     this->UDPAddressLabel.SetText("(none)");
     this->UDPPortLabel.SetText("(none)");
 }
 
-void ConfigPanel::SetName(std::string name) {
-    gtk_widget_set_name(this->configPanel, name.c_str());
+
+std::string ConfigPanel::GetConfigFile() {
+    if(this->configFile == "(none)") {
+        return "";
+    }
+
+    return this->configFile;
 }

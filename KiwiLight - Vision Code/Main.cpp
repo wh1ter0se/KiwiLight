@@ -7,9 +7,12 @@
 using namespace cv;
 using namespace KiwiLight;
 
+/**
+ * Displays the KiwiLight help message.
+ */
 void ShowHelp() {
     std::cout << "KIWILIGHT HELP\n";
-    std::cout << "Usage: Kiwilight [options] [config files]\n";
+    std::cout << "Usage: KiwiLight [-h] [-c] [config files]\n";
     std::cout << "\n";
     std::cout << "KiwiLight is a smart vision solution for FRC applications developed by FRC Team 3695: Foximus Prime.\n";
     std::cout << "\n";
@@ -19,10 +22,13 @@ void ShowHelp() {
     std::cout << std::endl;
 }
 
-
+/**
+ * Runs the configurations specified in filePaths. A KiwiLight log will be produced.
+ */
 void RunConfigs(std::vector<std::string> filePaths) {
+    std::cout << "run file: " << filePaths[0] << std::endl;
+
     //init needed KiwiLight variables
-    KiwiLightApp::InitCameraOnly(0);
     KiwiLightApp::ReconnectUDP("127.0.0.1", 3695, false);
 
     std::cout << "Command: Run Configs\n";
@@ -33,11 +39,37 @@ void RunConfigs(std::vector<std::string> filePaths) {
     std::cout << "\nInitalizing Runners" << std::endl;
     const int numTargets = (const int) filePaths.size();
     Runner runners[numTargets];
+    std::string 
+        runnerNames = "",
+        runnerFiles = "";
     int totalContours = 0;
     for(int i=0; i<filePaths.size(); i++) {
         runners[i] = Runner(filePaths[i], false);
-        totalContours += runners[i].GetNumberOfContours(0);
+        totalContours += runners[i].NumberOfContours();
+
+        runnerNames += runners[i].GetConfName();
+        runnerFiles += runners[i].GetFileName();
+        if(i < filePaths.size() - 1) {
+            runnerNames += ",";
+            runnerFiles += ",";
+        }
     }
+    
+    //wait for the KiwiLight sender to connect
+    KiwiLightApp::WaitForSocket();
+
+    //create a logger
+    std::string logFileBase = "";
+    char *home = getenv("HOME");
+    if(home != NULL) {
+        logFileBase = std::string(home) + "/KiwiLightData/logs/";
+    } else {
+        std::cout << "WARNING: The HOME Environment variable could not be found! The Log file will not be generated!" << std::endl;
+    }
+    std::string logFileName = logFileBase + "KiwiLight-Runner-Log-" + Clock::GetDateString() + ".xml";
+    Logger logger = Logger(logFileName);
+    logger.SetConfName(runnerNames, runnerFiles);
+    logger.Start();
 
     //show the cool header in the terminal
     std::cout << "--------------------------------------------" << std::endl;
@@ -50,7 +82,7 @@ void RunConfigs(std::vector<std::string> filePaths) {
     std::cout << "                                            " << std::endl;
     std::cout << "--------------------------------------------" << std::endl;
 
-    while(true) {
+    while(KiwiLightApp::CurrentMode() == AppMode::UI_HEADLESS) {
         Target closestTarget;
 
         double 
@@ -91,18 +123,30 @@ void RunConfigs(std::vector<std::string> filePaths) {
             std::string
                 x  = std::to_string(closestTarget.Center().x),
                 y  = std::to_string(closestTarget.Center().y),
+                w  = std::to_string(closestTarget.Bounds().width),
+                h  = std::to_string(closestTarget.Bounds().height),
                 d  = std::to_string((int) closestTarget.Distance()),
                 ha = std::to_string((int) closestTargetHorizontalAngle),
                 va = std::to_string((int) closestTargetVerticalAngle);
             
-            message = ":" + x + "," + y + "," + d + "," + ha + "," + va + ";";
+            message = ":" + x + "," + y + "," + w + "," + h + "," + d + "," + ha + "," + va + ";";
         }
         
         KiwiLightApp::SendOverUDP(message);
+        logger.Log(message);
     }
 }
 
+/**
+ * Test method. This method will be run if the -t flag is specified.
+ */
+void Test() {
+    std::cout << Clock::GetDateString() << std::endl;
+}
 
+/**
+ * Main entry point for KiwiLight!! This method will analyze the command args and decide what to do.
+ */
 int main(int argc, char *argv[]) {
     if(argc == 1) {
         KiwiLightApp::Create(argc, argv);
@@ -114,6 +158,11 @@ int main(int argc, char *argv[]) {
 
         for(int i=0; i<argc; i++) {
             std::string argument = std::string(argv[i]);
+
+            if(argument == "-t") {
+                Test();
+                return 0;
+            }
 
             if(argument == "-c") {
                 runningConfig = true;
@@ -138,6 +187,11 @@ int main(int argc, char *argv[]) {
 
         if(runningConfig) {
             RunConfigs(confsToRun);
+        }
+
+        if(!(runningConfig || showHelp)) {
+            std::cout << "No valid command arguments found.\n";
+            std::cout << "Use \"KiwiLight -h\" to see the command options, or just \"KiwiLight\" to launch the GUI!" << std::endl;
         }
     }
     

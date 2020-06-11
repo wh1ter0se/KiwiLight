@@ -7,7 +7,9 @@
 
 using namespace KiwiLight;
 
-
+/**
+ * Creates a new PostProcessorEditor displaying values from "postprocessor" as the inital values.
+ */
 PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
     //create a runner to store values for all contours rather than having arrays and things
     std::string genericFileLocation = "";
@@ -18,20 +20,20 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
     } else {
         std::cout << "The postprocessor editor was unable to find HOME" << std::endl;
     }
-    this->storageRunner = Runner(genericFileLocation, true);
+    this->storageRunner = Runner(genericFileLocation, true, false);
     this->lastDesiredContour = 0;
     
     //set storage runner for number of contours
     std::vector<ExampleContour> newContours;
-    for(int i=0; i<postprocessor.NumberOfContours(0); i++) {
+    for(int i=0; i<postprocessor.NumberOfContours(); i++) {
         ExampleContour newContour = ExampleContour(i);
         newContours.push_back(newContour);
     }
     ExampleTarget newTarget = ExampleTarget(0, newContours, 0, 0, 0, 0, DistanceCalcMode::BY_WIDTH);
-    this->storageRunner.SetExampleTarget(0, newTarget);
+    this->storageRunner.SetExampleTarget(newTarget);
     
     //init the values in the storage runner because they are all generic right now
-    for(int i=0; i<postprocessor.NumberOfContours(0); i++) {
+    for(int i=0; i<postprocessor.NumberOfContours(); i++) {
         this->storageRunner.SetPostProcessorContourProperty(i, TargetProperty::DIST_X, postprocessor.GetTargetContourProperty(i, TargetProperty::DIST_X));
         this->storageRunner.SetPostProcessorContourProperty(i, TargetProperty::DIST_Y, postprocessor.GetTargetContourProperty(i, TargetProperty::DIST_Y));
         this->storageRunner.SetPostProcessorContourProperty(i, TargetProperty::ANGLE, postprocessor.GetTargetContourProperty(i, TargetProperty::ANGLE));
@@ -49,7 +51,7 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
             this->contourchooser = NumberBox(0, 10, 0);
                 contourChooserPanel.Pack_start(this->contourchooser.GetWidget(), true, true, 0);
             
-            this->totalContours = Label(std::string("/ ") + std::to_string(this->storageRunner.GetNumberOfContours(0)));
+            this->totalContours = Label(std::string("/ ") + std::to_string(this->storageRunner.NumberOfContours()));
                 contourChooserPanel.Pack_start(totalContours.GetWidget(), true, true, 0);
             
             editor.Pack_start(contourChooserPanel.GetWidget(), true, true, 0);
@@ -119,7 +121,7 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
                 solidityPanel.Pack_start(this->solidity.GetWidget(), true, true, 0);
 
             double realSolidityErr = postprocessor.GetTargetContourProperty(0, TargetProperty::SOLIDITY).Error();
-            this->solidityErr = LabeledSlider("Range", 0.0, 1.0, 0.1, realSolidityErr);
+            this->solidityErr = LabeledSlider("Range", 0.0, 1.0, 0.01, realSolidityErr);
                 solidityPanel.Pack_start(this->solidityErr.GetWidget(), true, true, 0);
 
             editor.Pack_start(solidityPanel.GetWidget(), true, true, 0);
@@ -128,19 +130,20 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
         this->minimumArea = LabeledSlider("Minimum Area", 5.0, 10000.0, 5.0, realMinArea);
             editor.Pack_start(this->minimumArea.GetWidget(), true, true, 0);
 
-    this->postprocessoreditor = editor.GetWidget();
+    this->widget = editor.GetWidget();
 }
 
-
+/**
+ * Returns the number of contours associated with this PostProcessor.
+ */
 int PostprocessorEditor::GetNumContours() {
-    return this->storageRunner.GetNumberOfContours(0);
+    return this->storageRunner.NumberOfContours();
 }
 
 /**
  * Clears all contours in the target so far and sets the number of contours to contours.
  */
 void PostprocessorEditor::SetNumContours(int contours) {
-    std::cout << "ppe: setting contour count to " << contours << std::endl;
     //create a new exampletarget
     std::vector<ExampleContour> newContours;
     for(int i=0; i<contours; i++) {
@@ -149,8 +152,7 @@ void PostprocessorEditor::SetNumContours(int contours) {
     }
 
     ExampleTarget newTarg = ExampleTarget(0, newContours, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH);
-    std::cout << "ppe: setting target. " << newTarg.Contours().size() << " Contours." << std::endl;
-    this->storageRunner.SetExampleTarget(0, newTarg);
+    this->storageRunner.SetExampleTarget(newTarg);
 }
 
 /**
@@ -161,7 +163,7 @@ void PostprocessorEditor::Update() {
     
     if(currentContour != this->lastDesiredContour) {
         //the user has requested to see values for a new contour, show them
-        if(currentContour < this->storageRunner.GetNumberOfContours(0)) {
+        if(currentContour < this->storageRunner.NumberOfContours()) {
             this->distX.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::DIST_X).Value());
             this->distXErr.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::DIST_X).Error());
             this->distY.SetValue(this->storageRunner.GetPostProcessorContourProperty(currentContour, TargetProperty::DIST_Y).Value());
@@ -204,7 +206,7 @@ void PostprocessorEditor::Update() {
         this->storageRunner.SetPostProcessorContourProperty(currentContour, TargetProperty::MINIMUM_AREA, minAreaPair);
 
     //set the label with total number of contours
-    this->totalContours.SetText(std::string("/ ") + std::to_string(this->storageRunner.GetNumberOfContours(0)));    
+    this->totalContours.SetText(std::string("/ ") + std::to_string(this->storageRunner.NumberOfContours()));    
 }
 
 /**
@@ -248,9 +250,4 @@ void PostprocessorEditor::SetProperty(int contour, TargetProperty prop, SettingP
                 break;
         }
     }
-}
-
-
-void PostprocessorEditor::SetName(std::string name) {
-    gtk_widget_set_name(this->postprocessoreditor, name.c_str());
 }

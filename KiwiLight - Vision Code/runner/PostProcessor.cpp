@@ -9,34 +9,57 @@ using namespace cv;
 using namespace KiwiLight;
 
 /**
- * Creates a new PostProcessor with the given settings. 
- * Just give it all the runner settings, PostProcessor will pick out the ones it will use.
+ * Creates a new PostProcessor finding "targets."
+ * DEPRECATED: PostProcessor is moving away from using multiple targets. this constructor is no longer needed.
  */
 PostProcessor::PostProcessor(std::vector<ExampleTarget> targets, bool debugging) {
     this->debugging = debugging;
-    this->targets = targets;
-    ExampleTarget targ = this->targets[0];
+    this->target = targets[0];
 }
 
+/**
+ * Creates a new PostProcessor finding "target"
+ */
+PostProcessor::PostProcessor(ExampleTarget target, bool debugging) {
+    this->target = target;
+    this->debugging = debugging;
+}
+
+/**
+ * Sets the ExampleTarget that this PostProcessor is tasked with finding.
+ * DEPRECATED: PostProcessor is moving away from using multiple targets. Use SetTarget(ExampleTarget) instead.
+ */
 void PostProcessor::SetTarget(int id, ExampleTarget target) {
-    //find the id to replace
-    for(int i=0; i<this->targets.size(); i++) {
-        if(this->targets[i].ID() == id) {
-            this->targets[i] = target;
-            return;
-        }
-    }
+    this->target = target;
 }
 
-int PostProcessor::NumberOfContours(int target) {
-    //find the target with the id, and return its contour count
-    for(int i=0; i<targets.size(); i++) {
-        if(this->targets[i].ID() == target) {
-            return this->targets[i].Contours().size();
-        }
-    }
 
-    return -1;
+void PostProcessor::SetTarget(ExampleTarget target) {
+    this->target = target;
+}
+
+/**
+ * Returns the number of ExampleTargets that this PostProcessor is tasked with finding.
+ * DEPRECATED: PostProcessor is moving away from using multiple targets. this method is no longer needed.
+ * This method will now always return 1.
+ */
+int PostProcessor::NumberOfTargets() {
+    return 1;
+}
+
+/**
+ * Returns the number of contours of this PostProcessor's target.
+ * DEPRECATED: PostProcessor is moving away from using multiple targets. Use NumberOfContours() instead.
+ */
+int PostProcessor::NumberOfContours(int target) {
+    return NumberOfContours();
+}
+
+/**
+ * Returns the number of contours of the PostProcessor's target.
+ */
+int PostProcessor::NumberOfContours() {
+    return target.Contours().size();
 }
 
 /**
@@ -59,53 +82,70 @@ std::vector<Target> PostProcessor::ProcessImage(cv::Mat img) {
     
     this->contoursFromLastFrame = objects;
 
-    for(int k=0; k<this->targets.size(); k++) {
-        std::vector<Target> targs = this->targets[k].GetTargets(objects);
+    std::vector<Target> targs = this->target.GetTargets(objects);
 
-        // add results to our found targets 
-        for(int a=0; a<targs.size(); a++) {
-            foundTargets.push_back(targs[a]);
-        }
+    // add results to our found targets 
+    for(int a=0; a<targs.size(); a++) {
+        foundTargets.push_back(targs[a]);
     }
 
     return foundTargets;
 }
 
-
+/**
+ * Returns a vector containing only contours that have a possiblity of being in the target.
+ */
 std::vector<Contour> PostProcessor::GetValidContoursForTarget(std::vector<Contour> contours) {
-    return this->targets[0].GetValidContours(contours);
+    return this->target.GetValidContours(contours);
 }
 
-
+/**
+ * Sets a property of the one of the target's contours.
+ * @param contour The ID of the contour to set the property of.
+ * @param prop The property to set.
+ * @param values The values (value and allowable error) to set the property to.
+ */
 void PostProcessor::SetTargetContourProperty(int contour, TargetProperty prop, SettingPair values) {
     if(this->debugging) {
-        this->targets[0].SetContourProperty(contour, prop, values);
+        this->target.SetContourProperty(contour, prop, values);
     }
 }
 
-
+/**
+ * Reads a property of one of the target's contours.
+ * @param contour The ID of the contour to read from.
+ * @param prop The property to read.
+ */
 SettingPair PostProcessor::GetTargetContourProperty(int contour, TargetProperty prop) {
-    return this->targets[0].GetContourProperty(contour, prop);
+    return this->target.GetContourProperty(contour, prop);
 }
 
-
-ExampleTarget PostProcessor::GetExampleTargetByID(int id) {
-    for(int i=0; i<this->targets.size(); i++) {
-        if(this->targets[i].ID() == id) {
-            return this->targets[i];
-        }
-    }
-    
-    std::cout << "WARNING: Target at ID " << id << " does not exist!" << std::endl;
-    return targets[0];
-}
-
-
+/**
+ * Sets a property of the PostProcessor.
+ * @param prop The property to set.
+ * @param value The value to set the property to.
+ */
 void PostProcessor::SetRunnerProperty(RunnerProperty prop, double value) {
-    this->targets[0].SetTargetProperty(prop, value);
+    this->target.SetTargetProperty(prop, value);
+}
+
+/**
+ * Reads a property of the PostProcessor.
+ * @param prop The property to read.
+ */
+double PostProcessor::GetRunnerProperty(RunnerProperty prop) {
+    return this->target.GetTargetProperty(prop);
+}
+
+/**
+ * Returns the ExampleTarget at id.
+ * DEPRECATED: PostProcessor is moving away from using multiple targets. use GetTarget() instead.
+ */
+ExampleTarget PostProcessor::GetExampleTargetByID(int id) {
+    return GetTarget();
 }
 
 
-double PostProcessor::GetRunnerProperty(RunnerProperty prop) {
-    return this->targets[0].GetTargetProperty(prop);
+ExampleTarget PostProcessor::GetTarget() {
+    return target;
 }
