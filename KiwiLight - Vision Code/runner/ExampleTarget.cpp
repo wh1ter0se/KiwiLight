@@ -325,21 +325,6 @@ double ExampleTarget::GetTargetProperty(RunnerProperty prop) {
 }
 
 /**
- * Adds a "generic" contour to this target, increasing the contour count by 1.
- * DEPRECATED: This method is no longer used and will be removed in the next update.
- */
-void ExampleTarget::AddGenericContour() {
-    SettingPair genericDistX = SettingPair(0.0, 0.4);
-    SettingPair genericDistY = SettingPair(0.0, 0.4);
-    SettingPair genericAngle = SettingPair(0.0, 12.0);
-    SettingPair genericSolidity = SettingPair(1.0, 0.35);
-    SettingPair genericAspectRatio = SettingPair(1.0, 0.35);
-
-    ExampleContour newContour = ExampleContour(this->contours.size(), genericDistX, genericDistY, genericAngle, genericAspectRatio, genericSolidity, 1000);
-    this->contours.push_back(newContour);
-}
-
-/**
  * Returns true if arr as any possible combos left based on the values "size" and "max," false otherwise.
  */
 bool ExampleTarget::ArrayMaxed(int arr[], int size, int max) {

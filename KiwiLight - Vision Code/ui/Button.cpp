@@ -24,11 +24,3 @@ Button::Button(std::string text, void(*callback)()) {
 void Button::SetText(std::string text) {
     gtk_button_set_label(GTK_BUTTON(this->widget), text.c_str());
 }
-
-/**
- * Sets the callback of the Button.
- * DEPRECATED: This method has not been implemented and is therfore not used in KiwiLight.
- */
-void Button::SetCallback( void(*callback)() ) {
-    
-}

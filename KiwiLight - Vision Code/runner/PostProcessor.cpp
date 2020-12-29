@@ -9,15 +9,6 @@ using namespace cv;
 using namespace KiwiLight;
 
 /**
- * Creates a new PostProcessor finding "targets."
- * DEPRECATED: PostProcessor is moving away from using multiple targets. this constructor is no longer needed.
- */
-PostProcessor::PostProcessor(std::vector<ExampleTarget> targets, bool debugging) {
-    this->debugging = debugging;
-    this->target = targets[0];
-}
-
-/**
  * Creates a new PostProcessor finding "target"
  */
 PostProcessor::PostProcessor(ExampleTarget target, bool debugging) {
@@ -25,34 +16,9 @@ PostProcessor::PostProcessor(ExampleTarget target, bool debugging) {
     this->debugging = debugging;
 }
 
-/**
- * Sets the ExampleTarget that this PostProcessor is tasked with finding.
- * DEPRECATED: PostProcessor is moving away from using multiple targets. Use SetTarget(ExampleTarget) instead.
- */
-void PostProcessor::SetTarget(int id, ExampleTarget target) {
-    this->target = target;
-}
-
 
 void PostProcessor::SetTarget(ExampleTarget target) {
     this->target = target;
-}
-
-/**
- * Returns the number of ExampleTargets that this PostProcessor is tasked with finding.
- * DEPRECATED: PostProcessor is moving away from using multiple targets. this method is no longer needed.
- * This method will now always return 1.
- */
-int PostProcessor::NumberOfTargets() {
-    return 1;
-}
-
-/**
- * Returns the number of contours of this PostProcessor's target.
- * DEPRECATED: PostProcessor is moving away from using multiple targets. Use NumberOfContours() instead.
- */
-int PostProcessor::NumberOfContours(int target) {
-    return NumberOfContours();
 }
 
 /**
@@ -138,14 +104,8 @@ double PostProcessor::GetRunnerProperty(RunnerProperty prop) {
 }
 
 /**
- * Returns the ExampleTarget at id.
- * DEPRECATED: PostProcessor is moving away from using multiple targets. use GetTarget() instead.
+ * Returns the postprocessor's target.
  */
-ExampleTarget PostProcessor::GetExampleTargetByID(int id) {
-    return GetTarget();
-}
-
-
 ExampleTarget PostProcessor::GetTarget() {
     return target;
 }

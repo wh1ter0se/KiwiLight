@@ -409,22 +409,6 @@ void KiwiLightApp::OpenNewCameraOnIndex(int index) {
 }
 
 /**
- * This method is ONLY to be used if KiwiLight is working headless (no UI)!!!!!!!
- * Opens new camera without updating UI elements
- * DEPRECATED: This method is no longer used and will be removed in the next update.
- */
-void KiwiLightApp::InitCameraOnly(int index) {
-    std::cout << "Configuring Auto Exposure setting on new camera" << std::endl;
-    Shell::ExecuteCommand(
-        std::string("v4l2-ctl -d ") + 
-        std::to_string(index) + 
-        std::string(" --set-ctrl=exposure_auto=1")
-    );
-
-    KiwiLightApp::camera = VideoCapture(index);
-}
-
-/**
  * Sets the IPv4 address and port of KiwiLight's socket sender.
  */
 void KiwiLightApp::ReconnectUDP(std::string newAddress, int newPort) {

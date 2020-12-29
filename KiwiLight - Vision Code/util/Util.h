@@ -31,22 +31,6 @@ namespace KiwiLight {
     };
 
     /**
-     * An easy event and variable flagging system
-     * DEPRECATED: This class is no longer used in KiwiLight and will be removed in the next update.
-     */
-    
-    class [[deprecated("This class is no longer used in KiwiLight and will be removed in the next update.")]] Flags {
-        public:
-        [[deprecated("The Flags class is no longer used and will be removed in the next update.")]] static void RaiseFlag(std::string flagName);
-        [[deprecated("The Flags class is no longer used and will be removed in the next update.")]] static void LowerFlag(std::string flagName);
-        [[deprecated("The Flags class is no longer used and will be removed in the next update.")]] static void SetFlagState(std::string flagName, bool state);
-        [[deprecated("The Flags class is no longer used and will be removed in the next update.")]] static bool GetFlag(std::string flagName);
-
-        private:
-        static std::vector<std::string> flagNames;
-    };
-
-    /**
      * Class that can execute shell commands and return their output.
      */
     class Shell {
@@ -104,11 +88,6 @@ namespace KiwiLight {
         void Close();
         std::string GetAddress() { return this->address; };
         int GetPort() { return this->port; };
-
-        //DEPRECATED
-        [[deprecated("This constructor is not used in KiwiLight and will be removed in the next update.")]] 
-        UDP(std::string this_ip, std::string dest_ip, int port, bool blockUntilConnected);
-
 
         private:
         int sock; //sock fd returned by socket() call

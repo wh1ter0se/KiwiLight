@@ -84,11 +84,6 @@ namespace KiwiLight {
         static void LaunchStreamingThread(AppMode newMode);
         static void StopStreamingThread();
 
-        //DEPRECATED
-        [[deprecated("This method is no longer used and will be removed in the next update.")]] 
-        static void InitCameraOnly(int index);
-
-
         private:
         //menu bar utility
         static MenuBar CreateMenuBar();

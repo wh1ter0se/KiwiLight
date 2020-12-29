@@ -109,14 +109,6 @@ OverviewPanel::OverviewPanel(XMLDocument doc) {
 }
 
 /**
- * Updates the overview panel.
- * DEPRECATED: This method is not needed in KiwiLight and will be removed in the next update.
- */
-void OverviewPanel::Update() {
-
-}
-
-/**
  * Sets the name of the configuration being displayed.
  */
 void OverviewPanel::SetConfigName(std::string name) {

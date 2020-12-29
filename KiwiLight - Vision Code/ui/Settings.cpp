@@ -97,15 +97,6 @@ Settings::Settings(XMLDocument doc) {
 }
 
 /**
- * Performs necessary updates.
- * DEPRECATED: This method is unused and will be removed in the next update.
- */
-void Settings::Update() {
-
-}
-
-
-/**
  * Returns an XMLTag containing information describing the settings' values.
  */
 XMLTag Settings::GetFinishedTag() {

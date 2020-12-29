@@ -50,29 +50,6 @@ namespace KiwiLight {
     };
 
     /**
-     * A panel with scrollbars.
-     * DEPRECATED: This class is not used in KiwiLight and will be removed in the next update.
-     */
-    class [[deprecated("This class is not used in KiwiLight and will be removed in the next update.")]] Scrollable : public Widget {
-        public:
-        [[deprecated("The Scrollable class is not used and will be removed in the next update.")]] Scrollable() {};
-        [[deprecated("The Scrollable class is not used and will be removed in the next update.")]] Scrollable(bool horizontal, bool vertical);
-        [[deprecated("The Scrollable class is not used and will be removed in the next update.")]] void PackWidget(GtkWidget *wid);
-    };
-
-    /**
-     * A frame with a label.
-     * DEPRECATED: The Frame class is not used in KiwiLight and will be removed in the next update.
-     */
-    class [[deprecated("The Frame class is not used in KiwiLight and will be removed in the next update.")]] Frame : public Widget {
-        public:
-        Frame() {};
-        [[deprecated("The Frame class is not used and will be removed in the next update.")]] Frame(std::string label);
-        [[deprecated("The Frame class is not used and will be removed in the next update.")]] void Pack(GtkWidget *widget);
-        [[deprecated("The Frame class is not used and will be removed in the next update.")]] void Unpack(GtkWidget *widget);
-    };
-
-    /**
      * Represents a UI window.
      */
     class Window : public Widget {
@@ -108,7 +85,6 @@ namespace KiwiLight {
         void SetText(std::string text);
         std::string GetText() { return text; };
         void SetLineWrap(bool enabled);
-        void SetJustify(int justify);
 
         static const int JUSTIFY_LEFT = 0,
                           JUSTIFY_RIGHT = 1,
@@ -188,10 +164,6 @@ namespace KiwiLight {
         Button(std::string text, void(*callback)() );
         void SetText(std::string text);
         std::string GetText() { return text; };
-
-        //DEPRECATED
-        [[deprecated("This method has not been implemented and is therfore not used in KiwiLight.")]]
-        void SetCallback( void(*callback)() );
         
         private:
         std::string text;
@@ -283,20 +255,6 @@ namespace KiwiLight {
         TabView() {};
         TabView(std::string tab1Name, GtkWidget *tab1Content);
         void AddTab(std::string tabName, GtkWidget* tabContent);
-    };
-
-    /**
-     * A dialog with a text box.
-     * DEPRECATED: The PopupTextBox class is not used in KiwiLight and will be removed in the next update.
-     */
-    class [[deprecated("The PopupTextBox class is no longer used and will be removed in the next update.")]] PopupTextBox : public Widget {
-        public:
-        PopupTextBox() {};
-        [[deprecated("The PopupTextBox class is no longer used and will be removed in the next update.")]] PopupTextBox(std::string name, std::string prompt, std::string initValue);
-        [[deprecated("The PopupTextBox class is no longer used and will be removed in the next update.")]] std::string Show();
-
-        private:
-        TextBox textbox;
     };
 
     /**
@@ -536,11 +494,6 @@ namespace KiwiLight {
         void SetUDPEnabledLabels(bool UDPEnabled);
         void SetTargetInformationLabelsFromString(std::string iterOutput);
 
-        //DEPRECATED
-        [[deprecated("This method is not needed in KiwiLight and will be removed in the next update.")]] 
-        void Update();
-
-
         private:
         TextBox configName;
         TextBox udpAddr;
@@ -572,11 +525,6 @@ namespace KiwiLight {
         void SetCameraIndex(int index);
         int GetCameraIndex();
         std::vector<int> GetSettingIDs();
-
-        //DEPRECATED
-        [[deprecated("This method is unused and will be removed in the next update.")]] 
-        void Update();
-
 
         private:
         NumberBox cameraIndex;

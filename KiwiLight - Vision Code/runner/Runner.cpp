@@ -192,25 +192,8 @@ std::string Runner::Iterate() {
     return rioMessage;
 }
 
-/**
- * Returns the number of contours that make up the target.
- * DEPRECATED: Use NumberOfContours() instead.
- */
-int Runner::GetNumberOfContours(int target) {
-    return this->postprocessor.NumberOfContours();
-}
-
-
 int Runner::NumberOfContours() {
     return this->postprocessor.NumberOfContours();
-}
-
-/**
- * Returns the example target at the given id. Returns the 0th exampletarget if id is out of bounds.
- * DEPRECATED: Use GetExampleTarget() instead.
- */
-ExampleTarget Runner::GetExampleTargetByID(int id) {
-    return this->postprocessor.GetTarget();
 }
 
 /**
@@ -218,14 +201,6 @@ ExampleTarget Runner::GetExampleTargetByID(int id) {
  */
 ExampleTarget Runner::GetExampleTarget() {
     return this->postprocessor.GetTarget();
-}
-
-/**
- * Sets the ExampleTarget that this runner is tasked with finding.
- * DEPRECATED: No longer used in KiwiLight. Use SetExampleTarget(ExampleTarget) instead.
- */
-void Runner::SetExampleTarget(int contourID, ExampleTarget target) {
-    this->postprocessor.SetTarget(target);
 }
 
 /**

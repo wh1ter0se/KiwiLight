@@ -226,10 +226,6 @@ namespace KiwiLight {
         void SetTargetProperty(RunnerProperty prop, double value);
         double GetTargetProperty(RunnerProperty prop);
 
-        //DEPRECATED
-        [[deprecated("This method is no longer used and will be removed in the next update.")]] 
-        void AddGenericContour();
-
         private:
         bool ArrayMaxed(int arr[], int size, int max);
         bool ContainsDuplicates(int arr[], int size);
@@ -292,22 +288,6 @@ namespace KiwiLight {
         double GetRunnerProperty(RunnerProperty prop);
         ExampleTarget GetTarget();
         std::vector<Contour> GetContoursFromLastFrame() { return this->contoursFromLastFrame; };
-
-        //DEPRECATED STUFF
-        [[deprecated("Use PostProcessor(ExampleTarget, bool) instead.")]] 
-        PostProcessor(std::vector<ExampleTarget> targets, bool debugging); //deprecated
-
-        [[deprecated("Use SetTarget(ExampleTarget) instead.")]] 
-        void SetTarget(int id, ExampleTarget target); //deprecated
-
-        [[deprecated("The PostProcessor will no longer support multi-targeting.")]] 
-        int NumberOfTargets(); //deprecated
-
-        [[deprecated("PostProcessor is moving away from using multiple targets. Use NumberOfContours() instead.")]] 
-        int NumberOfContours(int target); //deprecated
-
-        [[deprecated("PostProcessor is moving away from using multiple targets. use GetTarget() instead.")]] 
-        ExampleTarget GetExampleTargetByID(int id); //deprecated
 
         private:
         bool debugging;
@@ -410,19 +390,6 @@ namespace KiwiLight {
         SettingPair GetPostProcessorContourProperty(int contour, TargetProperty prop);
         void SetRunnerProperty(RunnerProperty prop, double value);
         double GetRunnerProperty(RunnerProperty prop);
-
-        //DEPRECATED:
-        [[deprecated("This method will be removed in the next update.")]]
-        int GetNumberOfTargets() { return 1; };
-
-        [[deprecated("Use SetExampleTarget(ExampleTarget) instead.")]]
-        void SetExampleTarget(int targetID, ExampleTarget target);
-
-        [[deprecated("Use GetExampleTarget() instead.")]]
-        ExampleTarget GetExampleTargetByID(int id);
-
-        [[deprecated("Use NumberOfContours() instead.")]]
-        int GetNumberOfContours(int target);
 
         private:
         void parseDocument(XMLDocument doc);
