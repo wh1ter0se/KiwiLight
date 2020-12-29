@@ -14,7 +14,7 @@ UDP          KiwiLightApp::udpSender;
 Runner       KiwiLightApp::runner;
 ConfigEditor KiwiLightApp::configeditor;
 CronWindow   KiwiLightApp::cronWindow;
-Logger       KiwiLightApp::logger;::
+Logger       KiwiLightApp::logger;
 LogViewer    KiwiLightApp::logViewer;
 GThread     *KiwiLightApp::streamingThread;
 AppMode      KiwiLightApp::mode = AppMode::UI_STREAM;
