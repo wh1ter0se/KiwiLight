@@ -71,14 +71,15 @@ namespace KiwiLight {
         static void EditorConnectUDPFromOverview();
         static void EditorApplyCameraSettings();
         static void EditorOpenNewCameraFromOverview();
-        static void SaveConfigShouldRun();
-        static void SaveConfigShouldNotRun();
         static void ToggleLogPlot();
         static void GenerateLogPlot();
         static void OpenNewCameraOnIndex(int index);
         static void ReconnectUDP(std::string newAddress, int newPort);
         static void ReconnectUDP(std::string newAddress, int newPort, bool block);
+        static void SetUDPMaxSendRate(int maxSendRate);
         static void SendOverUDP(std::string message);
+        static void CronDeleteButtonPressed(void* data, GtkWidget *widget);
+        static void CronAddButtonPressed();
 
         //thread utilities
         static void LaunchStreamingThread(AppMode newMode);

@@ -18,6 +18,13 @@ Button::Button(std::string text, void(*callback)()) {
     g_signal_connect(this->widget, "clicked", G_CALLBACK(callback), NULL);
 }
 
+
+Button::Button(std::string text, void(*callback)(gpointer, GtkWidget*), void* data) {
+    this->text = text;
+    this->widget = gtk_button_new_with_label(text.c_str());
+    g_signal_connect_swapped(this->widget, "clicked", G_CALLBACK(callback), data);
+}
+
 /**
  * Sets the text of the Button.
  */

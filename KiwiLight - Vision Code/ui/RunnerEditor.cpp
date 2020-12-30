@@ -41,7 +41,19 @@ RunnerEditor::RunnerEditor(Runner runner) {
                     this->udpPort = NumberBox(0.0, 9999.0, 1.0, (double) realUDPPort);
                         udpPortPanel.Pack_start(this->udpPort.GetWidget(), true, true, 0);
                     udpInputPanel.Pack_start(udpPortPanel.GetWidget(), true, true, 0);
+
+                Panel sendRatePanel = Panel(true, 0);
+                    Label sendRatePanelHeader = Label("Send Cap: ");
+                        sendRatePanel.Pack_start(sendRatePanelHeader.GetWidget(), true, true, 0);
+                    
+                    double realMaxSendRate = KiwiLightApp::GetUDP().MaxSendRate();
+                    this->maxSendRate = NumberBox(1, 150, 1, realMaxSendRate);
+                        sendRatePanel.Pack_start(this->maxSendRate.GetWidget(), true, true, 0);
+                    
+                    udpInputPanel.Pack_start(sendRatePanel.GetWidget(), false, false, 0);
+
                 udpPanel.Pack_start(udpInputPanel.GetWidget(), true, true, 0);
+
             Button reconnectUDP = Button("Reconnect", ReconnectUDP);
                 udpPanel.Pack_start(reconnectUDP.GetWidget(), true, true, 0);
 
@@ -50,7 +62,6 @@ RunnerEditor::RunnerEditor(Runner runner) {
 
             editor.Pack_start(udpPanel.GetWidget(), true, true, 0);
                     
-
         Panel offsetPanel = Panel(false, 0);
             Label offsetPanelHeader = Label("Camera offset (inches)");
                 offsetPanelHeader.SetName("subHeader");
@@ -84,7 +95,7 @@ RunnerEditor::RunnerEditor(Runner runner) {
 
                 resizePanel.Pack_start(resizePanelContents.GetWidget(), true, true, 0);
             editor.Pack_start(resizePanel.GetWidget(), true, true, 0);
-
+        
         Panel distancePanel = Panel(false, 0);
             Label distancePanelHeader = Label("Distance Constants");
                 distancePanelHeader.SetName("subHeader");
@@ -209,6 +220,13 @@ int RunnerEditor::GetUDPPort() {
 }
 
 /**
+ * Returns the maximum send rate.
+ */
+int RunnerEditor::GetMaxSendRate() {
+    return (int) this->maxSendRate.GetValue();
+}
+
+/**
  * Sets the text of the "UDP Address" field.
  */
 void RunnerEditor::SetUDPAddr(std::string newAddr) {
@@ -220,6 +238,13 @@ void RunnerEditor::SetUDPAddr(std::string newAddr) {
  */
 void RunnerEditor::SetUDPPort(int newPort) {
     this->udpPort.SetValue((double) newPort);
+}
+
+/**
+ * Sets the value of the "Max Send Rate" field.
+ */
+void RunnerEditor::SetMaxSendRate(int maxsendrate) {
+    this->maxSendRate.SetValue((double) maxsendrate);
 }
 
 /**

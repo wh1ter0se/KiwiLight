@@ -204,6 +204,7 @@ void ConfigEditor::Update() {
         this->runner.SetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE, this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE));
         this->runner.SetRunnerProperty(RunnerProperty::ERROR_CORRECTION, this->runnerSettings.GetProperty(RunnerProperty::ERROR_CORRECTION));
         this->runner.SetRunnerProperty(RunnerProperty::CALC_DIST_BY_HEIGHT, this->runnerSettings.GetProperty(RunnerProperty::CALC_DIST_BY_HEIGHT));
+        KiwiLightApp::SetUDPMaxSendRate(this->runnerSettings.GetMaxSendRate());
     
         //set service labels
         if(this->learnerActivated && this->learner.GetLearning()) {
@@ -517,6 +518,10 @@ bool ConfigEditor::Save() {
                     //<port>
                     XMLTag port = XMLTag("port", std::to_string(this->runnerSettings.GetUDPPort()));
                         UDP.AddTag(port);
+
+                    //<maxSendRate>
+                    XMLTag maxSendRate = XMLTag("maxSendRate", std::to_string(this->runnerSettings.GetMaxSendRate()));
+                        UDP.AddTag(maxSendRate);
                         
                     postprocessor.AddTag(UDP);
                 configuration.AddTag(postprocessor);

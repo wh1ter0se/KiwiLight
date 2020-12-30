@@ -392,7 +392,7 @@ namespace KiwiLight {
         double GetRunnerProperty(RunnerProperty prop);
 
         private:
-        void parseDocument(XMLDocument doc);
+        void parseDocument(XMLDocument doc, bool applyUDP);
         void applySettings(XMLDocument document);
 
         PreProcessor preprocessor;
@@ -418,6 +418,8 @@ namespace KiwiLight {
 
         double centerOffsetX,
                centerOffsetY;
+
+        int maxSendRate;
     };
 
     /**

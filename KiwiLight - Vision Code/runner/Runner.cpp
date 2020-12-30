@@ -16,18 +16,19 @@ const std::string Runner::NULL_MESSAGE = ":-1,-1,-1,-1,-1,180,180;";
 Runner::Runner(std::string fileName, bool debugging)
     : Runner(fileName, debugging, true) { }
 
-Runner::Runner(std::string fileName, bool debugging, bool applyCameraSettings) {
+Runner::Runner(std::string fileName, bool debugging, bool applySettings) {
     this->src = fileName;
     this->debug = debugging;
     this->lastIterationSuccessful = false;
     XMLDocument file = XMLDocument(fileName);
     if(file.HasContents()) {
-        this->parseDocument(file);
+        this->parseDocument(file, applySettings);
     } else {
         std::cout << "sorry! the file " << fileName << " could not be found. " << std::endl;
+        return;
     }
     
-    if(applyCameraSettings) {
+    if(applySettings) {
         this->applySettings(file);
     }
     this->stop = false;
@@ -300,7 +301,7 @@ double Runner::GetRunnerProperty(RunnerProperty prop) {
  * Parses the XMLdocument doc and initalizes all runner settings and variables.
  * @param doc The XMLDocument to read.
  */
-void Runner::parseDocument(XMLDocument doc) {
+void Runner::parseDocument(XMLDocument doc, bool applyUDP) {
     XMLTag camera = doc.GetTagsByName("camera")[0];
         this->cameraIndex = std::stoi(camera.GetAttributesByName("index")[0].Value());
         
@@ -337,6 +338,7 @@ void Runner::parseDocument(XMLDocument doc) {
             XMLTag udp = postprocess.GetTagsByName("UDP")[0];
                 std::string udpAddr = udp.GetTagsByName("address")[0].Content();
                 int udpPort = std::stoi(udp.GetTagsByName("port")[0].Content());
+                int maxSendRate = std::stoi(udp.GetTagsByName("maxSendRate")[0].Content());
 
             XMLTag targetTag = postprocess.GetTagsByName("target")[0];
             std::vector<XMLTag> targContours = targetTag.GetTagsByName("contour");
@@ -384,7 +386,11 @@ void Runner::parseDocument(XMLDocument doc) {
     //init the preprocessor and postprocessor here
     this->preprocessor = PreProcessor(preprocessorTypeIsFull, preprocessorColor, preprocessorThreshold, preprocessorErosion, preprocessorDilation, this->debug);
     this->postprocessor = PostProcessor(this->postProcessorTarget, this->debug);
-    KiwiLightApp::ReconnectUDP(udpAddr, udpPort);
+
+    if(applyUDP) {
+        KiwiLightApp::ReconnectUDP(udpAddr, udpPort);
+        KiwiLightApp::SetUDPMaxSendRate(maxSendRate);
+    }
 }
 
 /**

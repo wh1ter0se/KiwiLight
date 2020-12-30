@@ -73,6 +73,20 @@ namespace KiwiLight {
         std::vector<double> VectorIntToDouble(std::vector<int> data);
     };
 
+    /**
+     * Basic timer utility, which increments time since Start() is called. 
+     */
+    class Clock {
+        public:
+        Clock();
+        void Start();
+        long GetTime();
+        static long GetSystemTime();
+        static std::string GetDateString();
+
+        private:
+        long startTime;
+    };
 
     /**
      * A UDP sender utility that sends and recieves information to and from the RIO.
@@ -80,23 +94,31 @@ namespace KiwiLight {
     class UDP {
         public:
         UDP(){};
-        UDP(std::string dest_ip, int port, bool blockUntilConnected);
+        UDP(std::string dest_ip, int port, bool blockUntilConnected): UDP(dest_ip, port, blockUntilConnected, 120) {};
+        UDP(std::string dest_ip, int port, bool blockUntilConnected, int maxSendRate);
         bool AttemptToConnect();
-        bool Connected() { return this->connected; };
+        bool Connected();
         void Send(std::string msg);
-        std::string Recieve();
+        std::string Receive();
         void Close();
-        std::string GetAddress() { return this->address; };
-        int GetPort() { return this->port; };
+        std::string GetAddress();
+        int GetPort();
+        int MaxSendRate();
+        void SetMaxSendRate(int maxsendrate);
 
         private:
         int sock; //sock fd returned by socket() call
         sockaddr_in client_address; //address of the server
 
         bool connected;
+        long lastSendTime;
 
         std::string address;
-        int port;
+        int
+            port,
+            maxSendRate;
+
+        Clock clock;
     };
 
     /**
@@ -220,21 +242,6 @@ namespace KiwiLight {
             hError,
             sError,
             vError;
-    };
-
-    /**
-     * Basic timer utility, which increments time since Start() is called. 
-     */
-    class Clock {
-        public:
-        Clock();
-        void Start();
-        long GetTime();
-        static long GetSystemTime();
-        static std::string GetDateString();
-
-        private:
-        long startTime;
     };
 
     /**

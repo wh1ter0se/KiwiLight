@@ -67,15 +67,10 @@ void UDPPanel::SetConnected(bool connected) {
  * Reads the information directly from the KiwiLight UDP sender and applies to the panel.
  */
 void UDPPanel::ReadAndSetInfo() {
-    std::cout << "rsi1" << std::endl;
     SetAddress(KiwiLightApp::GetUDP().GetAddress());
-    std::cout << "rsi2" << std::endl;
     SetPort(KiwiLightApp::GetUDP().GetPort());
-    std::cout << "rsi3" << std::endl;
     SetEnabled(KiwiLightApp::GetUDPEnabled());
-    std::cout << "rsi4" << std::endl;
     SetConnected(KiwiLightApp::GetUDP().Connected());
-    std::cout << "rsi5" << std::endl;
 }
 
 

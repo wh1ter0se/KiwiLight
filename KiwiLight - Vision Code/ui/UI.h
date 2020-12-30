@@ -162,6 +162,7 @@ namespace KiwiLight {
         public:
         Button() {};
         Button(std::string text, void(*callback)() );
+        Button(std::string text, void(*callback)(gpointer data, GtkWidget *widget), void* data);
         void SetText(std::string text);
         std::string GetText() { return text; };
         
@@ -311,19 +312,27 @@ namespace KiwiLight {
         bool isOpen();
         void Show();
         void Close();
-        void SaveRule(bool shouldRun);
+        std::string GetRuleByLine(int line);
+        std::string GetFileNameFromRule(std::string rule);
+        void SaveRule(std::string file, bool shouldRun);
 
         private:
-        bool isCurrentFileAutomatic();
+        void renderTable();
+        bool isFileAutomatic(std::string file);
         std::vector<std::string> ReadAllRules();
         std::vector<std::string> ReadKiwiLightRules();
 
         Window window;
+        Panel
+            tableContainer,
+            table;
         Label 
             cronStatus,
             currentRuleStatus;
 
         bool isOpened;
+
+        std::vector<std::string> cronFiles;
     };
 
     /**
@@ -422,6 +431,7 @@ namespace KiwiLight {
         UDPPanel(bool enabled);
         void SetAddress(std::string address);
         void SetPort(int port);
+        
         void SetEnabled(bool enabled);
         void SetConnected(bool connected);
         void ReadAndSetInfo();
@@ -495,10 +505,14 @@ namespace KiwiLight {
         void SetTargetInformationLabelsFromString(std::string iterOutput);
 
         private:
-        TextBox configName;
-        TextBox udpAddr;
-        NumberBox udpPort;
-        NumberBox cameraIndex;
+        TextBox 
+            configName,
+            udpAddr;
+
+        NumberBox 
+            udpPort,
+            cameraIndex;
+
         Button enableUDP;
 
         Label
@@ -615,15 +629,19 @@ namespace KiwiLight {
         void SetProperty(RunnerProperty prop, double value);
         std::string GetUDPAddr();
         int GetUDPPort();
+        int GetMaxSendRate();
         void SetUDPAddr(std::string newAddr);
         void SetUDPPort(int newPort);
+        void SetMaxSendRate(int maxsendrate);
         void SetUDPEnabledLabels(bool UDPEnabled);
 
         private:
         Label distanceLabel;
 
         TextBox udpAddress;
-        NumberBox udpPort;
+        NumberBox 
+            udpPort,
+            maxSendRate;
 
         Button enableUDP;
 

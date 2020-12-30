@@ -419,7 +419,8 @@ void KiwiLightApp::ReconnectUDP(std::string newAddress, int newPort) {
  * Sets the IPv4 address and port of KiwiLight's socket sender. Optionally, you can also set it to wait until it is connected.
  */
 void KiwiLightApp::ReconnectUDP(std::string newAddress, int newPort, bool block) {
-    KiwiLightApp::udpSender = UDP(newAddress, newPort, block);
+    int oldSendRate = KiwiLightApp::udpSender.MaxSendRate();
+    KiwiLightApp::udpSender = UDP(newAddress, newPort, block, oldSendRate);
     if(KiwiLightApp::uiInitalized) {
         udpPanel.SetAddress(udpSender.GetAddress());
         udpPanel.SetPort(udpSender.GetPort());
@@ -427,11 +428,35 @@ void KiwiLightApp::ReconnectUDP(std::string newAddress, int newPort, bool block)
     }
 }
 
+void KiwiLightApp::SetUDPMaxSendRate(int maxSendRate) {
+    KiwiLightApp::udpSender.SetMaxSendRate(maxSendRate);
+}
+
 /**
  * Sends "message" over KiwiLight's socket sender.
  */
 void KiwiLightApp::SendOverUDP(std::string message) {
     KiwiLightApp::udpSender.Send(message);
+}
+
+/**
+ * Callback for when a button is pressed on the cron window table
+ */
+void KiwiLightApp::CronDeleteButtonPressed(void* data, GtkWidget *widget) {
+    int lineToDelete = GPOINTER_TO_INT(data);
+    std::string rule = KiwiLightApp::cronWindow.GetRuleByLine(lineToDelete);
+    std::string file = KiwiLightApp::cronWindow.GetFileNameFromRule(rule);
+    ConfirmationDialog confirmation = ConfirmationDialog("Really Remove " + file + "?");
+    bool shouldDelete = confirmation.ShowAndGetResponse();
+    if(shouldDelete) {
+        KiwiLightApp::cronWindow.SaveRule(file, false);
+    }
+}
+
+void KiwiLightApp::CronAddButtonPressed() {
+    FileChooser filechooser = FileChooser(false, "");
+    std::string fileToRun = filechooser.Show();
+    KiwiLightApp::cronWindow.SaveRule(fileToRun, true);
 }
 
 /**
@@ -446,25 +471,9 @@ void KiwiLightApp::EditorApplyCameraSettings() {
 /**
  * Causes the editor to connect tot a different camera using index from the overview panel.
  */
-void KiwiLightApp::EditorOpenNewCameraFromOverview(){
+void KiwiLightApp::EditorOpenNewCameraFromOverview() {
     //we don't need to do stream things here because it is all handled in OpenNewCameraOnIndex()
     KiwiLightApp::configeditor.OpenNewCameraFromOverview();
-}
-
-/**
- * Causes the cron window to save a configuration in cron.
- */
-void KiwiLightApp::SaveConfigShouldRun() {
-    KiwiLightApp::cronWindow.SaveRule(true);
-    KiwiLightApp::cronWindow.Close();
-}
-
-/**
- * Closes the Cron window if it is open.
- */
-void KiwiLightApp::SaveConfigShouldNotRun() {
-    KiwiLightApp::cronWindow.SaveRule(false);
-    KiwiLightApp::cronWindow.Close();
 }
 
 /**
