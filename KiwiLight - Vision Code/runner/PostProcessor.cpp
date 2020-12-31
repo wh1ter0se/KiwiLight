@@ -45,10 +45,7 @@ std::vector<Target> PostProcessor::ProcessImage(cv::Mat img) {
     }
     
     this->contoursFromLastFrame = objects;
-    std::cout << "postprocessor 1" << std::endl;
     std::vector<Target> targs = this->target.GetTargets(objects);
-    std::cout << "postprocessor 2" << std::endl;
-
     return targs;
 }
 

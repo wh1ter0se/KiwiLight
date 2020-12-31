@@ -689,7 +689,10 @@ namespace KiwiLight {
         
         //universal config learning utility
         ConfigLearner learner;
-        bool learnerActivated;
+        bool 
+            learnerActivated,
+            learnerFinished;
+        ExampleTarget learnerResult;
 
         //universal focal width learning utility
         TargetDistanceLearner distanceLearner;
@@ -706,7 +709,10 @@ namespace KiwiLight {
         std::string 
                 fileName,
                 confName;
-        bool updateShouldSkip;
+
+        bool 
+            updateShouldSkip,
+            updating;
                 
         std::string lastIterationResult;
 

@@ -8,8 +8,8 @@
 using namespace cv;
 using namespace KiwiLight;
 
-static int LEARNER_FRAMES = 50;
-static int MAX_CONTOURS = 10;
+static const int LEARNER_FRAMES = 50;
+static const int MAX_CONTOURS_BEFORE_SUPPRESSION = 6;
 
 /**
  * Called when the "Learn Target" editor button is pressed. 
@@ -53,6 +53,10 @@ static void SaveAndCloseButtonPressed() {
  */
 ConfigEditor::ConfigEditor(std::string fileName) {
     this->learnerActivated = false;
+    this->learnerFinished = false;
+    std::vector<ExampleContour> sampleContourVector;
+    sampleContourVector.push_back(ExampleContour(0));
+    this->learnerResult = ExampleTarget(0, sampleContourVector, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH, 5);
     this->distanceLearnerRunning = false;
     this->runner = Runner(fileName, true);
     this->currentDoc = XMLDocument(fileName);
@@ -60,6 +64,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
     this->lastIterationResult = "";
     this->out = Mat(Size(50, 50), CV_8UC3);
     this->updateShouldSkip = false;
+    this->updating = false;
     this->confName = this->currentDoc.GetTagsByName("configuration")[0].GetAttributesByName("name")[0].Value();
     
     this->window = Window(GTK_WINDOW_TOPLEVEL, false);
@@ -150,7 +155,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
  */
 void ConfigEditor::Update() {
     if(!this->updateShouldSkip) {
-        std::cout << "update " << rand() << std::endl;
+        this->updating = true;
         Mat displayable;
     
         try {
@@ -158,6 +163,13 @@ void ConfigEditor::Update() {
             this->outputImage.Update(displayable);
         } catch(cv::Exception ex) {
         }
+
+        //set new ExampleTarget is the learner is finished
+        if(this->learnerFinished) {
+            SetTarget(this->learnerResult);
+            this->learnerFinished = false;
+        }
+
         //update the different tabs
         this->configOverview.SetTargetInformationLabelsFromString(this->lastIterationResult);
         this->preprocessorSettings.Update();
@@ -177,7 +189,6 @@ void ConfigEditor::Update() {
         //apply all contour settings to the runner. First, make sure we have all contours needed.
         int numberOfContours = this->postprocessorSettings.GetNumContours();
         if(this->runner.NumberOfContours() != numberOfContours) {
-            std::cout << "Redefining Target." << std::endl;
             std::vector<ExampleContour> newContours;
             for(int i=0; i<numberOfContours; i++) {
                 ExampleContour newContour = ExampleContour(i);
@@ -235,7 +246,7 @@ void ConfigEditor::Update() {
         }
 
         //check target. If there are too many contours, performance errors will occur.
-        if(this->runner.GetExampleTarget().Contours().size() > MAX_CONTOURS) {
+        if(this->runner.GetExampleTarget().Contours().size() > MAX_CONTOURS_BEFORE_SUPPRESSION) {
             //restore generic target
             ExampleTarget genericTarget = Runner(Util::ResolveGenericConfFilePath(), false, false).GetExampleTarget();
             SetTarget(genericTarget);
@@ -243,14 +254,13 @@ void ConfigEditor::Update() {
             //alert the user that the new target was discarded
             ConfirmationDialog alert = ConfirmationDialog(
                 std::string("The Target KiwiLight just tried to learn had too many contours!\n") + 
-                std::string("Please ensure that the target has less than " + std::to_string(MAX_CONTOURS) + " contours.\n") +
+                std::string("Please ensure that the target has less than " + std::to_string(MAX_CONTOURS_BEFORE_SUPPRESSION) + " contours.\n") +
                 std::string("Reverting to generic target.")
             );
             alert.ShowAndGetResponse();
         }
+        this->updating = false;
     }
-
-    std::cout << "update finish" << std::endl;
 }
 
 
@@ -258,7 +268,6 @@ void ConfigEditor::Update() {
  * Updates the internal runner to in turn update the output images.
  */
 bool ConfigEditor::UpdateImageOnly() {
-    std::cout << "stream " << rand() << std::endl;
     //update services
     if(this->learnerActivated) {
         int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
@@ -269,12 +278,18 @@ bool ConfigEditor::UpdateImageOnly() {
             if(this->learner.GetFramesLearned() >= LEARNER_FRAMES) {
                 //process new target
                 this->updateShouldSkip = true;
+                //wait for current update to finish
+                while(this->updating) {
+                    usleep(1000000);
+                }
                 int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
                 ExampleTarget newTarget = this->learner.StopLearning(minimumArea);
                 this->learnerActivated = false;
 
                 if(newTarget.Contours().size() > 0) {
-                    SetTarget(newTarget);
+                    //mark as done
+                    this->learnerFinished = true;
+                    this->learnerResult = newTarget;
                 }
                 this->updateShouldSkip = false;
             }
@@ -289,9 +304,6 @@ bool ConfigEditor::UpdateImageOnly() {
                 this->learnerActivated = false;
             }
         }
-        
-        //we can now return because it would be irrelavant to continue running the current configuration with it being replaced.
-        return true;
     }
     
     if(this->distanceLearnerRunning) {
@@ -306,11 +318,9 @@ bool ConfigEditor::UpdateImageOnly() {
             this->distanceLearnerRunning = false;
             this->updateShouldSkip = false;
         }
-
-        return true;
     }
 
-    if(this->runner.GetExampleTarget().Contours().size() > MAX_CONTOURS) {
+    if(this->runner.GetExampleTarget().Contours().size() > MAX_CONTOURS_BEFORE_SUPPRESSION) {
         return false;
     }
 
@@ -318,7 +328,6 @@ bool ConfigEditor::UpdateImageOnly() {
     bool retval = this->runner.GetLastFrameSuccessful();
     this->out = this->runner.GetOutputImage();
     this->original = this->runner.GetOriginalImage();
-
     return retval;
 }
 

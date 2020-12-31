@@ -39,6 +39,10 @@ int          KiwiLightApp::currentCameraIndex = 100;
 extern void RunConfigs(std::vector<std::string> filePaths); // from Main.cpp
 
 /**
+ *  TODO: REMOVE streamThreadEnabled when we determine that it is not important
+ */
+
+/**
  * Initializes GTK and builds KiwiLight
  */
 void KiwiLightApp::Create(int argc, char *argv[]) {
@@ -310,7 +314,7 @@ MenuBar KiwiLightApp::CreateMenuBar() {
  */
 void KiwiLightApp::LaunchStreamingThread(AppMode newMode) {
     if(newMode != AppMode::UI_PAUSING) {
-        streamThreadEnabled = true;
+        // streamThreadEnabled = true;
         KiwiLightApp::mode = newMode;
         KiwiLightApp::streamingThread = g_thread_new("stream monitor", GThreadFunc(KiwiLightApp::UpdateStreamsConstantly), NULL);
     }
@@ -320,11 +324,11 @@ void KiwiLightApp::LaunchStreamingThread(AppMode newMode) {
  * Messages the streaming thread to stop and waits until it does
  */
 void KiwiLightApp::StopStreamingThread() {
-    if(streamThreadEnabled) {
-        streamThreadEnabled = false;
+    // if(streamThreadEnabled) {
+    //     streamThreadEnabled = false;
         KiwiLightApp::mode = AppMode::UI_PAUSING;
         g_thread_join(KiwiLightApp::streamingThread);
-    }
+    // }
 }
 
 /**
@@ -537,7 +541,7 @@ void KiwiLightApp::UpdateStreamsConstantly() {
     //now because some cameras like the jevois take a little longer for the stream to start, we will wait until it gives us a good frame
     //to avoid the VIDIOC_QBUF: Invalid Argument barage.
     bool retrieveSuccess = false;
-    while(!retrieveSuccess && KiwiLightApp::mode != AppMode::UI_PAUSING && streamThreadEnabled) {
+    while(!retrieveSuccess && KiwiLightApp::mode != AppMode::UI_PAUSING/* && streamThreadEnabled*/) {
         usleep(250000); //give camera some time to adjust and do things
         bool grabSuccess = KiwiLightApp::camera.grab();
         if(grabSuccess) {
@@ -546,7 +550,7 @@ void KiwiLightApp::UpdateStreamsConstantly() {
         }
     }
 
-    while(KiwiLightApp::mode != AppMode::UI_PAUSING && streamThreadEnabled) {
+    while(KiwiLightApp::mode != AppMode::UI_PAUSING/* && streamThreadEnabled*/) {
         KiwiLightApp::UpdateStreams();
     }
 }
@@ -586,17 +590,14 @@ void KiwiLightApp::UpdateStreams() {
                     }
                 }
                 break;
-            case AppMode::UI_HEADLESS: {
-                KiwiLightApp::cameraStatusLabel.SetText("Running Headlessly");
-                std::cout << "headless" << std::endl;
-            }
-            break;
+            default:
+                break;
         }
         // if successful, update the display image
         if(KiwiLightApp::lastImageGrabSuccessful) {            
             //wait for out image to be used by other thread
             while(KiwiLightApp::lfgImgInUse) {
-                usleep(10);
+                usleep(1000000);
             }
             KiwiLightApp::lfgImgInUse = true;
             KiwiLightApp::lastFrameGrabImage = displayImage;

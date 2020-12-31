@@ -5,5 +5,5 @@
  * Written By: Brach Knutson
  */
 
-const bool        KiwiLight::RunnerSettings::USE_CAMERA   = false;
+const bool        KiwiLight::RunnerSettings::USE_CAMERA   = true;
 const std::string KiwiLight::RunnerSettings::IMAGE_TO_USE = "/home/brach/sizes.png";

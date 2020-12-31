@@ -153,6 +153,16 @@ void PostprocessorEditor::SetNumContours(int contours) {
  */
 void PostprocessorEditor::Update() {
     int currentContour = (int) this->contourchooser.GetValue();
+
+    if(currentContour < 0) {
+        currentContour = 0;
+        this->contourchooser.SetValue(currentContour);
+    }
+
+    if(currentContour > this->storageRunner.GetPostProcessor().GetTarget().Contours().size() - 1) {
+        currentContour = this->storageRunner.GetPostProcessor().GetTarget().Contours().size() - 1;
+        this->contourchooser.SetValue(currentContour);
+    }
     
     if(currentContour != this->lastDesiredContour) {
         //the user has requested to see values for a new contour, show them
@@ -174,32 +184,32 @@ void PostprocessorEditor::Update() {
         }
     }
 
-    //set dist x
+    //set dist x in post
     SettingPair distXPair = SettingPair(this->distX.GetValue(), this->distXErr.GetValue());
         this->storageRunner.SetPostProcessorContourProperty(currentContour, TargetProperty::DIST_X, distXPair);
 
-    //set dist y
+    //set dist y in post
     SettingPair distYPair = SettingPair(this->distY.GetValue(), this->distYErr.GetValue());
         this->storageRunner.SetPostProcessorContourProperty(currentContour, TargetProperty::DIST_Y, distYPair);
 
-    //set angle
+    //set angle in post
     SettingPair anglePair = SettingPair(this->angle.GetValue(), this->angleErr.GetValue());
         this->storageRunner.SetPostProcessorContourProperty(currentContour, TargetProperty::ANGLE, anglePair);
 
-    //set aspect ratio
+    //set aspect ratio in post
     SettingPair arPair = SettingPair(this->ar.GetValue(), this->arErr.GetValue());
         this->storageRunner.SetPostProcessorContourProperty(currentContour, TargetProperty::ASPECT_RATIO, arPair);
 
-    //set solidity
+    //set solidity in post
     SettingPair solidityPair = SettingPair(this->solidity.GetValue(), this->solidityErr.GetValue());
         this->storageRunner.SetPostProcessorContourProperty(currentContour, TargetProperty::SOLIDITY, solidityPair);
 
-    //set min area
+    //set min area in post
     SettingPair minAreaPair = SettingPair(this->minimumArea.GetValue(), 0);
         this->storageRunner.SetPostProcessorContourProperty(currentContour, TargetProperty::MINIMUM_AREA, minAreaPair);
 
     //set the label with total number of contours
-    this->totalContours.SetText(std::string("/ ") + std::to_string(this->storageRunner.NumberOfContours()));    
+        this->totalContours.SetText(std::string("/ ") + std::to_string(this->storageRunner.NumberOfContours()));
 }
 
 /**

@@ -40,8 +40,6 @@ std::vector<Target> ExampleTarget::GetTargets(std::vector<Contour> objects) {
     std::vector<Contour> validContours = std::vector<Contour>();
     
     validContours = this->GetValidContours(objects);
-    std::cout << "valid contours: " << validContours.size() << std::endl;
-    std::cout << "max contours: " << maxContours << std::endl;
 
     int numTargetContours = this->contours.size();
     int numImageContours = validContours.size();
@@ -62,19 +60,14 @@ std::vector<Target> ExampleTarget::GetTargets(std::vector<Contour> objects) {
             }
 
             if(numsGreaterThan >= placeRequirement) {
-                std::cout << "adding number with ngt value of " << numsGreaterThan << " where thresh is " << placeRequirement << std::endl;
                 reducedValidContours.push_back(validContours[i]);
             }
         }
 
         validContours = reducedValidContours;
-        std::cout << "reduced valid contours: " << validContours.size() << std::endl;
     }
 
-    std::cout << "exampletarget 1" << std::endl;
-
     if(numTargetContours == 1) { //this is simply for optimization, since we can do 1-contours faster very easily, and FRC likes 1-contours
-        std::cout << "exampletarget 2" << std::endl;
         for(int i=0; i<numImageContours; i++) {
             std::vector<Contour> potentialTarget = std::vector<Contour>();
             potentialTarget.push_back(validContours[i]);
@@ -83,10 +76,8 @@ std::vector<Target> ExampleTarget::GetTargets(std::vector<Contour> objects) {
                 foundTargets.push_back(newTarg);
             }
         }
-        std::cout << "exampletarget3" << std::endl;
     } 
     else {
-        std::cout << "exampletarget 4" << std::endl;
         int places[(const int) numTargetContours] = {};
         for(int i=0; i<numTargetContours; i++) {
             places[i] = 0;
@@ -135,7 +126,6 @@ std::vector<Target> ExampleTarget::GetTargets(std::vector<Contour> objects) {
                 }  
             }
         }
-        std::cout << "exampletarget 5" << std::endl;
     }
 
     return foundTargets;

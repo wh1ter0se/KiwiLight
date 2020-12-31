@@ -70,7 +70,6 @@ bool TargetTroubleshooter::Troubleshoot(TroubleshootingData dataOut[]) {
     }
 
     int averageNumContours = (int) DataUtils::Average(avgContours);
-    std::cout << "Found average number of contours to be " << averageNumContours << ". ";
 
     //group contours by distance
     std::vector <std::vector <Contour> > groupedContours = std::vector< std::vector <Contour> >(this->target.Contours().size());
@@ -88,8 +87,6 @@ bool TargetTroubleshooter::Troubleshoot(TroubleshootingData dataOut[]) {
             discardedFrames++;
         }
     }
-
-    std::cout << "Discarded " << discardedFrames << " Frames." << std::endl;
 
     //match the contours to example contours
     std::vector <std::vector <Contour> > matchedContours = std::vector <std::vector <Contour> >(this->target.Contours().size()); //index 0 of matchedContours will correspond with exampleContour with id 0, 1 with 1, 2 with 2, etc
