@@ -62,7 +62,10 @@ std::string StringUtils::Substring(std::string str, int begin, int end) {
  * @param startsWith The string that str is being tested for.
  */
 bool StringUtils::StringStartsWith(std::string str, std::string startsWith) {
-    return ( StringUtils::Substring(str, 0, startsWith.length()) == startsWith );
+    std::cout << "ssw1" << std::endl;
+    bool retval = ( StringUtils::Substring(str, 0, startsWith.length()) == startsWith );
+    std::cout << "ssw2" << std::endl;
+    return retval;
 }
 
 /**

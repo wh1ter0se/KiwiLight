@@ -20,6 +20,15 @@ static void ReconnectUDP() {
  */
 RunnerEditor::RunnerEditor(Runner runner) {
     Panel editor = Panel(false, 0);
+        Panel maxContourPanel = Panel(true, 0);
+            Label maxContourHeader = Label("Contour limit: ");
+                maxContourPanel.Pack_start(maxContourHeader.GetWidget(), true, true, 0);
+
+            int realMaxContours = runner.GetRunnerProperty(RunnerProperty::MAX_CONTOURS);
+            this->maxContours = NumberBox(1, 20, 1, realMaxContours);
+                maxContourPanel.Pack_start(maxContours.GetWidget(), true, true, 0);
+
+            editor.Pack_start(maxContourPanel.GetWidget(), true, true, 0);
 
         Panel udpPanel = Panel(true, 0);
             Panel udpInputPanel = Panel(false, 0);
@@ -167,6 +176,8 @@ double RunnerEditor::GetProperty(RunnerProperty prop) {
             return this->targetErrorCorrection.GetValue();
         case RunnerProperty::CALC_DIST_BY_HEIGHT:
             return (this->useHeight.GetState() ? 1 : 0);
+        case RunnerProperty::MAX_CONTOURS:
+            return this->maxContours.GetValue();
     }
 }
 
@@ -201,6 +212,9 @@ void RunnerEditor::SetProperty(RunnerProperty prop, double value) {
             break;
         case RunnerProperty::CALC_DIST_BY_HEIGHT:
             this->useHeight.SetState(value == 1);
+            break;
+        case RunnerProperty::MAX_CONTOURS:
+            this->maxContours.SetValue(value);
             break;
     }
 }

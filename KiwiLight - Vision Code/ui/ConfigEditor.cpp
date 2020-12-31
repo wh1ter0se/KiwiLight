@@ -183,7 +183,7 @@ void ConfigEditor::Update() {
                 ExampleContour newContour = ExampleContour(i);
                 newContours.push_back(newContour);
             }
-            ExampleTarget newTarget = ExampleTarget(0, newContours, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH);
+            ExampleTarget newTarget = ExampleTarget(0, newContours, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH, 5);
             this->runner.SetExampleTarget(newTarget);
         }
     
@@ -206,6 +206,7 @@ void ConfigEditor::Update() {
         this->runner.SetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE, this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE));
         this->runner.SetRunnerProperty(RunnerProperty::ERROR_CORRECTION, this->runnerSettings.GetProperty(RunnerProperty::ERROR_CORRECTION));
         this->runner.SetRunnerProperty(RunnerProperty::CALC_DIST_BY_HEIGHT, this->runnerSettings.GetProperty(RunnerProperty::CALC_DIST_BY_HEIGHT));
+        this->runner.SetRunnerProperty(RunnerProperty::MAX_CONTOURS, this->runnerSettings.GetProperty(RunnerProperty::MAX_CONTOURS));
         KiwiLightApp::SetUDPMaxSendRate(this->runnerSettings.GetMaxSendRate());
     
         //set service labels
@@ -288,6 +289,9 @@ bool ConfigEditor::UpdateImageOnly() {
                 this->learnerActivated = false;
             }
         }
+        
+        //we can now return because it would be irrelavant to continue running the current configuration with it being replaced.
+        return true;
     }
     
     if(this->distanceLearnerRunning) {
@@ -302,19 +306,18 @@ bool ConfigEditor::UpdateImageOnly() {
             this->distanceLearnerRunning = false;
             this->updateShouldSkip = false;
         }
+
+        return true;
     }
 
     if(this->runner.GetExampleTarget().Contours().size() > MAX_CONTOURS) {
         return false;
     }
 
-    std::cout << "stream runner start" << std::endl;
     this->lastIterationResult = this->runner.Iterate();
-    std::cout << "stream runner finish" << std::endl;
     bool retval = this->runner.GetLastFrameSuccessful();
     this->out = this->runner.GetOutputImage();
     this->original = this->runner.GetOriginalImage();
-    std::cout << "stream finish" << std::endl;
 
     return retval;
 }
@@ -520,6 +523,10 @@ bool ConfigEditor::Save() {
                     //<calcByHeight>
                     XMLTag calcByHeight = XMLTag("calcByHeight", (this->runnerSettings.GetProperty(RunnerProperty::CALC_DIST_BY_HEIGHT) == 1 ? "true" : "false"));
                         target.AddTag(calcByHeight);
+
+                    //<maxContours>
+                    XMLTag maxContours = XMLTag("maxContours", std::to_string((int) this->runnerSettings.GetProperty(RunnerProperty::MAX_CONTOURS)));
+                        target.AddTag(maxContours);
 
                     postprocessor.AddTag(target);
                                     

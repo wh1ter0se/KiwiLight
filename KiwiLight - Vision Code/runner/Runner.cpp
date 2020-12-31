@@ -310,6 +310,7 @@ double Runner::GetRunnerProperty(RunnerProperty prop) {
  * @param doc The XMLDocument to read.
  */
 void Runner::parseDocument(XMLDocument doc, bool applyUDP) {
+    std::cout << "p1" << std::endl;
     XMLTag camera = doc.GetTagsByName("camera")[0];
         this->cameraIndex = std::stoi(camera.GetAttributesByName("index")[0].Value());
         
@@ -389,7 +390,11 @@ void Runner::parseDocument(XMLDocument doc, bool applyUDP) {
             bool calcByHeight = targetTag.GetTagsByName("calcByHeight")[0].Content() == "true";
             DistanceCalcMode distMode = (calcByHeight ? DistanceCalcMode::BY_HEIGHT : DistanceCalcMode::BY_WIDTH);
 
-            this->postProcessorTarget = ExampleTarget(targetId, contours, knownWidth, focalWidth, distErrorCorrect, calibratedDistance, distMode);
+            std::cout << "1" << std::endl;
+            int maxContours = std::stoi(targetTag.GetTagsByName("maxContours")[0].Content());
+            std::cout << "2" << std::endl;
+
+            this->postProcessorTarget = ExampleTarget(targetId, contours, knownWidth, focalWidth, distErrorCorrect, calibratedDistance, distMode, maxContours);
 
     //init the preprocessor and postprocessor here
     this->preprocessor = PreProcessor(preprocessorTypeIsFull, preprocessorColor, preprocessorThreshold, preprocessorErosion, preprocessorDilation, this->debug);
@@ -399,6 +404,8 @@ void Runner::parseDocument(XMLDocument doc, bool applyUDP) {
         KiwiLightApp::ReconnectUDP(udpAddr, udpPort);
         KiwiLightApp::SetUDPMaxSendRate(maxSendRate);
     }
+
+    std::cout << "p2" << std::endl;
 }
 
 /**

@@ -128,7 +128,6 @@ XMLDocument::XMLDocument(std::string fileName) {
                 workingHierarchy[workingHierarchy.size()-1].AddContent(line);
             }
         }
-        
     }
 
     this->hasContents = true;

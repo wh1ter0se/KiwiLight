@@ -44,10 +44,12 @@
             <calibratedDistance>36</calibratedDistance>
             <distErrorCorrect>-0.1</distErrorCorrect>
             <calcByHeight>true</calcByHeight>
+            <maxContours>5</maxContours>
         </target>
         <UDP>
             <address>127.0.0.1</address>
             <port>3695</port>
+            <maxSendRate>120</maxSendRate>
         </UDP>
     </postprocessor>
 </configuration>

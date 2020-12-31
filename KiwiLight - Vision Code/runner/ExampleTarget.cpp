@@ -18,7 +18,8 @@ ExampleTarget::ExampleTarget(
     double focalHeight, 
     double distErrorCorrect, 
     double calibratedDistance,
-    DistanceCalcMode distMode
+    DistanceCalcMode distMode,
+    int maxContours
 ) {
     this->id = id;
     this->contours = contours;
@@ -27,6 +28,7 @@ ExampleTarget::ExampleTarget(
     this->distErrorCorrect = distErrorCorrect;
     this->calibratedDistance = calibratedDistance;
     this->distMode = distMode;
+    this->maxContours = maxContours;
 }
 
 /**
@@ -38,14 +40,40 @@ std::vector<Target> ExampleTarget::GetTargets(std::vector<Contour> objects) {
     std::vector<Contour> validContours = std::vector<Contour>();
     
     validContours = this->GetValidContours(objects);
-    std::cout << "valid contours: " << validContours.size();
-        
+    std::cout << "valid contours: " << validContours.size() << std::endl;
+    std::cout << "max contours: " << maxContours << std::endl;
+
     int numTargetContours = this->contours.size();
     int numImageContours = validContours.size();
 
+    //if maxContours is exceeded, filter out smaller contours and only take the bigger ones
+    if(validContours.size() > maxContours && numTargetContours > 1) { 
+        std::vector<Contour> reducedValidContours = std::vector<Contour>();
+        int placeRequirement = validContours.size() - maxContours;
+        for(int i=0; i<validContours.size(); i++) {
+            int area = validContours[i].Area();
+            int numsGreaterThan = 0;
+
+            //go though vector of valid contours and keep count of how many numbers we are greater than
+            for(int k=0; k<validContours.size(); k++) {
+                if(area > validContours[k].Area() && i != k) {
+                    numsGreaterThan++;
+                }
+            }
+
+            if(numsGreaterThan >= placeRequirement) {
+                std::cout << "adding number with ngt value of " << numsGreaterThan << " where thresh is " << placeRequirement << std::endl;
+                reducedValidContours.push_back(validContours[i]);
+            }
+        }
+
+        validContours = reducedValidContours;
+        std::cout << "reduced valid contours: " << validContours.size() << std::endl;
+    }
+
     std::cout << "exampletarget 1" << std::endl;
 
-    if(numTargetContours == 1) {
+    if(numTargetContours == 1) { //this is simply for optimization, since we can do 1-contours faster very easily, and FRC likes 1-contours
         std::cout << "exampletarget 2" << std::endl;
         for(int i=0; i<numImageContours; i++) {
             std::vector<Contour> potentialTarget = std::vector<Contour>();
@@ -299,6 +327,8 @@ void ExampleTarget::SetTargetProperty(RunnerProperty prop, double value) {
         case RunnerProperty::CALC_DIST_BY_HEIGHT:
             this->distMode = (value == 1 ? DistanceCalcMode::BY_HEIGHT : DistanceCalcMode::BY_WIDTH);
             break;
+        case RunnerProperty::MAX_CONTOURS:
+            this->maxContours = (int) value;
     }
 }
 
@@ -325,6 +355,8 @@ double ExampleTarget::GetTargetProperty(RunnerProperty prop) {
         case RunnerProperty::CALC_DIST_BY_HEIGHT:
             value = (this->distMode == DistanceCalcMode::BY_HEIGHT ? 1 : 0);
             break;
+        case RunnerProperty::MAX_CONTOURS:
+            value = (double) this->maxContours;
     }
 
     return value;

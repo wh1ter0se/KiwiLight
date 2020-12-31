@@ -34,7 +34,8 @@ namespace KiwiLight {
         PERCEIVED_WIDTH,
         CALIBRATED_DISTANCE,
         ERROR_CORRECTION,
-        CALC_DIST_BY_HEIGHT
+        CALC_DIST_BY_HEIGHT,
+        MAX_CONTOURS
     };
 
     /**
@@ -214,7 +215,16 @@ namespace KiwiLight {
     class ExampleTarget {
         public:
         ExampleTarget() {};
-        ExampleTarget(int id, std::vector<ExampleContour> contours, double knownHeight, double focalHeight, double distErrorCorrect, double calibratedDistance, DistanceCalcMode mode);
+        ExampleTarget(
+            int id, 
+            std::vector<ExampleContour> contours, 
+            double knownHeight,
+            double focalHeight, 
+            double distErrorCorrect, 
+            double calibratedDistance, 
+            DistanceCalcMode mode,
+            int maxContours
+        );
         std::vector<Target> GetTargets(std::vector<Contour> contours);
         bool isTarget(std::vector<Contour> contours);
         std::vector<Contour> GetValidContours(std::vector<Contour> contours);
@@ -239,6 +249,8 @@ namespace KiwiLight {
                calibratedDistance;
 
         DistanceCalcMode distMode;
+
+        int maxContours;
     };
 
     /**

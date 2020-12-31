@@ -639,9 +639,11 @@ namespace KiwiLight {
         Label distanceLabel;
 
         TextBox udpAddress;
+
         NumberBox 
             udpPort,
-            maxSendRate;
+            maxSendRate,
+            maxContours;
 
         Button enableUDP;
 
@@ -717,6 +719,7 @@ namespace KiwiLight {
 
         cv::Mat out,
                 original;
+
         Image outputImage;
 
         Window window;

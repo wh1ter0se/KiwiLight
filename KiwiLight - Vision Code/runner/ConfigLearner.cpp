@@ -205,7 +205,7 @@ ExampleTarget ConfigLearner::StopLearning(int minimumContourArea) {
 
     std::cout << "process 4" << std::endl;
 
-    ExampleTarget newTarget = ExampleTarget(0, finishedContours, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH);
+    ExampleTarget newTarget = ExampleTarget(0, finishedContours, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH, 5);
 
     //clear info from the last learn
     this->currentlyLearning = false;

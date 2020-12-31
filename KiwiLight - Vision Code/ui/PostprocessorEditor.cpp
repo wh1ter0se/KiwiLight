@@ -22,7 +22,7 @@ PostprocessorEditor::PostprocessorEditor(PostProcessor postprocessor) {
         ExampleContour newContour = ExampleContour(i);
         newContours.push_back(newContour);
     }
-    ExampleTarget newTarget = ExampleTarget(0, newContours, 0, 0, 0, 0, DistanceCalcMode::BY_WIDTH);
+    ExampleTarget newTarget = ExampleTarget(0, newContours, 0, 0, 0, 0, DistanceCalcMode::BY_WIDTH, 5);
     this->storageRunner.SetExampleTarget(newTarget);
     
     //init the values in the storage runner because they are all generic right now
@@ -144,7 +144,7 @@ void PostprocessorEditor::SetNumContours(int contours) {
         newContours.push_back(newContour);
     }
 
-    ExampleTarget newTarg = ExampleTarget(0, newContours, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH);
+    ExampleTarget newTarg = ExampleTarget(0, newContours, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH, 5);
     this->storageRunner.SetExampleTarget(newTarg);
 }
 
