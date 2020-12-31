@@ -9,6 +9,7 @@ using namespace cv;
 using namespace KiwiLight;
 
 static int LEARNER_FRAMES = 50;
+static int MAX_CONTOURS = 10;
 
 /**
  * Called when the "Learn Target" editor button is pressed. 
@@ -149,6 +150,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
  */
 void ConfigEditor::Update() {
     if(!this->updateShouldSkip) {
+        std::cout << "update " << rand() << std::endl;
         Mat displayable;
     
         try {
@@ -230,7 +232,24 @@ void ConfigEditor::Update() {
             this->serviceMonitor.SetText("No Service Running.");
             this->serviceLabel.SetText("");
         }
+
+        //check target. If there are too many contours, performance errors will occur.
+        if(this->runner.GetExampleTarget().Contours().size() > MAX_CONTOURS) {
+            //restore generic target
+            ExampleTarget genericTarget = Runner(Util::ResolveGenericConfFilePath(), false, false).GetExampleTarget();
+            SetTarget(genericTarget);
+            
+            //alert the user that the new target was discarded
+            ConfirmationDialog alert = ConfirmationDialog(
+                std::string("The Target KiwiLight just tried to learn had too many contours!\n") + 
+                std::string("Please ensure that the target has less than " + std::to_string(MAX_CONTOURS) + " contours.\n") +
+                std::string("Reverting to generic target.")
+            );
+            alert.ShowAndGetResponse();
+        }
     }
+
+    std::cout << "update finish" << std::endl;
 }
 
 
@@ -238,11 +257,8 @@ void ConfigEditor::Update() {
  * Updates the internal runner to in turn update the output images.
  */
 bool ConfigEditor::UpdateImageOnly() {
-    this->lastIterationResult = this->runner.Iterate();
-    bool retval = this->runner.GetLastFrameSuccessful();
-    this->out = this->runner.GetOutputImage();
-    this->original = this->runner.GetOriginalImage();
-
+    std::cout << "stream " << rand() << std::endl;
+    //update services
     if(this->learnerActivated) {
         int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
         this->learner.FeedImage(this->original, minimumArea);
@@ -250,25 +266,14 @@ bool ConfigEditor::UpdateImageOnly() {
 
         if(this->learner.GetLearning()) {
             if(this->learner.GetFramesLearned() >= LEARNER_FRAMES) {
+                //process new target
                 this->updateShouldSkip = true;
                 int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
                 ExampleTarget newTarget = this->learner.StopLearning(minimumArea);
-                std::vector<ExampleContour> newContours = newTarget.Contours();
                 this->learnerActivated = false;
 
-                if(newContours.size() > 0) {
-                    //prepare the editor for the contours
-                    this->postprocessorSettings.SetNumContours(newContours.size());
-                    this->runner.SetExampleTarget(newTarget);
-    
-                    for(int i=0; i<newContours.size(); i++) {
-                        this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_X, newContours[i].DistX());
-                        this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_Y, newContours[i].DistY());
-                        this->postprocessorSettings.SetProperty(i, TargetProperty::ANGLE, newContours[i].Angle());
-                        this->postprocessorSettings.SetProperty(i, TargetProperty::SOLIDITY, newContours[i].Solidity());
-                        this->postprocessorSettings.SetProperty(i, TargetProperty::ASPECT_RATIO, newContours[i].AspectRatio());
-                        this->postprocessorSettings.SetProperty(i, TargetProperty::MINIMUM_AREA, SettingPair(newContours[i].MinimumArea(), 0));
-                    }
+                if(newTarget.Contours().size() > 0) {
+                    SetTarget(newTarget);
                 }
                 this->updateShouldSkip = false;
             }
@@ -298,6 +303,19 @@ bool ConfigEditor::UpdateImageOnly() {
             this->updateShouldSkip = false;
         }
     }
+
+    if(this->runner.GetExampleTarget().Contours().size() > MAX_CONTOURS) {
+        return false;
+    }
+
+    std::cout << "stream runner start" << std::endl;
+    this->lastIterationResult = this->runner.Iterate();
+    std::cout << "stream runner finish" << std::endl;
+    bool retval = this->runner.GetLastFrameSuccessful();
+    this->out = this->runner.GetOutputImage();
+    this->original = this->runner.GetOriginalImage();
+    std::cout << "stream finish" << std::endl;
+
     return retval;
 }
 
@@ -732,5 +750,20 @@ void ConfigEditor::UpdateImage() {
         this->outputImage.Update(displayable);
     } catch(cv::Exception ex) {
         std::cout << "cv exception in config editor" << std::endl;
+    }
+}
+
+void ConfigEditor::SetTarget(ExampleTarget target) {
+    std::vector<ExampleContour> newContours = target.Contours();
+    this->postprocessorSettings.SetNumContours(newContours.size());
+    this->runner.SetExampleTarget(target);
+
+    for(int i=0; i<newContours.size(); i++) {
+        this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_X, newContours[i].DistX());
+        this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_Y, newContours[i].DistY());
+        this->postprocessorSettings.SetProperty(i, TargetProperty::ANGLE, newContours[i].Angle());
+        this->postprocessorSettings.SetProperty(i, TargetProperty::SOLIDITY, newContours[i].Solidity());
+        this->postprocessorSettings.SetProperty(i, TargetProperty::ASPECT_RATIO, newContours[i].AspectRatio());
+        this->postprocessorSettings.SetProperty(i, TargetProperty::MINIMUM_AREA, SettingPair(newContours[i].MinimumArea(), 0));
     }
 }

@@ -56,12 +56,20 @@ std::string Runner::Iterate() {
         this->lastIterationSuccessful = true;
         img = cv::imread(RunnerSettings::IMAGE_TO_USE);
     }
+
+    std::cout << "runner 1a" << std::endl;
     
     resize(img, img, this->constantResize);
+    std::cout << "runner 1b" << std::endl;
     img.copyTo(this->originalImage);
+    std::cout << "runner 1c" << std::endl;
     img = this->preprocessor.ProcessImage(img);
+    std::cout << "runner 1d" << std::endl;
     img.copyTo(out);
+    std::cout << "runner 1e" << std::endl;
     std::vector<Target> targets = this->postprocessor.ProcessImage(img);
+
+    std::cout << "runner 2" << std::endl;
     //find the percieved robot center using this->centerOffset
     int trueCenterX = (this->constantResize.width / 2);
     int robotCenterX = trueCenterX;

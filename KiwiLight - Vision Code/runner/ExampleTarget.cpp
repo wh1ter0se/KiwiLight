@@ -38,11 +38,15 @@ std::vector<Target> ExampleTarget::GetTargets(std::vector<Contour> objects) {
     std::vector<Contour> validContours = std::vector<Contour>();
     
     validContours = this->GetValidContours(objects);
+    std::cout << "valid contours: " << validContours.size();
         
     int numTargetContours = this->contours.size();
     int numImageContours = validContours.size();
 
+    std::cout << "exampletarget 1" << std::endl;
+
     if(numTargetContours == 1) {
+        std::cout << "exampletarget 2" << std::endl;
         for(int i=0; i<numImageContours; i++) {
             std::vector<Contour> potentialTarget = std::vector<Contour>();
             potentialTarget.push_back(validContours[i]);
@@ -51,8 +55,10 @@ std::vector<Target> ExampleTarget::GetTargets(std::vector<Contour> objects) {
                 foundTargets.push_back(newTarg);
             }
         }
+        std::cout << "exampletarget3" << std::endl;
     } 
     else {
+        std::cout << "exampletarget 4" << std::endl;
         int places[(const int) numTargetContours] = {};
         for(int i=0; i<numTargetContours; i++) {
             places[i] = 0;
@@ -60,15 +66,14 @@ std::vector<Target> ExampleTarget::GetTargets(std::vector<Contour> objects) {
 
         std::vector< std::vector<int> > originalCombos;
 
-        //while new combos are possible, generate and test combos of targets
+        //while new combos are possible, generate and test combos of contours
         while(!ArrayMaxed(places, numTargetContours, numImageContours)) {
             if(!ContainsDuplicates(places, numTargetContours)) {
                 if(!CombonationAlreadyTested(places, originalCombos, numTargetContours)) {
-                    //add to original combos and then test;
+                    //add to original combos and then test
 
-                    //we create new vector to protect it from being changed in the vector
+                    //Log this combo so that it does not get duplicated!
                     std::vector<int> newOriginalCombo;
-
                     for(int i=0; i<numTargetContours; i++) {
                         newOriginalCombo.push_back(places[i]);
                     }
@@ -102,6 +107,7 @@ std::vector<Target> ExampleTarget::GetTargets(std::vector<Contour> objects) {
                 }  
             }
         }
+        std::cout << "exampletarget 5" << std::endl;
     }
 
     return foundTargets;

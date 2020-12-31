@@ -24,7 +24,6 @@ CronWindow::CronWindow(GtkWindowType type) {
                 contents.Pack_start(cronStatus.GetWidget(), false, false, 5);
 
             this->tableContainer = Panel(true, 0);
-                // g_object_ref(tableContainer.GetWidget());
                 contents.Pack_start(tableContainer.GetWidget(), false, false, 0);
 
             renderTable();
@@ -81,8 +80,6 @@ std::string CronWindow::GetFileNameFromRule(std::string rule) {
  * Saves in cron wether or not the current configuration should be run on boot or not.
  */
 void CronWindow::SaveRule(std::string configFile, bool shouldRun) {
-    std::cout << "Save Cron Rule: " << configFile << (shouldRun ? " should run" : " should not run.") << std::endl;
-
     //generate new cron file
     std::vector<std::string> currentRules = ReadAllRules();
     bool fileRuleExists = isFileAutomatic(configFile);
@@ -151,20 +148,18 @@ void CronWindow::renderTable() {
     this->table = Panel(false, 0);
         for(int i=0; i<existingRules.size(); i++) {
             //read the rule
-            std::cout << existingRules[i] << std::endl;
             std::string fileName = GetFileNameFromRule(existingRules[i]);
 
             Panel row = Panel(true, 5);
                 Label nameLabel = Label(fileName);
-                    // nameLabel.SetName("gray");
-                    row.Pack_start(nameLabel.GetWidget(), true, true, 5);
+                    row.Pack_start(nameLabel.GetWidget(), false, false, 5);
 
                 Button deactivateButton = Button("Remove", KiwiLightApp::CronDeleteButtonPressed, GINT_TO_POINTER(i));
-                    row.Pack_start(deactivateButton.GetWidget(), true, true, 5);
+                    row.Pack_start(deactivateButton.GetWidget(), false, false, 5);
 
-                table.Pack_start(row.GetWidget(), true, true, 0);
+                table.Pack_start(row.GetWidget(), false, false, 0);
         }
-        tableContainer.Pack_start(table.GetWidget(), true, true, 0);
+        tableContainer.Pack_start(table.GetWidget(), true, false, 0);
 
     //show all widgets
     gtk_widget_show_all(tableContainer.GetWidget());

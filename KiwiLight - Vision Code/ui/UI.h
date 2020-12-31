@@ -683,6 +683,7 @@ namespace KiwiLight {
 
         private:
         void UpdateImage();
+        void SetTarget(ExampleTarget target);
         
         //universal config learning utility
         ConfigLearner learner;

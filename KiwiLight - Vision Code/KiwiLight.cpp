@@ -312,7 +312,6 @@ void KiwiLightApp::LaunchStreamingThread(AppMode newMode) {
     if(newMode != AppMode::UI_PAUSING) {
         streamThreadEnabled = true;
         KiwiLightApp::mode = newMode;
-        std::cout << "Starting Stream Thread..." << std::endl;
         KiwiLightApp::streamingThread = g_thread_new("stream monitor", GThreadFunc(KiwiLightApp::UpdateStreamsConstantly), NULL);
     }
 }
@@ -389,7 +388,6 @@ void KiwiLightApp::OpenNewCameraOnIndex(int index) {
         //set the auto exposure menu in shell because opencv cant do it
         //if this is not set then exposure cannot be set
         
-        std::cout << "Configuring Auto Exposure setting on new camera" << std::endl;
         Shell::ExecuteCommand(
             std::string("v4l2-ctl -d ") + 
             std::to_string(index) + 
@@ -548,8 +546,6 @@ void KiwiLightApp::UpdateStreamsConstantly() {
         }
     }
 
-    std::cout << "Camera Stream confirmed." << std::endl;
-
     while(KiwiLightApp::mode != AppMode::UI_PAUSING && streamThreadEnabled) {
         KiwiLightApp::UpdateStreams();
     }
@@ -579,7 +575,7 @@ void KiwiLightApp::UpdateStreams() {
                 }
                 break;
             case AppMode::UI_EDITOR: {
-                    KiwiLightApp::configeditor.UpdateImageOnly(); //boolean
+                    KiwiLightApp::configeditor.UpdateImageOnly();
                     displayImage = KiwiLightApp::configeditor.GetOutputImage();
                     
                     std::string output = KiwiLightApp::configeditor.GetLastFrameResult(); //gets the results of the last runner iteration

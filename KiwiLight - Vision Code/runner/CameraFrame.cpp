@@ -40,6 +40,7 @@ std::vector<Contour> CameraFrame::GetContoursGrouped() {
     std::vector<Contour> groupedContours;
 
     for(int i=0; i<contours.size(); i++) {
+        std::cout << "grouping contours " << rand() << std::endl;
         //get the contour to insert
         Contour contourToInsert = contours[i];
         int insertPosValue = PositionValue(contourToInsert);

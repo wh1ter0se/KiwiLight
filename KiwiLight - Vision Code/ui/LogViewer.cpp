@@ -23,60 +23,55 @@ LogViewer::LogViewer(XMLDocument log) {
                 contents.Pack_start(header.GetWidget(), false, false, 0);
 
             XMLTag logTag = log.GetTagsByName("KiwiLightLog")[0];
-            Panel logInfoPanel = Panel(true, 5);
-                // Log file path readout plus separator
-                Label logFileHeader = Label("Log File: ");
-                    logFileHeader.SetName("gray");
-                    logInfoPanel.Pack_start(logFileHeader.GetWidget(), false, false, 0);
+            Panel logInfoContainer = Panel(true, 0);
+                Panel logInfoPanel = Panel(false, 5);
+                    Panel nameAndRecordedPanel = Panel(true, 0);
+                        //Conf names readout plus separator
+                        Label confNamesHeader = Label("Configuration Names: ");
+                            confNamesHeader.SetName("gray");
+                            nameAndRecordedPanel.Pack_start(confNamesHeader.GetWidget(), false, false, 0);
 
-                this->logFileName = Label(fileName);
-                    logInfoPanel.Pack_start(logFileName.GetWidget(), false, false, 0);
+                        std::string names = logTag.GetAttributesByName("confnames")[0].Value();
+                        this->confNames = Label(names);
+                            nameAndRecordedPanel.Pack_start(confNames.GetWidget(), false, false, 0);
 
-                Separator sep1 = Separator(false);
-                    logInfoPanel.Pack_start(sep1.GetWidget(), false, false, 0);
+                        Separator sep2 = Separator(false);
+                            nameAndRecordedPanel.Pack_start(sep2.GetWidget(), false, false, 5);
 
-                //Conf names readout plus separator
-                Label confNamesHeader = Label("Configuration Names: ");
-                    confNamesHeader.SetName("gray");
-                    logInfoPanel.Pack_start(confNamesHeader.GetWidget(), false, false, 0);
+                        //time readout but NO separator
+                        Label timeHeader = Label("Recorded: ");
+                            timeHeader.SetName("gray");
+                            nameAndRecordedPanel.Pack_start(timeHeader.GetWidget(), false, false, 0);
 
-                std::string names = logTag.GetAttributesByName("confnames")[0].Value();
-                this->confNames = Label(names);
-                    logInfoPanel.Pack_start(confNames.GetWidget(), false, false, 0);
+                        logInfoPanel.Pack_start(nameAndRecordedPanel.GetWidget(), false, false, 0);
 
-                Separator sep2 = Separator(false);
-                    logInfoPanel.Pack_start(sep2.GetWidget(), false, false, 0);
+                    std::string time = logTag.GetAttributesByName("started")[0].Value();
+                    //doctor the time string. Instead of MM-DD-YYYY-HH-MM-SS we want MM/DD/YYYY - HH:MM:SS
+                    std::vector<std::string> timeSegments = StringUtils::SplitString(time, '-');
+                    std::string newTime =
+                        timeSegments[0] + "/" + timeSegments[1] + "/" + timeSegments[2] + " - " + timeSegments[3] + ":" + timeSegments[4] + ":" + timeSegments[5];
 
-                //Conf file path readout plus separator
-                Label confFilesHeader = Label("Configuration Files: ");
-                    confFilesHeader.SetName("gray");
-                    logInfoPanel.Pack_start(confFilesHeader.GetWidget(), false, false, 0);
+                    this->logRecordedTime = Label(newTime);
+                        nameAndRecordedPanel.Pack_start(logRecordedTime.GetWidget(), false, false, 0);
 
-                std::string files = logTag.GetAttributesByName("conffiles")[0].Value();
-                this->confFiles = Label(files);
-                    logInfoPanel.Pack_start(confFiles.GetWidget(), false, false, 0);
+                    Panel confFilesPanel = Panel(true, 0);
+                        //Conf file path readout plus separator
+                        Label confFilesHeader = Label("Configuration Files: ");
+                            confFilesHeader.SetName("gray");
+                            confFilesPanel.Pack_start(confFilesHeader.GetWidget(), false, false, 0);
 
-                Separator sep3 = Separator(false);
-                    logInfoPanel.Pack_start(sep3.GetWidget(), false, false, 0);
+                        std::string files = logTag.GetAttributesByName("conffiles")[0].Value();
+                        this->confFiles = Label(files);
+                            confFilesPanel.Pack_start(confFiles.GetWidget(), false, false, 0);
 
-                //time readout but NO separator
-                Label timeHeader = Label("Recorded: ");
-                    timeHeader.SetName("gray");
-                    logInfoPanel.Pack_start(timeHeader.GetWidget(), false, false, 0);
+                        logInfoPanel.Pack_start(confFilesPanel.GetWidget(), false, false, 0);
 
-                std::string time = logTag.GetAttributesByName("started")[0].Value();
-                //doctor the time string. Instead of MM-DD-YYYY-HH-MM-SS we want MM/DD/YYYY - HH:MM:SS
-                std::vector<std::string> timeSegments = StringUtils::SplitString(time, '-');
-                std::string newTime =
-                    timeSegments[0] + "/" + timeSegments[1] + "/" + timeSegments[2] + " - " + timeSegments[3] + ":" + timeSegments[4] + ":" + timeSegments[5];
+                    logInfoContainer.Pack_start(logInfoPanel.GetWidget(), true, false, 0);
 
-                this->logRecordedTime = Label(newTime);
-                    logInfoPanel.Pack_start(logRecordedTime.GetWidget(), false, false, 0);
+                contents.Pack_start(logInfoContainer.GetWidget(), false, false, 10);
 
-                contents.Pack_start(logInfoPanel.GetWidget(), false, false, 10);
-
-            Separator ribbonSeparator = Separator(true);
-                contents.Pack_start(ribbonSeparator.GetWidget(), false, false, 0);
+            Separator sep3 = Separator(true);
+                contents.Pack_start(sep3.GetWidget(), false, false, 0);
 
             //parse ints directly in the file
             this->totalFramesNum          = std::stoi(logTag.GetTagsByName("TotalFrames")[0].Content()),
@@ -119,7 +114,7 @@ LogViewer::LogViewer(XMLDocument log) {
                 this->readouts = Panel(false, 0);
                     body.Pack_start(readouts.GetWidget(), true, false, 0);
 
-                contents.Pack_start(body.GetWidget(), true, false, 0);
+                contents.Pack_start(body.GetWidget(), false, false, 0);
 
             //total running time readout
             this->totalRunningTimeNum = totalFramesNum * (1000 / averageFPSNum);

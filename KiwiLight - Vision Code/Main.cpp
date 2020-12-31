@@ -174,7 +174,7 @@ int main(int argc, char *argv[]) {
                 if(runningConfig) {
                     //"-c" option was already entered
                     std::cout << "WARNING: Options \"-c\" and \"-h\" should not be used together. Please use one or the other.\n";
-                    return 1;
+                    return 0;
                 }
             }
 

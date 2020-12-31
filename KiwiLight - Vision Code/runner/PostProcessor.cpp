@@ -33,8 +33,6 @@ int PostProcessor::NumberOfContours() {
  * targets it finds.
  */
 std::vector<Target> PostProcessor::ProcessImage(cv::Mat img) {
-    std::vector<Target> foundTargets = std::vector<Target>();
-
     //find contours with input image
     std::vector< std::vector< Point > > contours;
     cv::findContours(img, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
@@ -47,15 +45,11 @@ std::vector<Target> PostProcessor::ProcessImage(cv::Mat img) {
     }
     
     this->contoursFromLastFrame = objects;
-
+    std::cout << "postprocessor 1" << std::endl;
     std::vector<Target> targs = this->target.GetTargets(objects);
+    std::cout << "postprocessor 2" << std::endl;
 
-    // add results to our found targets 
-    for(int a=0; a<targs.size(); a++) {
-        foundTargets.push_back(targs[a]);
-    }
-
-    return foundTargets;
+    return targs;
 }
 
 /**

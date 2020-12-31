@@ -34,6 +34,8 @@ void ConfigLearner::FeedImage(Mat img, int minimumContourArea) {
         return;
     }
 
+    std::cout << "feed " << rand() << std::endl;
+
     img.copyTo(this->original);
     Mat preprocessed = this->preprocessor.ProcessImage(img);
     preprocessed.copyTo(this->out);
@@ -85,11 +87,16 @@ void ConfigLearner::FeedImage(Mat img, int minimumContourArea) {
 ExampleTarget ConfigLearner::StopLearning(int minimumContourArea) {
     this->currentlyLearning = false;
 
+    std::cout << "process" << std::endl;
+
     //create a sorted list of the number of contours in each image (it is double because DataUtils sorts doubles)
     std::vector<double> numberContoursList;
     for(int i=0; i<this->currentFrames.size(); i++) {
+        std::cout << "process a " << rand() << std::endl;
         numberContoursList.push_back(this->currentFrames[i].GetContoursGrouped().size());
     }
+
+    std::cout << "process 2" << std::endl;
 
     double regularNumberOfContours = DataUtils::MostCommonValue(numberContoursList);
 
@@ -101,16 +108,21 @@ ExampleTarget ConfigLearner::StopLearning(int minimumContourArea) {
         }
     }
 
+    std::cout << "process 3" << std::endl;
+
     //go through groupedContours to get and format data.
     std::vector<ExampleContour> finishedContours;
     for(int i=0; i<regularNumberOfContours; i++) {
+        std::cout << "process 3a" << std::endl;
         std::vector<double> horizontalDistances = std::vector<double>();
         std::vector<double> verticalDistances   = std::vector<double>();
         std::vector<double> angles              = std::vector<double>();
         std::vector<double> solidities          = std::vector<double>();
         std::vector<double> aspectRatios        = std::vector<double>();
+        std::cout << "process 3b" << std::endl;
 
         for(int k=0; k<groupedContours.size(); k++) {
+            std::cout << "process 3ba" << std::endl;
             //gather and format contour data
 
             // std::cout << "grouped contours dimensions: " << k << " x " << i << std::endl;
@@ -125,7 +137,11 @@ ExampleTarget ConfigLearner::StopLearning(int minimumContourArea) {
             angles.push_back(contourToAnalyze.Angle());
             solidities.push_back(contourToAnalyze.Solidity());
             aspectRatios.push_back(contourToAnalyze.AspectRatio());
+
+            std::cout << "process 3bb" << std::endl;
         }
+
+        std::cout << "process 3c" << std::endl;
 
         horizontalDistances = DataUtils::SortLeastGreatestDouble(horizontalDistances);
         verticalDistances   = DataUtils::SortLeastGreatestDouble(verticalDistances);
@@ -141,6 +157,8 @@ ExampleTarget ConfigLearner::StopLearning(int minimumContourArea) {
         dataSizes.push_back((double) solidities.size());
         dataSizes.push_back((double) aspectRatios.size());
 
+        std::cout << "process 3d" << std::endl;
+
         //remove outliers
         horizontalDistances = DataUtils::RemoveOutliers(horizontalDistances, 0.5);
         verticalDistances   = DataUtils::RemoveOutliers(verticalDistances, 0.5);
@@ -154,6 +172,8 @@ ExampleTarget ConfigLearner::StopLearning(int minimumContourArea) {
         newDataSizes.push_back((double) angles.size());
         newDataSizes.push_back((double) solidities.size());
         newDataSizes.push_back((double) aspectRatios.size());
+
+        std::cout << "process3e" << std::endl;
 
         double originalTotal = DataUtils::Total(dataSizes);
         double removedTotal = DataUtils::Total(newDataSizes);
@@ -173,17 +193,24 @@ ExampleTarget ConfigLearner::StopLearning(int minimumContourArea) {
         SettingPair solidityPair           = SettingPair(averageSolidity, 0.25);
         SettingPair aspectRatioPair        = SettingPair(averageAspectRatio, 0.25);
 
+        std::cout << "process 3f" << std::endl;
+
         ExampleContour newExampleContour = ExampleContour(i, horizontalDistancePair, verticalDistancePair, anglePair, aspectRatioPair, solidityPair, minimumContourArea);
         finishedContours.push_back(newExampleContour);
 
         double percentComplete = (((double) i / (double) regularNumberOfContours) * 10.0) + 90.0;
+
+        std::cout << "process 3g" << std::endl;
     }
+
+    std::cout << "process 4" << std::endl;
 
     ExampleTarget newTarget = ExampleTarget(0, finishedContours, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH);
 
     //clear info from the last learn
     this->currentlyLearning = false;
     this->currentFrames = std::vector<CameraFrame>();
+    std::cout << "process finished" << std::endl;
     return newTarget;
 }
 
