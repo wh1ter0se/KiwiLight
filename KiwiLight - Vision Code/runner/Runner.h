@@ -179,11 +179,11 @@ namespace KiwiLight {
         std::vector<Contour> Contours() { return this->contours; };
         double Distance();
         double Distance(DistanceCalcMode mode);
-        int HorizontalAngle(int imageCenterX);
-        int HorizontalAngle(double distanceToTarget, int imageCenterX);
-        int VerticalAngle(int imageCenterY);
-        int VerticalAngle(double distanceToTarget, int imageCenterY);
-        int ObliqueAngle(int imageCenterX, int imageCenterY);
+        double HorizontalAngle(int imageCenterX);
+        double HorizontalAngle(double distanceToTarget, int imageCenterX);
+        double VerticalAngle(int imageCenterY);
+        double VerticalAngle(double distanceToTarget, int imageCenterY);
+        double ObliqueAngle(int imageCenterX, int imageCenterY);
         double KnownWidth() { return this->knownHeight; };
         double FocalWidth() { return this->focalHeight; };
         double DistanceErrorCorrection() { return this->distErrorCorrect; };

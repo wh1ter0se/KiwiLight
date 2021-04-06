@@ -17,7 +17,7 @@ CronWindow   KiwiLightApp::cronWindow;
 Logger       KiwiLightApp::logger;
 LogViewer    KiwiLightApp::logViewer;
 GThread     *KiwiLightApp::streamingThread;
-AppMode      KiwiLightApp::mode = AppMode::UI_STREAM;
+AppMode      KiwiLightApp::mode = AppMode::UI_HEADLESS;
 bool         KiwiLightApp::lastImageGrabSuccessful = false;
 bool         KiwiLightApp::udpEnabled = true;
 bool         KiwiLightApp::streamThreadEnabled = true; //acts as a kind of "enable switch" for the streamthread because it seems to like starting when its not supposed to
