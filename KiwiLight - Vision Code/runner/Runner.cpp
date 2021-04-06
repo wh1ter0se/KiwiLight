@@ -109,9 +109,9 @@ std::string Runner::Iterate() {
         coordY   = -1,
         width    = -1,
         height   = -1,
-        distance = -1,
-        HAngle   = 180,
-        VAngle   = 180;
+        distance = -1;
+    double HAngle   = 180,
+           VAngle   = 180;
 
     std::string rioMessage = "";
     
