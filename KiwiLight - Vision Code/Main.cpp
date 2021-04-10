@@ -141,7 +141,7 @@ void RunConfigs(std::vector<std::string> filePaths) {
  * Test method. This method will be run if the -t flag is specified.
  */
 void Test() {
-    std::cout << Clock::GetDateString() << std::endl;
+    std::cout << "No Tests to Perform. Put some in the Test() method!\n";
 }
 
 /**

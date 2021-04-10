@@ -280,9 +280,9 @@ bool ConfigEditor::UpdateImageOnly() {
                 this->updateShouldSkip = true;
                 //wait for current update to finish
                 while(this->updating) {
-                    usleep(1000000);
+                    usleep(1000);
                 }
-                int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
+                int minimumArea = (int) this->postprocessorSettings.GetProperty(postprocessorSettings.GetCurrentContour(), TargetProperty::MINIMUM_AREA).Value();
                 ExampleTarget newTarget = this->learner.StopLearning(minimumArea);
                 this->learnerActivated = false;
 
@@ -649,7 +649,7 @@ void ConfigEditor::StartLearningDistance() {
                 dialogPanel.Pack_start(distancePanel.GetWidget(), false, false, 0);
             informationDialog.SetBody(dialogPanel);
 
-        //show the dialog anc ask the question, but do not destroy the dialog when the user presses OK
+        //show the dialog anc ask the question, but do not destroy the dialog immediately when the user presses OK
         bool shouldLearn = informationDialog.ShowButDontClose();
         double targetTrueWidth = trueWidthPanelValue.GetValue();
         double targetDistance = distanceValue.GetValue();

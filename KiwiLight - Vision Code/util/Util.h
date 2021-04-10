@@ -45,7 +45,8 @@ namespace KiwiLight {
         public:
         static std::vector<std::string> SplitString(std::string str, char character);
         static std::string Substring(std::string str, int begin, int end);
-        static bool StringStartsWith(std::string str, std::string startsWith);
+        static bool StringStartsWith(std::string str, std::string sequence);
+        static bool StringEndsWith(std::string str, std::string sequence);
         static int CountCharacters(std::string str, char character);
     };
 
@@ -198,6 +199,7 @@ namespace KiwiLight {
         public:
         static std::string ResolveGenericConfFilePath();
         static XMLTag SearchCameraSettingsByID(std::vector<XMLTag> settings, int id);
+        static bool configDocumentIsValid(XMLDocument document);
     };
 
     /**

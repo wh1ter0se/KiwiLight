@@ -66,7 +66,7 @@ XMLDocument::XMLDocument(std::string fileName) {
     std::vector<XMLTag> workingHierarchy = std::vector<XMLTag>(); //the hierarchy of tags to be completed
     for(int i=0; i<fileLines.size(); i++) {
         std::string line = fileLines[i];
-        if(StringUtils::StringStartsWith(line, "<") && !StringUtils::StringStartsWith(line, "<!--")) {
+        if(StringUtils::StringStartsWith(line, "<") && !StringUtils::StringStartsWith(line, "<!--") && StringUtils::StringEndsWith(line, ">")) {
             int closingBracket = line.find('>');
             std::string tag = StringUtils::Substring(line, 1, closingBracket);
             std::string content = StringUtils::Substring(line, closingBracket + 1, line.length());
@@ -84,6 +84,9 @@ XMLDocument::XMLDocument(std::string fileName) {
                     newHierarchy.push_back(workingHierarchy[k]);
                 }
                 workingHierarchy = newHierarchy;
+
+                //now that the document has at least one tag, it can be marked as having contents.
+                this->hasContents = true;
             } else {
                 std::vector<std::string> nameAndAttrs = StringUtils::SplitString(tag, ' ');
                 std::vector<XMLTagAttribute> attrs = std::vector<XMLTagAttribute>();
@@ -123,14 +126,12 @@ XMLDocument::XMLDocument(std::string fileName) {
                 }
             }
         } else {
-            if(!StringUtils::StringStartsWith(line, "<!--")) {
+            if(!StringUtils::StringStartsWith(line, "<!--") && workingHierarchy.size() > 0) {
                 //line is not comment, parse as content for the current tag
                 workingHierarchy[workingHierarchy.size()-1].AddContent(line);
             }
         }
     }
-
-    this->hasContents = true;
 }
 
 /**

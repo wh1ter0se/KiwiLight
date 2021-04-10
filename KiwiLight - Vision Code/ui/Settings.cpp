@@ -37,13 +37,13 @@ Settings::Settings(XMLDocument doc) {
 
         //frame width
         int realFrameWidth = std::stoi(Util::SearchCameraSettingsByID(docSettings, CAP_PROP_FRAME_WIDTH).Content());
-        CameraSetting frameWidth = CameraSetting("Width: ", CAP_PROP_FRAME_WIDTH, 100, 2000, realFrameWidth);
+        CameraSetting frameWidth = CameraSetting("Width", CAP_PROP_FRAME_WIDTH, 100, 2000, realFrameWidth);
         this->settings.push_back(frameWidth);
             editor.Pack_start(frameWidth.GetWidget(), true, true, 0);
 
         //frame height
         int realFrameHeight = std::stoi(Util::SearchCameraSettingsByID(docSettings, CAP_PROP_FRAME_HEIGHT).Content());
-        CameraSetting frameHeight = CameraSetting("Height: ", CAP_PROP_FRAME_HEIGHT, 100, 2000, realFrameHeight);
+        CameraSetting frameHeight = CameraSetting("Height", CAP_PROP_FRAME_HEIGHT, 100, 2000, realFrameHeight);
         this->settings.push_back(frameHeight);
             editor.Pack_start(frameHeight.GetWidget(), true, true, 0);
 
@@ -61,31 +61,31 @@ Settings::Settings(XMLDocument doc) {
 
         //exposure auto
         double realExposureAuto = std::stod(Util::SearchCameraSettingsByID(docSettings, CAP_PROP_AUTO_EXPOSURE).Content());
-        CameraSetting autoExposure = CameraSetting("Auto Exposure: ", CAP_PROP_AUTO_EXPOSURE, 0, 1, realExposureAuto);
+        CameraSetting autoExposure = CameraSetting("Auto Exposure", CAP_PROP_AUTO_EXPOSURE, 0, 1, realExposureAuto);
         this->settings.push_back(autoExposure);
             editor.Pack_start(autoExposure.GetWidget(), true, true, 0);
 
         //exposure
         double realExposure = std::stod(Util::SearchCameraSettingsByID(docSettings, CAP_PROP_EXPOSURE).Content());
-        CameraSetting exposure = CameraSetting("Exposure: ", CAP_PROP_EXPOSURE, -1, 1, realExposure);
+        CameraSetting exposure = CameraSetting("Exposure", CAP_PROP_EXPOSURE, -1, 1, realExposure);
         this->settings.push_back(exposure);
             editor.Pack_start(exposure.GetWidget(), true, true, 0);
 
         //white balance auto
         double realWhiteBalanceAuto = std::stod(Util::SearchCameraSettingsByID(docSettings, CAP_PROP_AUTO_WB).Content());
-        CameraSetting autoWB = CameraSetting("Auto White Balance: ", CAP_PROP_AUTO_WB, 0, 1, realWhiteBalanceAuto);
+        CameraSetting autoWB = CameraSetting("Auto White Balance", CAP_PROP_AUTO_WB, 0, 1, realWhiteBalanceAuto);
         this->settings.push_back(autoWB);
             editor.Pack_start(autoWB.GetWidget(), true, true, 0);
 
         //white balance
         double realWhiteBalance = std::stod(Util::SearchCameraSettingsByID(docSettings, CAP_PROP_WB_TEMPERATURE).Content());
-        CameraSetting WB = CameraSetting("White Balance: ", CAP_PROP_WB_TEMPERATURE, -1, 1, realWhiteBalance);
+        CameraSetting WB = CameraSetting("White Balance", CAP_PROP_WB_TEMPERATURE, -1, 1, realWhiteBalance);
         this->settings.push_back(WB);
             editor.Pack_start(WB.GetWidget(), true, true, 0);
 
         //brightness
         double realBrightness = std::stod(Util::SearchCameraSettingsByID(docSettings, CAP_PROP_BRIGHTNESS).Content());
-        CameraSetting brightness = CameraSetting("Brightness: ", CAP_PROP_BRIGHTNESS, -1, 1, realBrightness);
+        CameraSetting brightness = CameraSetting("Brightness", CAP_PROP_BRIGHTNESS, -1, 1, realBrightness);
         this->settings.push_back(brightness);
             editor.Pack_start(brightness.GetWidget(), true, true, 0);
 

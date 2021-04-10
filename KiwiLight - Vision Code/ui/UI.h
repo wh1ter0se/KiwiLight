@@ -400,9 +400,8 @@ namespace KiwiLight {
     class CameraSetting : public Widget {
         public:
         CameraSetting() {};
-        CameraSetting(std::string name, int valueName, double value);
-        [[deprecated("This constructor is now irrelevant as all maxes and mins are the same")]]
-        CameraSetting(std::string name, int valueName, double min, double max, double value) : CameraSetting(name, valueName, value) {};
+        CameraSetting(std::string name, int valueName, double value): CameraSetting(name, valueName, 0, 1, value) {};
+        CameraSetting(std::string name, int valueName, double min, double max, double value);
         double GetValue();
         int GetValueName();
         void SetValue(double newValue);
@@ -417,8 +416,9 @@ namespace KiwiLight {
             name,
             type;
 
-        int 
-            valueName,
+        int valueName;
+
+        double
             min, 
             max,
             value;
@@ -590,6 +590,7 @@ namespace KiwiLight {
         PostprocessorEditor() {};
         PostprocessorEditor(PostProcessor postprocessor);
         void Update();
+        int GetCurrentContour();
         int GetNumContours();
         void SetNumContours(int contours);
         SettingPair GetProperty(int contour, TargetProperty prop);
@@ -691,45 +692,42 @@ namespace KiwiLight {
         
         //universal config learning utility
         ConfigLearner learner;
+        ExampleTarget learnerResult;
         bool 
             learnerActivated,
             learnerFinished;
-        ExampleTarget learnerResult;
 
         //universal focal width learning utility
         TargetDistanceLearner distanceLearner;
         bool distanceLearnerRunning;
-
-        TargetTroubleshooter troubleshooter;
         
-        Label serviceMonitor;
-        Label serviceLabel;
+        Label 
+            serviceMonitor,
+            serviceLabel;
 
         //runtime things
         Runner runner;
         XMLDocument currentDoc;
         std::string 
-                fileName,
-                confName;
+            fileName,
+            confName;
 
         bool 
             updateShouldSkip,
             updating;
                 
         std::string lastIterationResult;
-
         TabView tabs;
         OverviewPanel configOverview;
         Settings cameraSettings;
         PreprocessorEditor preprocessorSettings;
         PostprocessorEditor postprocessorSettings;
         RunnerEditor runnerSettings;
-
-        cv::Mat out,
-                original;
+        cv::Mat 
+            out,
+            original;
 
         Image outputImage;
-
         Window window;
         Panel content;
     };

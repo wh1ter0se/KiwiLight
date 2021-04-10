@@ -687,23 +687,30 @@ void KiwiLightApp::OpenConfiguration() {
     
     if(fileToOpen != "") {
         StopStreamingThread();
-        OpenConfigurationFromFile(fileToOpen);
-        LaunchStreamingThread(AppMode::UI_RUNNER);
+        bool success = OpenConfigurationFromFile(fileToOpen);
+        if(success) {
+            LaunchStreamingThread(AppMode::UI_RUNNER);
+        } else {
+            //alert the user that the file they selected was bad
+            ConfirmationDialog alert = ConfirmationDialog("The File you selected could not be opened.");
+            alert.ShowAndGetResponse();
+            LaunchStreamingThread(AppMode::UI_STREAM);
+        }
     }
 }
 
 /**
  * Causes KiwiLight to open the configuration specified by the file
+ * @return {@code true} if the operation succeeds, {@code false} otherwise.
  */
-void KiwiLightApp::OpenConfigurationFromFile(std::string fileName) {
-    std::cout << "bruh" << std::endl;
+bool KiwiLightApp::OpenConfigurationFromFile(std::string fileName) {
     XMLDocument newDoc = XMLDocument(fileName);
-    std::cout << "epic" << std::endl;
-    if(newDoc.HasContents()) {
+    if(Util::configDocumentIsValid(newDoc)) {
         KiwiLightApp::confInfo.LoadConfig(newDoc);
         KiwiLightApp::runner = Runner(fileName, true);
+        return true;
     } else {
-        std::cout << "New Document either empty or not specified. Taking no action." << std::endl;
+        return false;
     }
 }
 

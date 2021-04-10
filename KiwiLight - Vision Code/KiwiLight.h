@@ -99,7 +99,7 @@ namespace KiwiLight {
         static void NewConfiguration();
         static void EditConfiguration();
         static void OpenConfiguration();
-        static void OpenConfigurationFromFile(std::string fileName);
+        static bool OpenConfigurationFromFile(std::string fileName);
         static void CloseConfiguration();
         static bool PromptEditorSaveAndClose();
         static bool PromptHeadlessStop();

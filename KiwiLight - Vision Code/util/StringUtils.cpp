@@ -57,13 +57,19 @@ std::string StringUtils::Substring(std::string str, int begin, int end) {
 }
 
 /**
- * Returns whether or not str starts with startsWith.
+ * Returns whether or not str starts with sequence.
  * @param str The string to test.
- * @param startsWith The string that str is being tested for.
+ * @param sequence The string that str is being tested for.
  */
-bool StringUtils::StringStartsWith(std::string str, std::string startsWith) {
-    bool retval = ( StringUtils::Substring(str, 0, startsWith.length()) == startsWith );
-    return retval;
+bool StringUtils::StringStartsWith(std::string str, std::string sequence) {
+    return StringUtils::Substring(str, 0, sequence.length()) == sequence;
+}
+
+/**
+ * Returns whether or not str ends with sequence.
+ */
+bool StringUtils::StringEndsWith(std::string str, std::string sequence) {
+    return StringUtils::Substring(str, str.length() - sequence.length(), str.length()) == sequence;
 }
 
 /**
