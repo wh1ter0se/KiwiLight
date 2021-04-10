@@ -593,11 +593,12 @@ void KiwiLightApp::UpdateStreams() {
             default:
                 break;
         }
+        
         // if successful, update the display image
         if(KiwiLightApp::lastImageGrabSuccessful) {            
             //wait for out image to be used by other thread
             while(KiwiLightApp::lfgImgInUse) {
-                usleep(1000000);
+                usleep(1000);
             }
             KiwiLightApp::lfgImgInUse = true;
             KiwiLightApp::lastFrameGrabImage = displayImage;
@@ -695,7 +696,9 @@ void KiwiLightApp::OpenConfiguration() {
  * Causes KiwiLight to open the configuration specified by the file
  */
 void KiwiLightApp::OpenConfigurationFromFile(std::string fileName) {
+    std::cout << "bruh" << std::endl;
     XMLDocument newDoc = XMLDocument(fileName);
+    std::cout << "epic" << std::endl;
     if(newDoc.HasContents()) {
         KiwiLightApp::confInfo.LoadConfig(newDoc);
         KiwiLightApp::runner = Runner(fileName, true);

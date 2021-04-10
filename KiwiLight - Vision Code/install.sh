@@ -29,6 +29,7 @@ if [ $action = "1" ];
 then
     echo "Installing."
     #install packages
+    sudo apt-get update
     sudo apt-get --assume-yes install v4l-utils
     sudo apt-get --assume-yes install libgtk-3-dev
     sudo apt-get --assume-yes install cmake
@@ -58,6 +59,7 @@ then
     cd $HOME
     mkdir KiwiLightData
     mkdir KiwiLightData/confs
+    mkdir KiwiLightData/logs
     mkdir KiwiLightData/tmp
     cp "$currentDir/generic.xml" KiwiLightData/confs
     
@@ -81,6 +83,7 @@ then
     cd $HOME
     cd opencv/build
     sudo make -j4 uninstall
+    cd $HOME
     sudo rm -r opencv
     cd $currentDir
     

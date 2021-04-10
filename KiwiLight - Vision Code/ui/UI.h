@@ -400,7 +400,9 @@ namespace KiwiLight {
     class CameraSetting : public Widget {
         public:
         CameraSetting() {};
-        CameraSetting(std::string name, int valueName, double min, double max, double value);
+        CameraSetting(std::string name, int valueName, double value);
+        [[deprecated("This constructor is now irrelevant as all maxes and mins are the same")]]
+        CameraSetting(std::string name, int valueName, double min, double max, double value) : CameraSetting(name, valueName, value) {};
         double GetValue();
         int GetValueName();
         void SetValue(double newValue);

@@ -9,13 +9,11 @@
 using namespace KiwiLight;
 
 /**
- * Creates a new CameraSetting widget, using the given std::string from V4L
+ * Creates a new CameraSetting widget.
  */
-CameraSetting::CameraSetting(std::string name, int valueName, double min, double max, double value) {
+CameraSetting::CameraSetting(std::string, int valueName, double value) {
     this->name = name;
     this->valueName = valueName;
-    this->min = min;
-    this->max = max;
     this->value = value;
 
 
