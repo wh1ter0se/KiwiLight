@@ -24,6 +24,13 @@ void Label::SetText(std::string text) {
 }
 
 /**
+ * Sets the markup of the label.
+ */
+void Label::SetMarkup(std::string markup) {
+    gtk_label_set_markup(GTK_LABEL(this->widget), markup.c_str());
+}
+
+/**
  * Enables/Disables line wrapping.
  */
 void Label::SetLineWrap(bool enabled) {

@@ -197,9 +197,28 @@ namespace KiwiLight {
      */
     class Util {
         public:
+        static const char *HEX_DIGITS;
         static std::string ResolveGenericConfFilePath();
+        static std::string composeRioMessage (
+            int id,
+            int x,
+            int y,
+            int width,
+            int height,
+            double distance,
+            double horizontalAngle,
+            double verticalAngle
+        );
+        static std::string shortenStringedDouble(std::string str, int places);
         static XMLTag SearchCameraSettingsByID(std::vector<XMLTag> settings, int id);
         static bool configDocumentIsValid(XMLDocument document);
+        static bool logDocumentIsValid(XMLDocument document);
+        static double toDouble(std::string str, double backup);
+        static int toInt(std::string str, int backup);
+        static double roundTo(double number, int places);
+        static Scalar toRGB(double h, double s, double v);
+        static std::string hexify(int value);
+        static std::string getHexColor(double h, double s, double v);
     };
 
     /**
@@ -251,7 +270,7 @@ namespace KiwiLight {
      */
     class LogEvent {
         public:
-        static const std::string
+        static const std::string //event types
             RECORD_LOW_FPS,
             RECORD_HIGH_FPS,
             RECORD_LOW_DIST,

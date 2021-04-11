@@ -83,6 +83,7 @@ namespace KiwiLight {
         Label() {};
         Label(std::string text);
         void SetText(std::string text);
+        void SetMarkup(std::string markup);
         std::string GetText() { return text; };
         void SetLineWrap(bool enabled);
 
@@ -340,7 +341,6 @@ namespace KiwiLight {
      */
     class LogViewer : public Widget {
         public:
-        static const std::string TEMPFILE_DIR;
         LogViewer() {};
         LogViewer(XMLDocument log);
         void Show();
@@ -571,15 +571,13 @@ namespace KiwiLight {
             colorS,
             colorV;
 
-        Image colorPreview;
-
         LabeledSlider 
             colorError,
             threshold,
             erosion,
             dilation;
-        
-        GtkWidget *widget;
+
+        Label colorPreviewLabel;
     };
 
     /**
@@ -689,10 +687,12 @@ namespace KiwiLight {
         private:
         void UpdateImage();
         void SetTarget(ExampleTarget target);
+        bool LearnDialogActive();
         
         //universal config learning utility
         ConfigLearner learner;
         ExampleTarget learnerResult;
+        LabeledSlider learnDialogMinArea;
         bool 
             learnerActivated,
             learnerFinished;

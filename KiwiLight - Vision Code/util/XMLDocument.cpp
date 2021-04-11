@@ -94,6 +94,10 @@ XMLDocument::XMLDocument(std::string fileName) {
 
                 for(int k=1; k<nameAndAttrs.size(); k++) {
                     std::string attrString = nameAndAttrs[k];
+                    if(attrString.find('=') == std::string::npos) {
+                        continue;
+                    }
+
                     std::string attrName = StringUtils::SplitString(attrString, '=')[0];
                     std::string attrValue = StringUtils::SplitString(attrString, '=')[1];
 

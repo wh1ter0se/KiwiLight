@@ -168,7 +168,7 @@ bin/runner/Logger.o: runner/Logger.cpp
 	$(CXX) $(FLAGS) bin/runner/Logger.o runner/Logger.cpp $(CV)
 
 bin/runner/ConfigLearner.o: runner/ConfigLearner.cpp
-	$(CXX) $(FLAGS) bin/runner/ConfigLearner.o runner/ConfigLearner.cpp $(CV)
+	$(CXX) $(FLAGS) bin/runner/ConfigLearner.o runner/ConfigLearner.cpp $(GTK) $(CV)
 
 bin/runner/Runner.o: runner/Runner.cpp
 	$(CXX) $(FLAGS) bin/runner/Runner.o runner/Runner.cpp $(GTK) $(CV)

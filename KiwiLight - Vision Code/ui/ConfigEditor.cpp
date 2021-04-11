@@ -266,13 +266,19 @@ void ConfigEditor::Update() {
 
 /**
  * Updates the internal runner to in turn update the output images.
+ * Also updates services that are dependent on the images.
  */
 bool ConfigEditor::UpdateImageOnly() {
+    bool successful = false;
+
     //update services
     if(this->learnerActivated) {
-        int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
-        this->learner.FeedImage(this->original, minimumArea);
-        this->out = this->learner.GetOutputImageFromLastFeed();
+        if(LearnDialogActive()) { //if the learn dialog is active, use the minimum area slider on it to set minimum area.
+            int minimumArea = (int) this->learnDialogMinArea.GetValue();
+            this->learner.SetMinimumArea(minimumArea);
+        }
+
+        this->learner.Feed();
 
         if(this->learner.GetLearning()) {
             if(this->learner.GetFramesLearned() >= LEARNER_FRAMES) {
@@ -283,7 +289,7 @@ bool ConfigEditor::UpdateImageOnly() {
                     usleep(1000);
                 }
                 int minimumArea = (int) this->postprocessorSettings.GetProperty(postprocessorSettings.GetCurrentContour(), TargetProperty::MINIMUM_AREA).Value();
-                ExampleTarget newTarget = this->learner.StopLearning(minimumArea);
+                ExampleTarget newTarget = this->learner.StopLearning();
                 this->learnerActivated = false;
 
                 if(newTarget.Contours().size() > 0) {
@@ -320,15 +326,27 @@ bool ConfigEditor::UpdateImageOnly() {
         }
     }
 
+    //return without success if last target had too many contours.
     if(this->runner.GetExampleTarget().Contours().size() > MAX_CONTOURS_BEFORE_SUPPRESSION) {
         return false;
     }
 
-    this->lastIterationResult = this->runner.Iterate();
-    bool retval = this->runner.GetLastFrameSuccessful();
-    this->out = this->runner.GetOutputImage();
-    this->original = this->runner.GetOriginalImage();
-    return retval;
+    //return with success of runner if the target learner is not running
+    if(!this->learnerActivated) { 
+        //this if statement prevents the spaz attack that happens when the "learn target" button was pressed.
+        //previously, the images kept switching between the learner ouput and the real output.
+        this->lastIterationResult = this->runner.Iterate();
+        successful = this->runner.GetLastFrameSuccessful();
+        this->original = this->runner.GetOriginalImage();
+        this->out = this->runner.GetOutputImage();
+    } else {
+        //otherwise (if the target learner is running), return with the success of the target learner.
+        successful = !learner.GetHasFailed();
+        this->out = this->learner.GetOutputImageFromLastFeed();
+        this->original = this->learner.GetOriginalImageFromLastFeed();
+    }
+
+    return successful;
 }
 
 /**
@@ -594,14 +612,23 @@ void ConfigEditor::Close() {
 void ConfigEditor::StartLearningTarget() {
     if(KiwiLightApp::CameraOpen()) {
         //reinstantiate the learner to apply the preprocessor settings
-        this->learner = ConfigLearner(this->runner.GetPreProcessor());
+        this->learner = ConfigLearner(this->runner.GetPreProcessor(), this->runner.GetConstantSize());
         this->learnerActivated = true;
         
         ConfirmationDialog confirmLearn = ConfirmationDialog(
             std::string("Position the target in the center of the image and press OK.\n") +
-            std::string("It should be highlighted with a blue box.")
+            std::string("It should be highlighted with a blue box. If not, adjust the\n") +
+            std::string("area of the contours by using the slider.")
         );
+        Panel minimumAreaPanel = Panel(true, 0);
+            double realMinimumArea = postprocessorSettings.GetProperty(postprocessorSettings.GetCurrentContour(), TargetProperty::MINIMUM_AREA).Value();
+            this->learnDialogMinArea = LabeledSlider("Minimum Area", 5, 2500, 5, realMinimumArea);
+                minimumAreaPanel.Pack_start(learnDialogMinArea.GetWidget(), true, true, 5);
+            
+            confirmLearn.SetBody(minimumAreaPanel);
+
         bool shouldLearn = confirmLearn.ShowAndGetResponse();
+        
         if(shouldLearn) {
             this->serviceMonitor.SetText("Learning Target");
             this->serviceLabel.SetText("Capturing Frames");
@@ -782,4 +809,11 @@ void ConfigEditor::SetTarget(ExampleTarget target) {
         this->postprocessorSettings.SetProperty(i, TargetProperty::ASPECT_RATIO, newContours[i].AspectRatio());
         this->postprocessorSettings.SetProperty(i, TargetProperty::MINIMUM_AREA, SettingPair(newContours[i].MinimumArea(), 0));
     }
+}
+
+/**
+ * Returns true if the learn confirmation dialog is active, and false otherwise.
+ */
+bool ConfigEditor::LearnDialogActive() {
+    return learnerActivated && !learner.GetLearning();
 }

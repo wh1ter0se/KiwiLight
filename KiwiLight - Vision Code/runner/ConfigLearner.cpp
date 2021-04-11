@@ -1,4 +1,4 @@
-#include "Runner.h"
+#include "../KiwiLight.h"
 
 /**
  * Source file for the ConfigLearner class.
@@ -11,8 +11,10 @@ using namespace KiwiLight;
 /**
  * Creates a new ConfigLearner which uses the passed preprocessor.
  */
-ConfigLearner::ConfigLearner(PreProcessor preprocessor) {
+ConfigLearner::ConfigLearner(PreProcessor preprocessor, Size imageSize) {
     this->preprocessor = preprocessor;
+    this->imageSize = imageSize;
+    this->minimumArea = 500;
     this->currentlyLearning = false;
     this->failedFrames = 0;
 }
@@ -25,10 +27,20 @@ void ConfigLearner::StartLearning() {
 }
 
 /**
+ * Sets the minimum area that a contour must be to be considered to be part of the target being learned.
+ */
+void ConfigLearner::SetMinimumArea(int minimumArea) {
+    this->minimumArea = minimumArea;
+}
+
+/**
  * Feeds an unprocessed image into the learner for processing.
  */
-void ConfigLearner::FeedImage(Mat img, int minimumContourArea) {
+void ConfigLearner::Feed() {
     //if the camera grab has failed and the image doesn't exist...
+    Mat img = KiwiLightApp::TakeImage();
+    resize(img, img, imageSize);
+
     if(img.empty()) {
         failedFrames++;
         return;
@@ -52,7 +64,7 @@ void ConfigLearner::FeedImage(Mat img, int minimumContourArea) {
         Rect bounds = boundingRect(contour);
         int area = bounds.width * bounds.height;
 
-        if(area > minimumContourArea) {
+        if(area > minimumArea) {
             bigContours.push_back(contour);
         }
     }
@@ -72,17 +84,16 @@ void ConfigLearner::FeedImage(Mat img, int minimumContourArea) {
 
     //if the learner is learning we should make a camera frame and store it for further processing
     if(this->currentlyLearning) {
-        CameraFrame newFrame = CameraFrame(preprocessed, minimumContourArea);
+        CameraFrame newFrame = CameraFrame(preprocessed, minimumArea);
         this->currentFrames.push_back(newFrame);
     }
 }
 
 /**
  * Disables this ConfigLearner's ability to be fed frames, and creates an ExampleTarget which represents the target which is being learned.
- * @param minimumContourArea The minimum area of any contour in the target. Any contours in any frames with areas smaller than this value will be ignored.
  * @return An ExampleTarget representing the "average" of all targets in all fed frames.
  */
-ExampleTarget ConfigLearner::StopLearning(int minimumContourArea) {
+ExampleTarget ConfigLearner::StopLearning() {
     this->currentlyLearning = false;
 
     //create a sorted list of the number of contours in each image (it is double because DataUtils sorts doubles)
@@ -168,7 +179,7 @@ ExampleTarget ConfigLearner::StopLearning(int minimumContourArea) {
         SettingPair solidityPair           = SettingPair(averageSolidity, 0.25);
         SettingPair aspectRatioPair        = SettingPair(averageAspectRatio, 0.25);
 
-        ExampleContour newExampleContour = ExampleContour(i, horizontalDistancePair, verticalDistancePair, anglePair, aspectRatioPair, solidityPair, minimumContourArea);
+        ExampleContour newExampleContour = ExampleContour(i, horizontalDistancePair, verticalDistancePair, anglePair, aspectRatioPair, solidityPair, minimumArea);
         finishedContours.push_back(newExampleContour);
     }
 

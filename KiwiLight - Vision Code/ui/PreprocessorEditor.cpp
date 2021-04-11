@@ -51,8 +51,9 @@ PreprocessorEditor::PreprocessorEditor(PreProcessor preprocessor) {
                 this->colorV = NumberBox(0, 255, realColorV);
                     targetColorPanelContents.Pack_start(this->colorV.GetWidget(), true, true, 0);
 
-                this->colorPreview = Image(ImageColorspace::RGB);
-                    targetColorPanelContents.Pack_start(this->colorPreview.GetWidget(), false, false, 0);
+                this->colorPreviewLabel = Label("asdfasdf");
+                    colorPreviewLabel.SetMarkup("<span background=\"#000000\" foreground=\"#ffffff\">Target Color</span>");
+                    targetColorPanelContents.Pack_start(colorPreviewLabel.GetWidget(), true, true, 0);
 
                 targetColorPanel.Pack_start(targetColorPanelContents.GetWidget(), true, true, 0);
 
@@ -113,13 +114,13 @@ void PreprocessorEditor::Update() {
     }
 
     //update the color in the box to the desired color
-    int hue        = (int) this->colorH.GetValue();
-    int saturation = (int) this->colorS.GetValue();
-    int value      = (int) this->colorV.GetValue();
+    int hue        = (int) this->colorH.GetValue() * 3.6;
+    int saturation = (int) this->colorS.GetValue() * (100/255.0);
+    int value      = (int) this->colorV.GetValue() * (100/255.0);
 
-    Mat previewImage = Mat(Size(30, 30), CV_8UC3, Scalar(hue, saturation, value));
-    cvtColor(previewImage, previewImage, COLOR_HSV2BGR_FULL);
-    this->colorPreview.Update(previewImage);
+    //create markup tag for sample label
+    std::string markupTag = "<span background=\"" + Util::getHexColor(hue, saturation, value) + "\" foreground=\"#000000\">Color</span>";
+    colorPreviewLabel.SetMarkup(markupTag);
 }
 
 /**

@@ -301,7 +301,7 @@ MenuBar KiwiLightApp::CreateMenuBar() {
             SubMenuItem about = SubMenuItem("About", KiwiLightApp::ShowAboutWindow);
                 help.AddSubmenuItem(about);
 
-            SubMenuItem helpme = SubMenuItem("How the heck does this work?", KiwiLightApp::ShowHelpWindow);
+            SubMenuItem helpme = SubMenuItem("How to Use", KiwiLightApp::ShowHelpWindow);
                 help.AddSubmenuItem(helpme);
 
             menubar.AddItem(help);
@@ -852,9 +852,14 @@ void KiwiLightApp::ShowLog(XMLDocument log) {
 void KiwiLightApp::ShowLog() {
     FileChooser chooser = FileChooser(false, "");
     std::string fileToOpen = chooser.Show();
-    XMLDocument log = XMLDocument(fileToOpen);
-    if(log.HasContents()) {
-        ShowLog(fileToOpen);
+    if(fileToOpen != "") {
+        XMLDocument log = XMLDocument(fileToOpen);
+        if(Util::logDocumentIsValid(log)) {
+            ShowLog(fileToOpen);
+        } else {
+            ConfirmationDialog alert = ConfirmationDialog("The Selected File could not be opened.");
+            alert.ShowAndGetResponse();
+        }
     }
 }
 

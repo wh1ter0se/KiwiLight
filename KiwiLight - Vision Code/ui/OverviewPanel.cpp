@@ -229,18 +229,18 @@ void OverviewPanel::SetTargetInformationLabelsFromString(std::string iterOutput)
     std::vector<std::string> splitOutput = StringUtils::SplitString(trimmedOutput, ',');
 
     //there must be 5 nums in string, no more, no less
-    if(splitOutput.size() == 7) {
-        int targetX = std::stoi(splitOutput[0]);
-        int targetY = std::stoi(splitOutput[1]);
-        int targetWidth = std::stoi(splitOutput[2]);
-        int targetHeight = std::stoi(splitOutput[3]);
-        double targetDist = std::stod(splitOutput[4]);
-        double targetAngleHorizontal = std::stod(splitOutput[5]);
-        double targetAngleVertical = std::stod(splitOutput[6]);
+    if(splitOutput.size() == 8) {
+        int targetX = std::stoi(splitOutput[1]);
+        int targetY = std::stoi(splitOutput[2]);
+        int targetWidth = std::stoi(splitOutput[3]);
+        int targetHeight = std::stoi(splitOutput[4]);
+        double targetDist = std::stod(splitOutput[5]);
+        double targetAngleHorizontal = std::stod(splitOutput[6]);
+        double targetAngleVertical = std::stod(splitOutput[7]);
         bool targetSpotted = (targetX > -1);
 
         SetTargetInformationLabels(targetSpotted, targetX, targetY, targetWidth, targetHeight, targetDist, targetAngleHorizontal, targetAngleVertical);
     } else {
-        std::cout << "WARNING: Could not update overview panel information labels. Input string was wrongly formatted." << std::endl;
+        std::cout << "WARNING: Could not update overview panel information labels. Input string was wrongly formatted: " << iterOutput << std::endl;
     }
 }

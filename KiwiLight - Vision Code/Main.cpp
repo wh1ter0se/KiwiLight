@@ -84,6 +84,7 @@ void RunConfigs(std::vector<std::string> filePaths) {
 
     while(KiwiLightApp::CurrentMode() == AppMode::UI_HEADLESS) {
         Target closestTarget;
+        int closestTargetID;
 
         double 
             closestTargetHorizontalAngle = 360,
@@ -110,6 +111,7 @@ void RunConfigs(std::vector<std::string> filePaths) {
 
             if(currentObliqueAngle < closestTargetObliqueAngle) {
                 closestTarget = currentClosestTarget;
+                closestTargetID = i;
                 closestTargetHorizontalAngle = currentHorizontalAngle;
                 closestTargetVerticalAngle   = currentVerticalAngle;
                 closestTargetObliqueAngle    = currentObliqueAngle;
@@ -120,16 +122,16 @@ void RunConfigs(std::vector<std::string> filePaths) {
         std::string message = Runner::NULL_MESSAGE;
 
         if(targetFound) {
-            std::string
-                x  = std::to_string(closestTarget.Center().x),
-                y  = std::to_string(closestTarget.Center().y),
-                w  = std::to_string(closestTarget.Bounds().width),
-                h  = std::to_string(closestTarget.Bounds().height),
-                d  = std::to_string((int) closestTarget.Distance()),
-                ha = std::to_string((int) closestTargetHorizontalAngle),
-                va = std::to_string((int) closestTargetVerticalAngle);
-            
-            message = ":" + x + "," + y + "," + w + "," + h + "," + d + "," + ha + "," + va + ";";
+            message = Util::composeRioMessage(
+                closestTargetID,
+                closestTarget.Center().x,
+                closestTarget.Center().y,
+                closestTarget.Bounds().width,
+                closestTarget.Bounds().height,
+                closestTarget.Distance(),
+                closestTargetHorizontalAngle,
+                closestTargetVerticalAngle
+            );
         }
         
         KiwiLightApp::SendOverUDP(message);

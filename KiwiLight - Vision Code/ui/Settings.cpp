@@ -67,7 +67,7 @@ Settings::Settings(XMLDocument doc) {
 
         //exposure
         double realExposure = std::stod(Util::SearchCameraSettingsByID(docSettings, CAP_PROP_EXPOSURE).Content());
-        CameraSetting exposure = CameraSetting("Exposure", CAP_PROP_EXPOSURE, -1, 1, realExposure);
+        CameraSetting exposure = CameraSetting("Exposure", CAP_PROP_EXPOSURE, 0, 1, realExposure);
         this->settings.push_back(exposure);
             editor.Pack_start(exposure.GetWidget(), true, true, 0);
 

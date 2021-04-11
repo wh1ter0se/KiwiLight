@@ -8,8 +8,6 @@
 
 using namespace KiwiLight;
 
-const std::string LogViewer::TEMPFILE_DIR = "/KiwiLightData/tmp/plotout.png";
-
 /**
  * Creates a new LogViewer displaying the contents of "log"
  */
@@ -74,12 +72,12 @@ LogViewer::LogViewer(XMLDocument log) {
                 contents.Pack_start(sep3.GetWidget(), false, false, 0);
 
             //parse ints directly in the file
-            this->totalFramesNum          = std::stoi(logTag.GetTagsByName("TotalFrames")[0].Content()),
-            this->framesWithTargetSeenNum = std::stoi(logTag.GetTagsByName("FramesWithTargetSeen")[0].Content());
+            this->totalFramesNum          = Util::toInt(logTag.GetTagsByName("TotalFrames")[0].Content(), 1),
+            this->framesWithTargetSeenNum = Util::toInt(logTag.GetTagsByName("FramesWithTargetSeen")[0].Content(), 1);
 
             //parse double directly in the file
-            this->averageFPSNum = std::stod(logTag.GetTagsByName("AverageFPS")[0].Content()),
-            this->averageDistanceNum  = std::stod(logTag.GetTagsByName("AverageDistance")[0].Content());
+            this->averageFPSNum = Util::toDouble(logTag.GetTagsByName("AverageFPS")[0].Content(), 1),
+            this->averageDistanceNum  = Util::toDouble(logTag.GetTagsByName("AverageDistance")[0].Content(), 1);
 
             //declare numbers located in events
             this->targetLostEventCountNum = 0,
@@ -96,6 +94,10 @@ LogViewer::LogViewer(XMLDocument log) {
             bool lastTargetSeen = false;
             for(int i=0; i<numEvents; i++) {
                 LogEvent event = eventFromTag(eventTags[i]);
+                if(event.GetTimestamp() < 0) { //invalid event
+                    continue;
+                }
+
                 events[i] = event;
 
                 if(event.GetEventType() == LogEvent::RECORD_HIGH_FPS)  { fastestFPSNum = event.GetRecord();       }
@@ -249,7 +251,7 @@ void LogViewer::generatePlot(long elapsedTime, int maxFPS, double maxDist, LogEv
     maxFPS *= 1.1;
     maxDist *= 1.1;
     
-    //resolve the height of the image
+    //resolve the height of the background of the graph
     int imageHeight = (maxFPS > maxDist ? maxFPS : maxDist);
     
     if(maxDist == 0) {
@@ -263,7 +265,7 @@ void LogViewer::generatePlot(long elapsedTime, int maxFPS, double maxDist, LogEv
     plot << "set palette model RGB defined (0 0.7 1 0.7, 1 1 0.7 0.7)";
     plot.set_cbrange(0, 1);
 
-    //declare image for distance plot
+    //declare image for distance plot. This image will show all times where a target was spotted.
     unsigned char 
         imageSamples[elapsedTimeSeconds * imageHeight];
 
@@ -279,29 +281,33 @@ void LogViewer::generatePlot(long elapsedTime, int maxFPS, double maxDist, LogEv
     //assemble vectors for plotting points
     int lastGUTimestampSeconds = 0;
     for(int i=0; i<numEvents; i++) {
-        double timestamp = events[i].GetTimestamp() / 1000.0;
-        if(events[i].GetEventType() == LogEvent::RECORD_HIGH_FPS || events[i].GetEventType() == LogEvent::RECORD_LOW_FPS) {
-            fpsTimes.push_back(timestamp);
-            fpsReadings.push_back(events[i].GetRecord());
-        } else if(events[i].GetEventType() == LogEvent::RECORD_HIGH_DIST || events[i].GetEventType() == LogEvent::RECORD_LOW_DIST) {
-            distanceTimes.push_back(timestamp);
-            distanceReadings.push_back(events[i].GetRecord());
-        } else { //GENERAL_UPDATE
-            fpsTimes.push_back(timestamp);
-            fpsReadings.push_back(events[i].GetFPS());
+        try {
+            double timestamp = events[i].GetTimestamp() / 1000.0;
+            if(events[i].GetEventType() == LogEvent::RECORD_HIGH_FPS || events[i].GetEventType() == LogEvent::RECORD_LOW_FPS) {
+                fpsTimes.push_back(timestamp);
+                fpsReadings.push_back(events[i].GetRecord());
+            } else if(events[i].GetEventType() == LogEvent::RECORD_HIGH_DIST || events[i].GetEventType() == LogEvent::RECORD_LOW_DIST) {
+                distanceTimes.push_back(timestamp);
+                distanceReadings.push_back(events[i].GetRecord());
+            } else { //GENERAL_UPDATE
+                fpsTimes.push_back(timestamp);
+                fpsReadings.push_back(events[i].GetFPS());
 
-            distanceTimes.push_back(timestamp);
-            distanceReadings.push_back(events[i].GetDistance());
+                distanceTimes.push_back(timestamp);
+                distanceReadings.push_back(events[i].GetDistance());
 
-            int colorValue = (events[i].GetTargetSeen() ? 0 : 1);
-            //fill in fps image
-            for(int r=lastGUTimestampSeconds; r<timestamp; r++) {
-                for(int c=0; c<imageHeight; c++) {
-                    imageSamples[(c * elapsedTimeSeconds) + r] = colorValue;
+                int colorValue = (events[i].GetTargetSeen() ? 0 : 1);
+                //fill in fps image
+                for(int r=lastGUTimestampSeconds; r<timestamp; r++) {
+                    for(int c=0; c<imageHeight; c++) {
+                        imageSamples[(c * elapsedTimeSeconds) + r] = colorValue;
+                    }
                 }
-            }
 
-            lastGUTimestampSeconds = timestamp;
+                lastGUTimestampSeconds = timestamp;
+            }
+        } catch(std::bad_alloc ex) {
+            std::cout << "bad_alloc encountered. Skipping event." << std::endl;
         }
     }
 
@@ -334,19 +340,24 @@ void LogViewer::generatePlot(long elapsedTime, int maxFPS, double maxDist, LogEv
  * Interprets the XMLTag tag and creates a LogEvent out of it.
  */
 LogEvent LogViewer::eventFromTag(XMLTag tag) {
-    std::string type = tag.GetAttributesByName("type")[0].Value();
-    long timestamp = std::stol(tag.GetAttributesByName("timestamp")[0].Value());
-    if(type == LogEvent::GENERAL_UPDATE) {
-        double fps = std::stod(tag.GetAttributesByName("fps")[0].Value());
-        int distance = std::stoi(tag.GetAttributesByName("distance")[0].Value());
-        bool targetSeen = (tag.GetAttributesByName("targetSeen")[0].Value() == "true" ? true : false);
+    try {
+        std::string type = tag.GetAttributesByName("type")[0].Value();
+        long timestamp = std::stol(tag.GetAttributesByName("timestamp")[0].Value());
+        if(type == LogEvent::GENERAL_UPDATE) {
+            double fps = std::stod(tag.GetAttributesByName("fps")[0].Value());
+            int distance = std::stoi(tag.GetAttributesByName("distance")[0].Value());
+            bool targetSeen = (tag.GetAttributesByName("targetSeen")[0].Value() == "true" ? true : false);
 
-        LogEvent event = LogEvent(type, timestamp, fps, distance, targetSeen);
-        return event;
-    } else {
-        double record = std::stod(tag.GetAttributesByName("record")[0].Value());
-        LogEvent event = LogEvent(type, timestamp, record);
-        return event;
+            LogEvent event = LogEvent(type, timestamp, fps, distance, targetSeen);
+            return event;
+        } else {
+            double record = std::stod(tag.GetAttributesByName("record")[0].Value());
+            LogEvent event = LogEvent(type, timestamp, record);
+            return event;
+        }
+    } catch(std::invalid_argument ex) {
+        std::cout << "Could not parse log event tag " << tag.ReturnString() << "." << std::endl;
+        return LogEvent(LogEvent::GENERAL_UPDATE, -1, -1, -1, -1);
     }
 }
 
