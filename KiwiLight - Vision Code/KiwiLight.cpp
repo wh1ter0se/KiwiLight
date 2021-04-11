@@ -324,11 +324,10 @@ void KiwiLightApp::LaunchStreamingThread(AppMode newMode) {
  * Messages the streaming thread to stop and waits until it does
  */
 void KiwiLightApp::StopStreamingThread() {
-    // if(streamThreadEnabled) {
-    //     streamThreadEnabled = false;
         KiwiLightApp::mode = AppMode::UI_PAUSING;
-        g_thread_join(KiwiLightApp::streamingThread);
-    // }
+        if(KiwiLightApp::streamingThread != NULL) {
+            g_thread_join(KiwiLightApp::streamingThread);
+        }
 }
 
 /**
@@ -347,8 +346,11 @@ bool KiwiLightApp::CloseEditor(bool saveFirst) {
         }
     }
     
+    KiwiLightApp::StopStreamingThread();
     KiwiLightApp::configeditor.Close();
     OpenConfigurationFromFile(KiwiLightApp::configeditor.GetFileName());
+    // KiwiLightApp::LaunchStreamingThread(fileSaved ? AppMode::UI_RUNNER : AppMode::UI_EDITOR);
+    KiwiLightApp::LaunchStreamingThread(AppMode::UI_RUNNER);
     return true;
 }
 
@@ -479,6 +481,21 @@ void KiwiLightApp::EditorOpenNewCameraFromOverview() {
 }
 
 /**
+ * Applies FRC settings on the camera.
+ */
+void KiwiLightApp::EditorApplyFRCSettings() {
+    KiwiLightApp::configeditor.ApplyFRCCameraSettings();
+    KiwiLightApp::configeditor.ApplyCameraSettings();
+}
+
+/**
+ * Changes the editor target color value.
+ */
+void KiwiLightApp::EditorSetTargetColorHSV(int h, int s, int v) {
+    KiwiLightApp::configeditor.SetTargetColor(h, s, v);
+}
+
+/**
  * Shows the log plot on the LogViewer
  */
 void KiwiLightApp::ToggleLogPlot() {
@@ -541,7 +558,7 @@ void KiwiLightApp::UpdateStreamsConstantly() {
     //now because some cameras like the jevois take a little longer for the stream to start, we will wait until it gives us a good frame
     //to avoid the VIDIOC_QBUF: Invalid Argument barage.
     bool retrieveSuccess = false;
-    while(!retrieveSuccess && KiwiLightApp::mode != AppMode::UI_PAUSING/* && streamThreadEnabled*/) {
+    while(!retrieveSuccess && KiwiLightApp::mode != AppMode::UI_PAUSING) {
         usleep(250000); //give camera some time to adjust and do things
         bool grabSuccess = KiwiLightApp::camera.grab();
         if(grabSuccess) {
@@ -550,7 +567,7 @@ void KiwiLightApp::UpdateStreamsConstantly() {
         }
     }
 
-    while(KiwiLightApp::mode != AppMode::UI_PAUSING/* && streamThreadEnabled*/) {
+    while(KiwiLightApp::mode != AppMode::UI_PAUSING) {
         KiwiLightApp::UpdateStreams();
     }
 }

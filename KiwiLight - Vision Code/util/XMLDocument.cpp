@@ -66,11 +66,11 @@ XMLDocument::XMLDocument(std::string fileName) {
     std::vector<XMLTag> workingHierarchy = std::vector<XMLTag>(); //the hierarchy of tags to be completed
     for(int i=0; i<fileLines.size(); i++) {
         std::string line = fileLines[i];
-        if(StringUtils::StringStartsWith(line, "<") && !StringUtils::StringStartsWith(line, "<!--") && StringUtils::StringEndsWith(line, ">")) {
+        if(Util::StringStartsWith(line, "<") && !Util::StringStartsWith(line, "<!--") && Util::StringEndsWith(line, ">")) {
             int closingBracket = line.find('>');
-            std::string tag = StringUtils::Substring(line, 1, closingBracket);
-            std::string content = StringUtils::Substring(line, closingBracket + 1, line.length());
-            if(StringUtils::StringStartsWith(tag, "/")) {
+            std::string tag = Util::Substring(line, 1, closingBracket);
+            std::string content = Util::Substring(line, closingBracket + 1, line.length());
+            if(Util::StringStartsWith(tag, "/")) {
                 //ending tag, rebuild the hierarchy without this tag
                 if(workingHierarchy.size() > 1) {
                     XMLTag addTag = workingHierarchy[workingHierarchy.size() - 1];
@@ -88,7 +88,7 @@ XMLDocument::XMLDocument(std::string fileName) {
                 //now that the document has at least one tag, it can be marked as having contents.
                 this->hasContents = true;
             } else {
-                std::vector<std::string> nameAndAttrs = StringUtils::SplitString(tag, ' ');
+                std::vector<std::string> nameAndAttrs = Util::SplitString(tag, ' ');
                 std::vector<XMLTagAttribute> attrs = std::vector<XMLTagAttribute>();
                 std::string name = nameAndAttrs[0];
 
@@ -98,17 +98,17 @@ XMLDocument::XMLDocument(std::string fileName) {
                         continue;
                     }
 
-                    std::string attrName = StringUtils::SplitString(attrString, '=')[0];
-                    std::string attrValue = StringUtils::SplitString(attrString, '=')[1];
+                    std::string attrName = Util::SplitString(attrString, '=')[0];
+                    std::string attrValue = Util::SplitString(attrString, '=')[1];
 
                     //if there are spaces in the value, get rid of them
-                    while(StringUtils::CountCharacters(attrValue, '"') < 2) {
+                    while(Util::CountCharacters(attrValue, '"') < 2) {
                         attrValue += " " + nameAndAttrs[k+1];
                         k++;
                     }
 
                     //take off quotes 
-                    attrValue = StringUtils::Substring(attrValue, 1, attrValue.length()-1);
+                    attrValue = Util::Substring(attrValue, 1, attrValue.length()-1);
                     XMLTagAttribute newAttr = XMLTagAttribute(attrName, attrValue);
                     attrs.push_back(newAttr);
                 }
@@ -116,7 +116,7 @@ XMLDocument::XMLDocument(std::string fileName) {
                 if(content.length() > 0) {
                     //get the index of the starting bracket of the closing tag
                     int closingTag = content.find("</" + newTag.Name() + ">");
-                    content = StringUtils::Substring(content, 0, closingTag);
+                    content = Util::Substring(content, 0, closingTag);
                     newTag.AddContent(content);
                     
                     if(workingHierarchy.size() > 0) {
@@ -130,7 +130,7 @@ XMLDocument::XMLDocument(std::string fileName) {
                 }
             }
         } else {
-            if(!StringUtils::StringStartsWith(line, "<!--") && workingHierarchy.size() > 0) {
+            if(!Util::StringStartsWith(line, "<!--") && workingHierarchy.size() > 0) {
                 //line is not comment, parse as content for the current tag
                 workingHierarchy[workingHierarchy.size()-1].AddContent(line);
             }

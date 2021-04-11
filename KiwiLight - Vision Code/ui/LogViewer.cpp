@@ -45,7 +45,7 @@ LogViewer::LogViewer(XMLDocument log) {
 
                     std::string time = logTag.GetAttributesByName("started")[0].Value();
                     //doctor the time string. Instead of MM-DD-YYYY-HH-MM-SS we want MM/DD/YYYY - HH:MM:SS
-                    std::vector<std::string> timeSegments = StringUtils::SplitString(time, '-');
+                    std::vector<std::string> timeSegments = Util::SplitString(time, '-');
                     std::string newTime =
                         timeSegments[0] + "/" + timeSegments[1] + "/" + timeSegments[2] + " - " + timeSegments[3] + ":" + timeSegments[4] + ":" + timeSegments[5];
 
@@ -312,10 +312,10 @@ void LogViewer::generatePlot(long elapsedTime, int maxFPS, double maxDist, LogEv
     }
 
     //resolve plot height and apply
-    std::vector<double> distanceWithoutNegatives = DataUtils::RemoveOccurances(distanceReadings, -1);
+    std::vector<double> distanceWithoutNegatives = Util::RemoveOccurances(distanceReadings, -1);
 
-    int fpsHeight = DataUtils::MaxWithoutOutliers(fpsReadings, 30);
-    int distHeight = DataUtils::MaxWithoutOutliers(distanceWithoutNegatives, 150);
+    int fpsHeight = Util::MaxWithoutOutliers(fpsReadings, 30);
+    int distHeight = Util::MaxWithoutOutliers(distanceWithoutNegatives, 150);
     int plotHeight = (fpsHeight > distHeight ? fpsHeight : distHeight);
     
     if(distHeight > 5000) {

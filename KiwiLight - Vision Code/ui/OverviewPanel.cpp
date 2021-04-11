@@ -226,7 +226,7 @@ void OverviewPanel::SetTargetInformationLabelsFromString(std::string iterOutput)
     }
 
     std::string trimmedOutput = iterOutput.substr(1, iterOutput.length() - 2); //sub off the ':' and ';' at beginning and end
-    std::vector<std::string> splitOutput = StringUtils::SplitString(trimmedOutput, ',');
+    std::vector<std::string> splitOutput = Util::SplitString(trimmedOutput, ',');
 
     //there must be 5 nums in string, no more, no less
     if(splitOutput.size() == 8) {

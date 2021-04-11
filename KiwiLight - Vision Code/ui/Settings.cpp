@@ -89,9 +89,15 @@ Settings::Settings(XMLDocument doc) {
         this->settings.push_back(brightness);
             editor.Pack_start(brightness.GetWidget(), true, true, 0);
 
-        //the apply button
-        Button apply = Button("Apply", KiwiLightApp::EditorApplyCameraSettings);
-            editor.Pack_start(apply.GetWidget(), true, true, 0);
+        Panel buttonPanel = Panel(true, 0);
+            Button frc = Button("FRC Settings", KiwiLightApp::EditorApplyFRCSettings);
+                buttonPanel.Pack_start(frc.GetWidget(), true, true, 0);
+
+            //the apply chosen settings button
+            Button apply = Button("Apply", KiwiLightApp::EditorApplyCameraSettings);
+                buttonPanel.Pack_start(apply.GetWidget(), true, true, 0);
+
+            editor.Pack_start(buttonPanel.GetWidget(), true, true, 0);
 
     this->widget = editor.GetWidget();
 }
@@ -150,6 +156,17 @@ void Settings::SetCameraIndex(int index) {
  */
 int Settings::GetCameraIndex() {
     return this->cameraIndex.GetValue();
+}
+
+/**
+ * Applies Recommended FRC camera settings.
+ */
+void Settings::ApplyFRCSettings() {
+    SetSettingValueFromID(CAP_PROP_AUTO_EXPOSURE, 0);
+    SetSettingValueFromID(CAP_PROP_EXPOSURE, 0);
+    SetSettingValueFromID(CAP_PROP_AUTO_WB, 0);
+    SetSettingValueFromID(CAP_PROP_WB_TEMPERATURE, 0);
+    SetSettingValueFromID(CAP_PROP_BRIGHTNESS, 0);
 }
 
 /**

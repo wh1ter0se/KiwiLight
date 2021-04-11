@@ -32,9 +32,9 @@ static void LearnDistanceButtonPressed() {
  * Closes the editor window without saving the current configuration.
  */
 static void JustCloseButtonPressed() {
-    KiwiLightApp::StopStreamingThread();
+    // KiwiLightApp::StopStreamingThread();
     KiwiLightApp::CloseEditor(false);
-    KiwiLightApp::LaunchStreamingThread(AppMode::UI_RUNNER);
+    // KiwiLightApp::LaunchStreamingThread(AppMode::UI_RUNNER);
 }
 
 /**
@@ -43,9 +43,7 @@ static void JustCloseButtonPressed() {
  */
 static void SaveAndCloseButtonPressed() {
     //save previous file name in case the editor fails to close due to save issues
-    KiwiLightApp::StopStreamingThread();
-    bool editorWasClosed = KiwiLightApp::CloseEditor(true);
-    KiwiLightApp::LaunchStreamingThread(editorWasClosed ? AppMode::UI_RUNNER : AppMode::UI_EDITOR);
+    KiwiLightApp::CloseEditor(true);
 }
 
 /**
@@ -313,14 +311,27 @@ bool ConfigEditor::UpdateImageOnly() {
     }
     
     if(this->distanceLearnerRunning) {
-        this->distanceLearner.FeedTarget(this->runner.GetClosestTargetToCenter());
+        if(this->runner.GetLastFrameTargets().size() > 0) {
+            this->distanceLearner.FeedTarget(this->runner.GetClosestTargetToCenter());
+        } else {
+            this->distanceLearner.FeedBlank();
+        }
 
         if(this->distanceLearner.GetFramesLearned() >= LEARNER_FRAMES) {
             this->updateShouldSkip = true;
+
+            //wait for current update to finish
+            while(this->updating) {
+                usleep(1000);
+            }
+
             double trueDistance = this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE);
             double trueWidth = this->runnerSettings.GetProperty(RunnerProperty::TRUE_WIDTH);
             double newFocalWidth = this->distanceLearner.GetFocalWidth(trueDistance, trueWidth);
-            this->runnerSettings.SetProperty(RunnerProperty::PERCEIVED_WIDTH, newFocalWidth);
+            if(newFocalWidth > -1) {
+                this->runnerSettings.SetProperty(RunnerProperty::PERCEIVED_WIDTH, newFocalWidth);
+            }
+
             this->distanceLearnerRunning = false;
             this->updateShouldSkip = false;
         }
@@ -581,7 +592,7 @@ bool ConfigEditor::Save() {
                 
     //to prompt file name or not to promt file name
     std::string fileToSave = this->fileName;
-    std::vector<std::string> fileParts = StringUtils::SplitString(fileToSave, '/');
+    std::vector<std::string> fileParts = Util::SplitString(fileToSave, '/');
     
     if(fileParts[fileParts.size() - 1] == "generic.xml") {
         FileChooser chooser = FileChooser(true, "config.xml");
@@ -603,7 +614,22 @@ bool ConfigEditor::Save() {
  * Closes and destroys the editor window.
  */
 void ConfigEditor::Close() {
+    updateShouldSkip = true;
+
+    //wait for updating to stop
+    while(updating) {
+        usleep(1000);
+    }
     gtk_widget_destroy(this->widget);
+}
+
+/**
+ * Sets the color of the target, in HSV colorspace.
+ */
+void ConfigEditor::SetTargetColor(int h, int s, int v) {
+    preprocessorSettings.SetProperty(PreProcessorProperty::COLOR_HUE, h);
+    preprocessorSettings.SetProperty(PreProcessorProperty::COLOR_SATURATION, s);
+    preprocessorSettings.SetProperty(PreProcessorProperty::COLOR_VALUE, v);
 }
 
 /**
@@ -747,6 +773,11 @@ void ConfigEditor::ApplyCameraSettings() {
         double value = KiwiLightApp::GetCameraProperty(id);
         this->cameraSettings.SetSettingValueFromID(id, value);
     }
+}
+
+
+void ConfigEditor::ApplyFRCCameraSettings() {
+    this->cameraSettings.ApplyFRCSettings();
 }
 
 /**

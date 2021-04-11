@@ -533,13 +533,13 @@ namespace KiwiLight {
         public:
         Settings() {};
         Settings(XMLDocument doc);
-        void UpdateValue();
         void Show() { gtk_widget_show_all(this->widget); };
         XMLTag GetFinishedTag();
         void SetSettingValueFromID(int id, double value);
         double GetSettingValueFromID(int id);
         void SetCameraIndex(int index);
         int GetCameraIndex();
+        void ApplyFRCSettings();
         std::vector<int> GetSettingIDs();
 
         private:
@@ -673,11 +673,13 @@ namespace KiwiLight {
         std::string GetLastFrameResult();
         bool Save();
         void Close();
+        void SetTargetColor(int h, int s, int v);
         void StartLearningTarget();
         void StartLearningDistance();
         void ReconnectUDPFromEditor();
         void SetUDPEnabledLabels(bool UDPEnabled);
         void ApplyCameraSettings();
+        void ApplyFRCCameraSettings();
         void SetCameraIndexBoxes(int index);
         void ReconnectUDPFromOverview();
         void OpenNewCameraFromOverview();

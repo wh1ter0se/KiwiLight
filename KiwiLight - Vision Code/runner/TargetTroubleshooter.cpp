@@ -69,7 +69,7 @@ bool TargetTroubleshooter::Troubleshoot(TroubleshootingData dataOut[]) {
         avgContours.push_back(frames[i].NumberOfContours());
     }
 
-    int averageNumContours = (int) DataUtils::Average(avgContours);
+    int averageNumContours = (int) Util::Average(avgContours);
 
     //group contours by distance
     std::vector <std::vector <Contour> > groupedContours = std::vector< std::vector <Contour> >(this->target.Contours().size());
@@ -107,8 +107,8 @@ bool TargetTroubleshooter::Troubleshoot(TroubleshootingData dataOut[]) {
             verticalDistances.push_back(distFromCenter.y);
         }
 
-        double averageHorizontalDistance = DataUtils::Average(horizontalDistances);
-        double averageVerticalDistance = DataUtils::Average(verticalDistances);
+        double averageHorizontalDistance = Util::Average(horizontalDistances);
+        double averageVerticalDistance = Util::Average(verticalDistances);
 
         //pythagorean theorem
         double AHDSquared = pow(averageHorizontalDistance, 2); //a
@@ -187,17 +187,17 @@ bool TargetTroubleshooter::Troubleshoot(TroubleshootingData dataOut[]) {
             if(!aspectTest) data[i].missedAspectRatios++;
         }
 
-        std::cout << "horizontal distances: " << DataUtils::VectorToString(HorizontalDistances) << std::endl;
-        std::cout << "vertical distances: " << DataUtils::VectorToString(VerticalDistances) << std::endl;
-        std::cout << "angles: " << DataUtils::VectorToString(Angles) << std::endl;
-        std::cout << "solidities: " << DataUtils::VectorToString(Solidities) << std::endl;
-        std::cout << "aspect ratios: " << DataUtils::VectorToString(AspectRatios) << std::endl;
+        std::cout << "horizontal distances: " << Util::VectorToString(HorizontalDistances) << std::endl;
+        std::cout << "vertical distances: " << Util::VectorToString(VerticalDistances) << std::endl;
+        std::cout << "angles: " << Util::VectorToString(Angles) << std::endl;
+        std::cout << "solidities: " << Util::VectorToString(Solidities) << std::endl;
+        std::cout << "aspect ratios: " << Util::VectorToString(AspectRatios) << std::endl;
 
-        data[i].averageHorizontalDistance = DataUtils::Average(HorizontalDistances);
-        data[i].averageVerticalDistance = DataUtils::Average(VerticalDistances);
-        data[i].averageAngle = DataUtils::Average(Angles);
-        data[i].averageSolidity = DataUtils::Average(Solidities);
-        data[i].averageAspectRatio = DataUtils::Average(AspectRatios);
+        data[i].averageHorizontalDistance = Util::Average(HorizontalDistances);
+        data[i].averageVerticalDistance = Util::Average(VerticalDistances);
+        data[i].averageAngle = Util::Average(Angles);
+        data[i].averageSolidity = Util::Average(Solidities);
+        data[i].averageAspectRatio = Util::Average(AspectRatios);
     }
 
     std::cout << "TROUBLESHOOTING RESULTS:" << std::endl;

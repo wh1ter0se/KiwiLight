@@ -1,4 +1,4 @@
-#include "UI.h"
+#include "../KiwiLight.h"
 
 /**
  * Source file for the PreprocessorEditor class.
@@ -6,6 +6,34 @@
  */
 
 using namespace KiwiLight;
+
+/**
+ * Sets the target color to white.
+ */
+void white() {
+    KiwiLightApp::EditorSetTargetColorHSV(0, 0, 255);
+}
+
+/**
+ * Sets the target color to red.
+ */
+void red() {
+    KiwiLightApp::EditorSetTargetColorHSV(100, 255, 255);
+}
+
+/**
+ * Sets the target color to green.
+ */
+void green() {
+    KiwiLightApp::EditorSetTargetColorHSV(72, 255, 255);
+}
+
+/**
+ * Sets the target color to blue.
+ */
+void blue() {
+    KiwiLightApp::EditorSetTargetColorHSV(33, 255, 255);
+}
 
 /**
  * Creates a new PreProcessorEditor using the values from "preprocessor" as the inital values.
@@ -59,6 +87,23 @@ PreprocessorEditor::PreprocessorEditor(PreProcessor preprocessor) {
 
             editor.Pack_start(targetColorPanel.GetWidget(), true, true, 0);
 
+        //color presets
+        Panel colorButtonPanel = Panel(true, 0);
+            Button whiteButton = Button("White", white);
+                colorButtonPanel.Pack_start(whiteButton.GetWidget(), true, true, 0);
+            
+            Button redButton = Button("Red", red);
+                colorButtonPanel.Pack_start(redButton.GetWidget(), true, true, 0);
+            
+            Button greenButton = Button("Green", green);
+                colorButtonPanel.Pack_start(greenButton.GetWidget(), true, true, 0);
+            
+            Button blueButton = Button("Blue", blue);
+                colorButtonPanel.Pack_start(blueButton.GetWidget(), true, true, 0);
+
+            editor.Pack_start(colorButtonPanel.GetWidget(), true, true, 0);
+
+        //image processing options
         Label imageProcLabel = Label("Image Processing");
             imageProcLabel.SetName("subHeader");
             editor.Pack_start(imageProcLabel.GetWidget(), true, true, 0);

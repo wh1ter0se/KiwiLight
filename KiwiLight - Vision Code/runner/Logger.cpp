@@ -56,7 +56,7 @@ void Logger::Start() {
  */
 void Logger::Log(std::string runnerOutput) {
     std::string slicedOutput = runnerOutput.substr(1, runnerOutput.length() - 1);
-    std::vector<std::string> segments = StringUtils::SplitString(slicedOutput, ',');
+    std::vector<std::string> segments = Util::SplitString(slicedOutput, ',');
 
     totalFrames++;
     bool isTargetSeen = segments[1] != "-1";

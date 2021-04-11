@@ -71,6 +71,8 @@ namespace KiwiLight {
         static void EditorConnectUDPFromOverview();
         static void EditorApplyCameraSettings();
         static void EditorOpenNewCameraFromOverview();
+        static void EditorApplyFRCSettings();
+        static void EditorSetTargetColorHSV(int h, int s, int v);
         static void ToggleLogPlot();
         static void GenerateLogPlot();
         static void OpenNewCameraOnIndex(int index);

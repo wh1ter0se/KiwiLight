@@ -96,13 +96,13 @@ void ConfigLearner::Feed() {
 ExampleTarget ConfigLearner::StopLearning() {
     this->currentlyLearning = false;
 
-    //create a sorted list of the number of contours in each image (it is double because DataUtils sorts doubles)
+    //create a sorted list of the number of contours in each image (it is double because Util sorts doubles)
     std::vector<double> numberContoursList;
     for(int i=0; i<this->currentFrames.size(); i++) {
         numberContoursList.push_back(this->currentFrames[i].GetContoursGrouped().size());
     }
 
-    double regularNumberOfContours = DataUtils::MostCommonValue(numberContoursList);
+    double regularNumberOfContours = Util::MostCommonValue(numberContoursList);
 
     std::vector <std::vector <Contour> > groupedContours; //vector of contours grouped by their distance from target center
     for(int i=0; i<this->currentFrames.size(); i++) {
@@ -133,11 +133,11 @@ ExampleTarget ConfigLearner::StopLearning() {
             aspectRatios.push_back(contourToAnalyze.AspectRatio());
         }
 
-        horizontalDistances = DataUtils::SortLeastGreatestDouble(horizontalDistances);
-        verticalDistances   = DataUtils::SortLeastGreatestDouble(verticalDistances);
-        angles              = DataUtils::SortLeastGreatestDouble(angles);
-        solidities          = DataUtils::SortLeastGreatestDouble(solidities);
-        aspectRatios        = DataUtils::SortLeastGreatestDouble(aspectRatios);
+        horizontalDistances = Util::SortLeastGreatestDouble(horizontalDistances);
+        verticalDistances   = Util::SortLeastGreatestDouble(verticalDistances);
+        angles              = Util::SortLeastGreatestDouble(angles);
+        solidities          = Util::SortLeastGreatestDouble(solidities);
+        aspectRatios        = Util::SortLeastGreatestDouble(aspectRatios);
 
         //record the sizes of each array so we can see how many outliers are removed
         std::vector<double> dataSizes;
@@ -148,11 +148,11 @@ ExampleTarget ConfigLearner::StopLearning() {
         dataSizes.push_back((double) aspectRatios.size());
 
         //remove outliers
-        horizontalDistances = DataUtils::RemoveOutliers(horizontalDistances, 0.5);
-        verticalDistances   = DataUtils::RemoveOutliers(verticalDistances, 0.5);
-        angles              = DataUtils::RemoveOutliers(angles, 10.0);
-        solidities          = DataUtils::RemoveOutliers(solidities, 0.25);
-        aspectRatios        = DataUtils::RemoveOutliers(aspectRatios, 0.25);
+        horizontalDistances = Util::RemoveOutliers(horizontalDistances, 0.5);
+        verticalDistances   = Util::RemoveOutliers(verticalDistances, 0.5);
+        angles              = Util::RemoveOutliers(angles, 10.0);
+        solidities          = Util::RemoveOutliers(solidities, 0.25);
+        aspectRatios        = Util::RemoveOutliers(aspectRatios, 0.25);
 
         std::vector<double> newDataSizes;
         newDataSizes.push_back((double) horizontalDistances.size());
@@ -161,17 +161,17 @@ ExampleTarget ConfigLearner::StopLearning() {
         newDataSizes.push_back((double) solidities.size());
         newDataSizes.push_back((double) aspectRatios.size());
 
-        double originalTotal = DataUtils::Total(dataSizes);
-        double removedTotal = DataUtils::Total(newDataSizes);
+        double originalTotal = Util::Total(dataSizes);
+        double removedTotal = Util::Total(newDataSizes);
 
         double totalRemoved = originalTotal - removedTotal;
         double avgRemoved = totalRemoved / newDataSizes.size();
 
-        double averageHorizontalDistance = DataUtils::Average(horizontalDistances);
-        double averageVerticaldistance   = DataUtils::Average(verticalDistances);
-        double averageAngle              = DataUtils::Average(angles);
-        double averageSolidity           = DataUtils::Average(solidities);
-        double averageAspectRatio        = DataUtils::Average(aspectRatios);
+        double averageHorizontalDistance = Util::Average(horizontalDistances);
+        double averageVerticaldistance   = Util::Average(verticalDistances);
+        double averageAngle              = Util::Average(angles);
+        double averageSolidity           = Util::Average(solidities);
+        double averageAspectRatio        = Util::Average(aspectRatios);
 
         SettingPair horizontalDistancePair = SettingPair(averageHorizontalDistance, 0.25);
         SettingPair verticalDistancePair   = SettingPair(averageVerticaldistance, 0.25);

@@ -475,6 +475,7 @@ namespace KiwiLight {
         TargetDistanceLearner(PreProcessor preprocessor, PostProcessor postprocessor);
         void FeedImage(Mat img);
         void FeedTarget(Target targ);
+        void FeedBlank();
         int GetFramesLearned();
         bool GetHasFailed() { return this->failedFrames > 10; };
         double GetFocalWidth(double trueDistance, double trueWidth);
