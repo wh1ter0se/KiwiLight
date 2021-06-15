@@ -90,7 +90,7 @@ Settings::Settings(XMLDocument doc) {
             editor.Pack_start(brightness.GetWidget(), true, true, 0);
 
         Panel buttonPanel = Panel(true, 0);
-            Button frc = Button("FRC Settings", KiwiLightApp::EditorApplyFRCSettings);
+            Button frc = Button("FRC", KiwiLightApp::EditorApplyFRCSettings);
                 buttonPanel.Pack_start(frc.GetWidget(), true, true, 0);
 
             //the apply chosen settings button

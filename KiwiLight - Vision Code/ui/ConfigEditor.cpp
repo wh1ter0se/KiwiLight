@@ -90,7 +90,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
                     overviewPanel.Pack_start(exitPanel.GetWidget(), true, true, 0);
 
             Panel cameraSettingsPanel = Panel(false, 5);
-                Label cameraSettingsHeader = Label("Camera Settings");
+                Label cameraSettingsHeader = Label("Camera");
                     cameraSettingsHeader.SetName("header");
                     cameraSettingsPanel.Pack_start(cameraSettingsHeader.GetWidget(), true, true, 0);
                     
@@ -114,7 +114,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
                     postprocessorSettingsPanel.Pack_start(this->postprocessorSettings.GetWidget(), true, true, 0);
 
             Panel runnerSettingsPanel = Panel(false, 5);
-                Label runnerSettingsPanelHeader = Label("Runner");
+                Label runnerSettingsPanelHeader = Label("Misc.");
                     runnerSettingsPanelHeader.SetName("header");
                     runnerSettingsPanel.Pack_start(runnerSettingsPanelHeader.GetWidget(), true, true, 0);
 
@@ -125,7 +125,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
             this->tabs.AddTab("Camera", cameraSettingsPanel.GetWidget());
             this->tabs.AddTab("Preprocessor", preprocessorSettingsPanel.GetWidget());
             this->tabs.AddTab("Postprocessor", postprocessorSettingsPanel.GetWidget());
-            this->tabs.AddTab("Runner", runnerSettingsPanel.GetWidget());
+            this->tabs.AddTab("Misc.", runnerSettingsPanel.GetWidget());
             this->content.Pack_start(this->tabs.GetWidget(), true, true, 0);
 
             Panel imageAndServicePanel = Panel(false, 0);

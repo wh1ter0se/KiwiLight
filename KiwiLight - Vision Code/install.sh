@@ -40,18 +40,18 @@ then
     cd $HOME
     mkdir opencv
     cd opencv
-    wget https://github.com/opencv/opencv/archive/3.4.5.zip
-    unzip 3.4.5.zip
+    wget https://github.com/opencv/opencv/archive/refs/tags/3.4.14.zip
+    unzip 3.4.14.zip
     mkdir build
-    cmake -S opencv-3.4.5 -B build \
+    cmake -S opencv-3.4.14 -B build \
     -DCMAKE_BUILD_TYPE=RELEASE \
     -DCMAKE_INSTALL_PREFIX=/usr/local \
-    -DBUILD_TEST=FALSE \
+    -DBUILD_TESTS=FALSE \
     -DBUILD_JAVA=FALSE \
     -DWITH_GTK=TRUE
     
     cd build
-    sudo make -j3 install
+    sudo make -j4 install
     sudo ldconfig
     cd "$currentDir"
     

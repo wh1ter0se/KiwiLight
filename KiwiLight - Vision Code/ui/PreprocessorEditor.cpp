@@ -88,6 +88,9 @@ PreprocessorEditor::PreprocessorEditor(PreProcessor preprocessor) {
             editor.Pack_start(targetColorPanel.GetWidget(), true, true, 0);
 
         //color presets
+        Label colorButtonHeader = Label("Color Presets");
+            colorButtonHeader.SetName("subHeader");
+            editor.Pack_start(colorButtonHeader.GetWidget(), true, true, 0);
         Panel colorButtonPanel = Panel(true, 0);
             Button whiteButton = Button("White", white);
                 colorButtonPanel.Pack_start(whiteButton.GetWidget(), true, true, 0);

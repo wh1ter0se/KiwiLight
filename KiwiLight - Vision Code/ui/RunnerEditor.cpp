@@ -30,6 +30,10 @@ RunnerEditor::RunnerEditor(Runner runner) {
 
             editor.Pack_start(maxContourPanel.GetWidget(), true, true, 0);
 
+        Label udpPanelHeader = Label("UDP");
+            udpPanelHeader.SetName("subHeader");
+            editor.Pack_start(udpPanelHeader.GetWidget(), true, true, 0);
+
         Panel udpPanel = Panel(true, 0);
             Panel udpInputPanel = Panel(false, 0);
                 Panel udpAddressPanel = Panel(true, 0);
@@ -78,7 +82,7 @@ RunnerEditor::RunnerEditor(Runner runner) {
 
             Panel offsetPanelContents = Panel(true, 0);
                 double realOffsetX = runner.GetRunnerProperty(RunnerProperty::OFFSET_X);
-                this->offsetX = LabeledSlider("Horizontal", -48.0, 48.0, -1.0, realOffsetX);
+                this->offsetX = LabeledSlider("Horizontal", -48.0, 48.0, 0.1, realOffsetX);
                     offsetPanelContents.Pack_start(this->offsetX.GetWidget(), true, true, 0);
 
                 double realOffsetY = runner.GetRunnerProperty(RunnerProperty::OFFSET_Y);
@@ -95,11 +99,11 @@ RunnerEditor::RunnerEditor(Runner runner) {
 
             Panel resizePanelContents = Panel(true, 0);
                 double realResizeX = runner.GetRunnerProperty(RunnerProperty::IMAGE_WIDTH);
-                this->imageWidth = LabeledSlider("Horizontal", 50.0, 1080.0, 1.0, realResizeX);
+                this->imageWidth = LabeledSlider("Width", 50.0, 1080.0, 1.0, realResizeX);
                     resizePanelContents.Pack_start(this->imageWidth.GetWidget(), true, true, 0);
 
                 double realResizeY = runner.GetRunnerProperty(RunnerProperty::IMAGE_HEIGHT);
-                this->imageHeight = LabeledSlider("Vertical", 50.0, 720.0, 1.0, realResizeY);
+                this->imageHeight = LabeledSlider("Height", 50.0, 720.0, 1.0, realResizeY);
                     resizePanelContents.Pack_start(this->imageHeight.GetWidget(), true, true, 0);
 
                 resizePanel.Pack_start(resizePanelContents.GetWidget(), true, true, 0);

@@ -485,7 +485,6 @@ void KiwiLightApp::EditorOpenNewCameraFromOverview() {
  */
 void KiwiLightApp::EditorApplyFRCSettings() {
     KiwiLightApp::configeditor.ApplyFRCCameraSettings();
-    KiwiLightApp::configeditor.ApplyCameraSettings();
 }
 
 /**
