@@ -32,7 +32,11 @@ then
     sudo apt-get update
     sudo apt-get --assume-yes install v4l-utils
     sudo apt-get --assume-yes install libgtk-3-dev
+    sudo apt-get --assume-yes install make
     sudo apt-get --assume-yes install cmake
+    sudo apt-get --assume-yes install wget
+    sudo apt-get --assume-yes install unzip
+
     sudo apt-get --assume-yes install realvnc-vnc-server
     
     #install OpenCV
