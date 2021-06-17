@@ -7,7 +7,7 @@
 
 using namespace KiwiLight;
 
-const int Logger::UPDATE_VECTOR_MAX_SIZE = 75;
+const int Logger::UPDATE_VECTOR_MAX_SIZE = 250;
 const int Logger::FILE_WRITE_INTERVAL = 2500;
 
 /**
@@ -85,7 +85,7 @@ void Logger::Log(std::string runnerOutput) {
 
     //get distance
     int distance = std::stoi(segments[5]);
-    if(distance > -1) {
+    if(distance > 0) {
         if(distance > farthestDistanceEvent.GetRecord()) {
             farthestDistanceEvent = LogEvent(LogEvent::RECORD_HIGH_DIST, thisFrameTime, distance);
         }

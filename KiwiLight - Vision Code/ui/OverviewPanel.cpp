@@ -153,7 +153,7 @@ void OverviewPanel::SetTargetInformationLabels(
         targetVAngleString = "N/A";
 
     if(targetSpotted) {
-        targetLocationString = "( " + std::to_string(targetImgX) + ", " + std::to_string(targetImgY) + ")";
+        targetLocationString = "(" + std::to_string(targetImgX) + ", " + std::to_string(targetImgY) + ")";
         targetSizeString = "(" + std::to_string(targetImgW) + ", " + std::to_string(targetImgH) + ")";
         targetDistString = std::to_string(targetDist);
         targetHAngleString = std::to_string(targetHAngle);
