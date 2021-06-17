@@ -43,7 +43,7 @@
             <focalWidth>300</focalWidth>
             <calibratedDistance>36</calibratedDistance>
             <distErrorCorrect>-0.1</distErrorCorrect>
-            <calcByHeight>true</calcByHeight>
+            <calcByHeight>false</calcByHeight>
             <maxContours>5</maxContours>
         </target>
         <UDP>
