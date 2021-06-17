@@ -40,8 +40,8 @@ public class CyborgCommandAlign extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    double horizontalAngle = kiwilight.getHorizontalAngleToTarget();
-    if(horizontalAngle < 180) {
+    if(kiwilight.targetSpotted()) {
+      double horizontalAngle = kiwilight.getHorizontalAngleToTarget();
       double output = pidcontroller.calculate(horizontalAngle);
       drivetrain.driveDirect(output, output * -1);
     }

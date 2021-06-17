@@ -43,7 +43,7 @@ public class SubsystemDrive extends SubsystemBase {
   }
 
   /**
-   * Drives the drivetrain motors using the passed controller
+   * Drives the robot manually.
    * @param controller The controller to drive with
    */
   public void DriveTankByController(Joystick controller) {
@@ -68,6 +68,12 @@ public class SubsystemDrive extends SubsystemBase {
     rightSlave.set(driveRight);
   }
 
+  /**
+   * Sets the percent outputs of the drivetrain motors. This method is required for
+   * target alignment to work.
+   * @param left Percent output to set the left motors to.
+   * @param right Percent output to set the right motors to.
+   */
   public void driveDirect(double left, double right) {
     rightMaster.set(right);
     rightSlave.set(right);
@@ -75,6 +81,9 @@ public class SubsystemDrive extends SubsystemBase {
     leftSlave.set(left);
   }
 
+  /**
+   * Sets the proper motor inverts
+   */
   private void setInverts() {
     rightMaster.setInverted(Constants.DRIVE_RIGHT_MASTER_INVERT);
     rightSlave.setInverted(Constants.DRIVE_RIGHT_SLAVE_INVERT);
@@ -82,6 +91,9 @@ public class SubsystemDrive extends SubsystemBase {
     leftSlave.setInverted(Constants.DRIVE_LEFT_SLAVE_INVERT);
   }
 
+  /**
+   * Sets the motor to braking mode.
+   */
   private void setBraking() {
     rightMaster.setIdleMode(IdleMode.kBrake);
     rightSlave.setIdleMode(IdleMode.kBrake);
