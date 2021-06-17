@@ -1,6 +1,11 @@
 #include "../KiwiLight.h"
 #include "gnuplot_i.hpp"
 
+#define DATA_PLOT FALSE //This flag enables (or disables) a feature offered by the LogViewer that plots the 
+                        //log data over time, which can be useful for debugging performance issues. However,
+                        //the plotter is unstable and may crash frequently for a reason that is still unknown.
+                        //Set this flag to TRUE to enable, and FALSE to disable.
+
 /**
  * Source file for the LogViewer class.
  * Written By: Brach Knutson
@@ -140,17 +145,17 @@ LogViewer::LogViewer(XMLDocument log) {
             //average frame time readout
             std::string avgFrameTimeString = std::to_string(averageFPSNum) + " FPS";
             this->averageFrameTime = Label(avgFrameTimeString);
-            createHorizontalReadout("Average Frame Time: ", averageFrameTime, true);
+            createHorizontalReadout("Average Frame Rate: ", averageFrameTime, true);
 
             //fastest frame time readout
             std::string fastestFrameTimeString = std::to_string(fastestFPSNum) + " FPS";
             this->fastestFrameTime = Label(fastestFrameTimeString);
-            createHorizontalReadout("Fastest Frame Time: ", fastestFrameTime, false);
+            createHorizontalReadout("Fastest Frame Rate: ", fastestFrameTime, false);
 
             //slowest frame time readout
             std::string slowestFrameTimeString = std::to_string(slowestFPSNum) + " FPS";
             this->slowestFrameTime = Label(slowestFrameTimeString);
-            createHorizontalReadout("Slowest Frame Time: ", slowestFrameTime, false);
+            createHorizontalReadout("Slowest Frame Rate: ", slowestFrameTime, false);
 
             bool distUnknown = (closestDistanceNum == DBL_MAX && farthestDistanceNum == 0);
 
@@ -166,10 +171,12 @@ LogViewer::LogViewer(XMLDocument log) {
             this->farthestDistance = Label(distUnknown ? "Unknown" : std::to_string(farthestDistanceNum));
             createHorizontalReadout("Farthest Distance: ", farthestDistance, false);
 
-            //show plot button
+            #if DATA_PLOT == TRUE
+            //show plot button (only if DATA_PLOT is enabled)
             this->showingPlot = false;
             this->plotButton = Button("Show Plot", KiwiLightApp::ToggleLogPlot);
                 readouts.Pack_start(plotButton.GetWidget(), true, false, 0);
+            #endif
 
             this->window.SetPane(contents);
         this->window.SetCSS("ui/Style.css");

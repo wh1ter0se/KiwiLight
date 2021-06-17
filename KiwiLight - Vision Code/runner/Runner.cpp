@@ -147,9 +147,6 @@ std::string Runner::Iterate() {
     //mark up the image with some stuff for the programmers to look at :)
     if(this->debug) {
         cv::cvtColor(out, out, cv::COLOR_GRAY2BGR);
-
-        //write the out string onto the image
-        cv::putText(out, rioMessage, cv::Point(5, 15), cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar(0,0,255), 2);
         
         //draw a line where the perceived horizontal robot center is
         int camHeight = this->constantResize.height;

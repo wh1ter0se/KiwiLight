@@ -12,13 +12,13 @@ using namespace KiwiLight;
  */
 void ShowHelp() {
     std::cout << "KIWILIGHT HELP\n";
-    std::cout << "Usage: KiwiLight [-h] [-c] [config files]\n";
+    std::cout << "Usage: KiwiLight [options] [config files]\n";
     std::cout << "\n";
     std::cout << "KiwiLight is a smart vision solution for FRC applications developed by FRC Team 3695: Foximus Prime.\n";
     std::cout << "\n";
     std::cout << "Options:\n";
     std::cout << "-c: Runs a config file, or multiple config files.\n";
-    std::cout << "-h: Displays this help window.\n";
+    std::cout << "-h: Displays this help message.\n";
     std::cout << std::endl;
 }
 

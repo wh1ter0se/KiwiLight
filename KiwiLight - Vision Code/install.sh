@@ -9,8 +9,7 @@ echo "Running this program will install/uninstall the following packages/depende
 echo " - OpenCV"
 echo " - Video4Linux"
 echo " - GTK 3"
-echo " - Cmake"
-echo " - VNC"
+echo " - VNC Server"
 echo ""
 read -p "Do you want to continue? [y/n]:" confirm
 
@@ -36,7 +35,7 @@ then
     sudo apt-get --assume-yes install cmake
     sudo apt-get --assume-yes install wget
     sudo apt-get --assume-yes install unzip
-
+    sudo apt-get --assume-yes install crontab
     sudo apt-get --assume-yes install realvnc-vnc-server
     
     #install OpenCV
@@ -80,6 +79,7 @@ then
     sudo apt-get --assume-yes remove v4l-utils
     sudo apt-get --assume-yes remove libgtk-3-dev
     sudo apt-get --assume-yes remove cmake
+    sudo apt-get --assume-yes remove realvnc-vnc-server
     sudo apt-get --assume-yes autoremove
     
     #uninstall OpenCV

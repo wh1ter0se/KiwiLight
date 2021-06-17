@@ -7,7 +7,7 @@
 
 using namespace KiwiLight;
 
-const int Logger::UPDATE_VECTOR_MAX_SIZE = 250;
+const int Logger::UPDATE_VECTOR_MAX_SIZE = 75;
 const int Logger::FILE_WRITE_INTERVAL = 2500;
 
 /**
