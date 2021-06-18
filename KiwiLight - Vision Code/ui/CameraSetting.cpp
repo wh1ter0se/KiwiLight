@@ -9,7 +9,7 @@
 using namespace KiwiLight;
 
 /**
- * Creates a new CameraSetting widget, using the given std::string from V4L
+ * Creates a new CameraSetting widget.
  */
 CameraSetting::CameraSetting(std::string name, int valueName, double min, double max, double value) {
     this->name = name;
@@ -18,17 +18,9 @@ CameraSetting::CameraSetting(std::string name, int valueName, double min, double
     this->max = max;
     this->value = value;
 
-
     //create the widget
-    std::string boundString = 
-        "Min: " + std::to_string(min) + 
-        ", Max: " + std::to_string(max) +
-        ", ID: " + std::to_string(valueName);
-
-    std::string nameString = this->name + " (" + boundString + ")";
-
     Panel main = Panel(true, 0);
-        this->nameLabel = Label(nameString);
+        this->nameLabel = Label(name);
             main.Pack_start(nameLabel.GetWidget(), true, true, 0);
         this->input = NumberBox(min, max, 0.01, value);
             main.Pack_start(this->input.GetWidget(), true, true, 0);

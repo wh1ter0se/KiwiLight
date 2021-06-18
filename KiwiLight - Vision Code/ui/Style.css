@@ -4,6 +4,10 @@
  * Written By: Brach Knutson
  */
 
+ * {
+    color:black; /** Defaults all text colors to black */
+}
+
 window, window * {
     background-color: rgb(24, 24, 24);
     color: rgb(52, 117, 22);
@@ -43,6 +47,10 @@ window:not(dialog) button:active * {
 
 window:not(dialog) button:disabled {
     color:rgb(7, 22, 1);
+}
+
+dialog *:focus {
+    color:rgb(52, 117, 22);
 }
 
 scrolledwindow * {

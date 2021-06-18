@@ -56,10 +56,10 @@ void Logger::Start() {
  */
 void Logger::Log(std::string runnerOutput) {
     std::string slicedOutput = runnerOutput.substr(1, runnerOutput.length() - 1);
-    std::vector<std::string> segments = StringUtils::SplitString(slicedOutput, ',');
+    std::vector<std::string> segments = Util::SplitString(slicedOutput, ',');
 
     totalFrames++;
-    bool isTargetSeen = segments[0] != "-1";
+    bool isTargetSeen = segments[1] != "-1";
     if(isTargetSeen) {
         framesWithTargetSeen++;
     }
@@ -84,8 +84,8 @@ void Logger::Log(std::string runnerOutput) {
     }
 
     //get distance
-    int distance = std::stoi(segments[4]);
-    if(distance > -1) {
+    int distance = std::stoi(segments[5]);
+    if(distance > 0) {
         if(distance > farthestDistanceEvent.GetRecord()) {
             farthestDistanceEvent = LogEvent(LogEvent::RECORD_HIGH_DIST, thisFrameTime, distance);
         }

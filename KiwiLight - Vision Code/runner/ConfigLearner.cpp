@@ -1,4 +1,4 @@
-#include "Runner.h"
+#include "../KiwiLight.h"
 
 /**
  * Source file for the ConfigLearner class.
@@ -11,8 +11,10 @@ using namespace KiwiLight;
 /**
  * Creates a new ConfigLearner which uses the passed preprocessor.
  */
-ConfigLearner::ConfigLearner(PreProcessor preprocessor) {
+ConfigLearner::ConfigLearner(PreProcessor preprocessor, Size imageSize) {
     this->preprocessor = preprocessor;
+    this->imageSize = imageSize;
+    this->minimumArea = 500;
     this->currentlyLearning = false;
     this->failedFrames = 0;
 }
@@ -25,10 +27,20 @@ void ConfigLearner::StartLearning() {
 }
 
 /**
+ * Sets the minimum area that a contour must be to be considered to be part of the target being learned.
+ */
+void ConfigLearner::SetMinimumArea(int minimumArea) {
+    this->minimumArea = minimumArea;
+}
+
+/**
  * Feeds an unprocessed image into the learner for processing.
  */
-void ConfigLearner::FeedImage(Mat img, int minimumContourArea) {
+void ConfigLearner::Feed() {
     //if the camera grab has failed and the image doesn't exist...
+    Mat img = KiwiLightApp::TakeImage();
+    resize(img, img, imageSize);
+
     if(img.empty()) {
         failedFrames++;
         return;
@@ -52,7 +64,7 @@ void ConfigLearner::FeedImage(Mat img, int minimumContourArea) {
         Rect bounds = boundingRect(contour);
         int area = bounds.width * bounds.height;
 
-        if(area > minimumContourArea) {
+        if(area > minimumArea) {
             bigContours.push_back(contour);
         }
     }
@@ -72,26 +84,25 @@ void ConfigLearner::FeedImage(Mat img, int minimumContourArea) {
 
     //if the learner is learning we should make a camera frame and store it for further processing
     if(this->currentlyLearning) {
-        CameraFrame newFrame = CameraFrame(preprocessed, minimumContourArea);
+        CameraFrame newFrame = CameraFrame(preprocessed, minimumArea);
         this->currentFrames.push_back(newFrame);
     }
 }
 
 /**
  * Disables this ConfigLearner's ability to be fed frames, and creates an ExampleTarget which represents the target which is being learned.
- * @param minimumContourArea The minimum area of any contour in the target. Any contours in any frames with areas smaller than this value will be ignored.
  * @return An ExampleTarget representing the "average" of all targets in all fed frames.
  */
-ExampleTarget ConfigLearner::StopLearning(int minimumContourArea) {
+ExampleTarget ConfigLearner::StopLearning() {
     this->currentlyLearning = false;
 
-    //create a sorted list of the number of contours in each image (it is double because DataUtils sorts doubles)
+    //create a sorted list of the number of contours in each image (it is double because Util sorts doubles)
     std::vector<double> numberContoursList;
     for(int i=0; i<this->currentFrames.size(); i++) {
         numberContoursList.push_back(this->currentFrames[i].GetContoursGrouped().size());
     }
 
-    double regularNumberOfContours = DataUtils::MostCommonValue(numberContoursList);
+    double regularNumberOfContours = Util::MostCommonValue(numberContoursList);
 
     std::vector <std::vector <Contour> > groupedContours; //vector of contours grouped by their distance from target center
     for(int i=0; i<this->currentFrames.size(); i++) {
@@ -122,11 +133,11 @@ ExampleTarget ConfigLearner::StopLearning(int minimumContourArea) {
             aspectRatios.push_back(contourToAnalyze.AspectRatio());
         }
 
-        horizontalDistances = DataUtils::SortLeastGreatestDouble(horizontalDistances);
-        verticalDistances   = DataUtils::SortLeastGreatestDouble(verticalDistances);
-        angles              = DataUtils::SortLeastGreatestDouble(angles);
-        solidities          = DataUtils::SortLeastGreatestDouble(solidities);
-        aspectRatios        = DataUtils::SortLeastGreatestDouble(aspectRatios);
+        horizontalDistances = Util::SortLeastGreatestDouble(horizontalDistances);
+        verticalDistances   = Util::SortLeastGreatestDouble(verticalDistances);
+        angles              = Util::SortLeastGreatestDouble(angles);
+        solidities          = Util::SortLeastGreatestDouble(solidities);
+        aspectRatios        = Util::SortLeastGreatestDouble(aspectRatios);
 
         //record the sizes of each array so we can see how many outliers are removed
         std::vector<double> dataSizes;
@@ -137,11 +148,11 @@ ExampleTarget ConfigLearner::StopLearning(int minimumContourArea) {
         dataSizes.push_back((double) aspectRatios.size());
 
         //remove outliers
-        horizontalDistances = DataUtils::RemoveOutliers(horizontalDistances, 0.5);
-        verticalDistances   = DataUtils::RemoveOutliers(verticalDistances, 0.5);
-        angles              = DataUtils::RemoveOutliers(angles, 10.0);
-        solidities          = DataUtils::RemoveOutliers(solidities, 0.25);
-        aspectRatios        = DataUtils::RemoveOutliers(aspectRatios, 0.25);
+        horizontalDistances = Util::RemoveOutliers(horizontalDistances, 0.5);
+        verticalDistances   = Util::RemoveOutliers(verticalDistances, 0.5);
+        angles              = Util::RemoveOutliers(angles, 10.0);
+        solidities          = Util::RemoveOutliers(solidities, 0.25);
+        aspectRatios        = Util::RemoveOutliers(aspectRatios, 0.25);
 
         std::vector<double> newDataSizes;
         newDataSizes.push_back((double) horizontalDistances.size());
@@ -150,17 +161,17 @@ ExampleTarget ConfigLearner::StopLearning(int minimumContourArea) {
         newDataSizes.push_back((double) solidities.size());
         newDataSizes.push_back((double) aspectRatios.size());
 
-        double originalTotal = DataUtils::Total(dataSizes);
-        double removedTotal = DataUtils::Total(newDataSizes);
+        double originalTotal = Util::Total(dataSizes);
+        double removedTotal = Util::Total(newDataSizes);
 
         double totalRemoved = originalTotal - removedTotal;
         double avgRemoved = totalRemoved / newDataSizes.size();
 
-        double averageHorizontalDistance = DataUtils::Average(horizontalDistances);
-        double averageVerticaldistance   = DataUtils::Average(verticalDistances);
-        double averageAngle              = DataUtils::Average(angles);
-        double averageSolidity           = DataUtils::Average(solidities);
-        double averageAspectRatio        = DataUtils::Average(aspectRatios);
+        double averageHorizontalDistance = Util::Average(horizontalDistances);
+        double averageVerticaldistance   = Util::Average(verticalDistances);
+        double averageAngle              = Util::Average(angles);
+        double averageSolidity           = Util::Average(solidities);
+        double averageAspectRatio        = Util::Average(aspectRatios);
 
         SettingPair horizontalDistancePair = SettingPair(averageHorizontalDistance, 0.25);
         SettingPair verticalDistancePair   = SettingPair(averageVerticaldistance, 0.25);
@@ -168,7 +179,7 @@ ExampleTarget ConfigLearner::StopLearning(int minimumContourArea) {
         SettingPair solidityPair           = SettingPair(averageSolidity, 0.25);
         SettingPair aspectRatioPair        = SettingPair(averageAspectRatio, 0.25);
 
-        ExampleContour newExampleContour = ExampleContour(i, horizontalDistancePair, verticalDistancePair, anglePair, aspectRatioPair, solidityPair, minimumContourArea);
+        ExampleContour newExampleContour = ExampleContour(i, horizontalDistancePair, verticalDistancePair, anglePair, aspectRatioPair, solidityPair, minimumArea);
         finishedContours.push_back(newExampleContour);
     }
 

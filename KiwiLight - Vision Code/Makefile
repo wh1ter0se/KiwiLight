@@ -112,12 +112,6 @@ bin/util/Shell.o: util/Shell.cpp
 bin/util/Util.o: util/Util.cpp
 	$(CXX) $(FLAGS) bin/util/Util.o util/Util.cpp
 
-bin/util/StringUtils.o: util/StringUtils.cpp
-	$(CXX) $(FLAGS) bin/util/StringUtils.o util/StringUtils.cpp
-
-bin/util/DataUtils.o: util/DataUtils.cpp
-	$(CXX) $(FLAGS) bin/util/DataUtils.o util/DataUtils.cpp
-
 bin/util/UDP.o: util/UDP.cpp
 	$(CXX) $(FLAGS) bin/util/UDP.o util/UDP.cpp
 
@@ -142,8 +136,8 @@ bin/util/Clock.o: util/Clock.cpp
 bin/util/LogEvent.o: util/LogEvent.cpp
 	$(CXX) $(FLAGS) bin/util/LogEvent.o util/LogEvent.cpp 
 
-lib/Util.a: bin/util/Shell.o bin/util/Util.o bin/util/StringUtils.o bin/util/DataUtils.o bin/util/UDP.o bin/util/XMLDocument.o bin/util/XMLTag.o bin/util/XMLTagAttribute.o bin/util/SettingPair.o bin/util/Color.o bin/util/Clock.o bin/util/LogEvent.o
-	ar rs lib/Util.a bin/util/Shell.o bin/util/Util.o bin/util/StringUtils.o bin/util/DataUtils.o bin/util/UDP.o bin/util/XMLDocument.o bin/util/XMLTag.o bin/util/XMLTagAttribute.o bin/util/SettingPair.o bin/util/Color.o bin/util/Clock.o bin/util/LogEvent.o
+lib/Util.a: bin/util/Shell.o bin/util/Util.o bin/util/UDP.o bin/util/XMLDocument.o bin/util/XMLTag.o bin/util/XMLTagAttribute.o bin/util/SettingPair.o bin/util/Color.o bin/util/Clock.o bin/util/LogEvent.o
+	ar rs lib/Util.a bin/util/Shell.o bin/util/Util.o bin/util/UDP.o bin/util/XMLDocument.o bin/util/XMLTag.o bin/util/XMLTagAttribute.o bin/util/SettingPair.o bin/util/Color.o bin/util/Clock.o bin/util/LogEvent.o
 
 #RUNNER
 bin/runner/Contour.o: runner/Contour.cpp
@@ -168,7 +162,7 @@ bin/runner/Logger.o: runner/Logger.cpp
 	$(CXX) $(FLAGS) bin/runner/Logger.o runner/Logger.cpp $(CV)
 
 bin/runner/ConfigLearner.o: runner/ConfigLearner.cpp
-	$(CXX) $(FLAGS) bin/runner/ConfigLearner.o runner/ConfigLearner.cpp $(CV)
+	$(CXX) $(FLAGS) bin/runner/ConfigLearner.o runner/ConfigLearner.cpp $(GTK) $(CV)
 
 bin/runner/Runner.o: runner/Runner.cpp
 	$(CXX) $(FLAGS) bin/runner/Runner.o runner/Runner.cpp $(GTK) $(CV)

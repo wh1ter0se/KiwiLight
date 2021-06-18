@@ -71,6 +71,8 @@ namespace KiwiLight {
         static void EditorConnectUDPFromOverview();
         static void EditorApplyCameraSettings();
         static void EditorOpenNewCameraFromOverview();
+        static void EditorApplyFRCSettings();
+        static void EditorSetTargetColorHSV(int h, int s, int v);
         static void ToggleLogPlot();
         static void GenerateLogPlot();
         static void OpenNewCameraOnIndex(int index);
@@ -99,7 +101,7 @@ namespace KiwiLight {
         static void NewConfiguration();
         static void EditConfiguration();
         static void OpenConfiguration();
-        static void OpenConfigurationFromFile(std::string fileName);
+        static bool OpenConfigurationFromFile(std::string fileName);
         static void CloseConfiguration();
         static bool PromptEditorSaveAndClose();
         static bool PromptHeadlessStop();

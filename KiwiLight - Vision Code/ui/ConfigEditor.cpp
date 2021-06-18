@@ -32,9 +32,9 @@ static void LearnDistanceButtonPressed() {
  * Closes the editor window without saving the current configuration.
  */
 static void JustCloseButtonPressed() {
-    KiwiLightApp::StopStreamingThread();
+    // KiwiLightApp::StopStreamingThread();
     KiwiLightApp::CloseEditor(false);
-    KiwiLightApp::LaunchStreamingThread(AppMode::UI_RUNNER);
+    // KiwiLightApp::LaunchStreamingThread(AppMode::UI_RUNNER);
 }
 
 /**
@@ -43,9 +43,7 @@ static void JustCloseButtonPressed() {
  */
 static void SaveAndCloseButtonPressed() {
     //save previous file name in case the editor fails to close due to save issues
-    KiwiLightApp::StopStreamingThread();
-    bool editorWasClosed = KiwiLightApp::CloseEditor(true);
-    KiwiLightApp::LaunchStreamingThread(editorWasClosed ? AppMode::UI_RUNNER : AppMode::UI_EDITOR);
+    KiwiLightApp::CloseEditor(true);
 }
 
 /**
@@ -92,7 +90,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
                     overviewPanel.Pack_start(exitPanel.GetWidget(), true, true, 0);
 
             Panel cameraSettingsPanel = Panel(false, 5);
-                Label cameraSettingsHeader = Label("Camera Settings");
+                Label cameraSettingsHeader = Label("Camera");
                     cameraSettingsHeader.SetName("header");
                     cameraSettingsPanel.Pack_start(cameraSettingsHeader.GetWidget(), true, true, 0);
                     
@@ -116,7 +114,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
                     postprocessorSettingsPanel.Pack_start(this->postprocessorSettings.GetWidget(), true, true, 0);
 
             Panel runnerSettingsPanel = Panel(false, 5);
-                Label runnerSettingsPanelHeader = Label("Runner");
+                Label runnerSettingsPanelHeader = Label("Misc.");
                     runnerSettingsPanelHeader.SetName("header");
                     runnerSettingsPanel.Pack_start(runnerSettingsPanelHeader.GetWidget(), true, true, 0);
 
@@ -127,7 +125,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
             this->tabs.AddTab("Camera", cameraSettingsPanel.GetWidget());
             this->tabs.AddTab("Preprocessor", preprocessorSettingsPanel.GetWidget());
             this->tabs.AddTab("Postprocessor", postprocessorSettingsPanel.GetWidget());
-            this->tabs.AddTab("Runner", runnerSettingsPanel.GetWidget());
+            this->tabs.AddTab("Misc.", runnerSettingsPanel.GetWidget());
             this->content.Pack_start(this->tabs.GetWidget(), true, true, 0);
 
             Panel imageAndServicePanel = Panel(false, 0);
@@ -266,13 +264,19 @@ void ConfigEditor::Update() {
 
 /**
  * Updates the internal runner to in turn update the output images.
+ * Also updates services that are dependent on the images.
  */
 bool ConfigEditor::UpdateImageOnly() {
+    bool successful = false;
+
     //update services
     if(this->learnerActivated) {
-        int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
-        this->learner.FeedImage(this->original, minimumArea);
-        this->out = this->learner.GetOutputImageFromLastFeed();
+        if(LearnDialogActive()) { //if the learn dialog is active, use the minimum area slider on it to set minimum area.
+            int minimumArea = (int) this->learnDialogMinArea.GetValue();
+            this->learner.SetMinimumArea(minimumArea);
+        }
+
+        this->learner.Feed();
 
         if(this->learner.GetLearning()) {
             if(this->learner.GetFramesLearned() >= LEARNER_FRAMES) {
@@ -280,10 +284,10 @@ bool ConfigEditor::UpdateImageOnly() {
                 this->updateShouldSkip = true;
                 //wait for current update to finish
                 while(this->updating) {
-                    usleep(1000000);
+                    usleep(1000);
                 }
-                int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
-                ExampleTarget newTarget = this->learner.StopLearning(minimumArea);
+                int minimumArea = (int) this->postprocessorSettings.GetProperty(postprocessorSettings.GetCurrentContour(), TargetProperty::MINIMUM_AREA).Value();
+                ExampleTarget newTarget = this->learner.StopLearning();
                 this->learnerActivated = false;
 
                 if(newTarget.Contours().size() > 0) {
@@ -307,28 +311,53 @@ bool ConfigEditor::UpdateImageOnly() {
     }
     
     if(this->distanceLearnerRunning) {
-        this->distanceLearner.FeedTarget(this->runner.GetClosestTargetToCenter());
+        if(this->runner.GetLastFrameTargets().size() > 0) {
+            this->distanceLearner.FeedTarget(this->runner.GetClosestTargetToCenter());
+        } else {
+            this->distanceLearner.FeedBlank();
+        }
 
         if(this->distanceLearner.GetFramesLearned() >= LEARNER_FRAMES) {
             this->updateShouldSkip = true;
+
+            //wait for current update to finish
+            while(this->updating) {
+                usleep(1000);
+            }
+
             double trueDistance = this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE);
             double trueWidth = this->runnerSettings.GetProperty(RunnerProperty::TRUE_WIDTH);
             double newFocalWidth = this->distanceLearner.GetFocalWidth(trueDistance, trueWidth);
-            this->runnerSettings.SetProperty(RunnerProperty::PERCEIVED_WIDTH, newFocalWidth);
+            if(newFocalWidth > -1) {
+                this->runnerSettings.SetProperty(RunnerProperty::PERCEIVED_WIDTH, newFocalWidth);
+            }
+
             this->distanceLearnerRunning = false;
             this->updateShouldSkip = false;
         }
     }
 
+    //return without success if last target had too many contours.
     if(this->runner.GetExampleTarget().Contours().size() > MAX_CONTOURS_BEFORE_SUPPRESSION) {
         return false;
     }
 
-    this->lastIterationResult = this->runner.Iterate();
-    bool retval = this->runner.GetLastFrameSuccessful();
-    this->out = this->runner.GetOutputImage();
-    this->original = this->runner.GetOriginalImage();
-    return retval;
+    //return with success of runner if the target learner is not running
+    if(!this->learnerActivated) { 
+        //this if statement prevents the spaz attack that happens when the "learn target" button was pressed.
+        //previously, the images kept switching between the learner ouput and the real output.
+        this->lastIterationResult = this->runner.Iterate();
+        successful = this->runner.GetLastFrameSuccessful();
+        this->original = this->runner.GetOriginalImage();
+        this->out = this->runner.GetOutputImage();
+    } else {
+        //otherwise (if the target learner is running), return with the success of the target learner.
+        successful = !learner.GetHasFailed();
+        this->out = this->learner.GetOutputImageFromLastFeed();
+        this->original = this->learner.GetOriginalImageFromLastFeed();
+    }
+
+    return successful;
 }
 
 /**
@@ -563,7 +592,7 @@ bool ConfigEditor::Save() {
                 
     //to prompt file name or not to promt file name
     std::string fileToSave = this->fileName;
-    std::vector<std::string> fileParts = StringUtils::SplitString(fileToSave, '/');
+    std::vector<std::string> fileParts = Util::SplitString(fileToSave, '/');
     
     if(fileParts[fileParts.size() - 1] == "generic.xml") {
         FileChooser chooser = FileChooser(true, "config.xml");
@@ -585,7 +614,22 @@ bool ConfigEditor::Save() {
  * Closes and destroys the editor window.
  */
 void ConfigEditor::Close() {
+    updateShouldSkip = true;
+
+    //wait for updating to stop
+    while(updating) {
+        usleep(1000);
+    }
     gtk_widget_destroy(this->widget);
+}
+
+/**
+ * Sets the color of the target, in HSV colorspace.
+ */
+void ConfigEditor::SetTargetColor(int h, int s, int v) {
+    preprocessorSettings.SetProperty(PreProcessorProperty::COLOR_HUE, h);
+    preprocessorSettings.SetProperty(PreProcessorProperty::COLOR_SATURATION, s);
+    preprocessorSettings.SetProperty(PreProcessorProperty::COLOR_VALUE, v);
 }
 
 /**
@@ -594,14 +638,23 @@ void ConfigEditor::Close() {
 void ConfigEditor::StartLearningTarget() {
     if(KiwiLightApp::CameraOpen()) {
         //reinstantiate the learner to apply the preprocessor settings
-        this->learner = ConfigLearner(this->runner.GetPreProcessor());
+        this->learner = ConfigLearner(this->runner.GetPreProcessor(), this->runner.GetConstantSize());
         this->learnerActivated = true;
         
         ConfirmationDialog confirmLearn = ConfirmationDialog(
             std::string("Position the target in the center of the image and press OK.\n") +
-            std::string("It should be highlighted with a blue box.")
+            std::string("It should be highlighted with a blue box. If not, adjust the\n") +
+            std::string("area of the contours by using the slider.")
         );
+        Panel minimumAreaPanel = Panel(true, 0);
+            double realMinimumArea = postprocessorSettings.GetProperty(postprocessorSettings.GetCurrentContour(), TargetProperty::MINIMUM_AREA).Value();
+            this->learnDialogMinArea = LabeledSlider("Minimum Area", 5, 2500, 5, realMinimumArea);
+                minimumAreaPanel.Pack_start(learnDialogMinArea.GetWidget(), true, true, 5);
+            
+            confirmLearn.SetBody(minimumAreaPanel);
+
         bool shouldLearn = confirmLearn.ShowAndGetResponse();
+        
         if(shouldLearn) {
             this->serviceMonitor.SetText("Learning Target");
             this->serviceLabel.SetText("Capturing Frames");
@@ -649,7 +702,7 @@ void ConfigEditor::StartLearningDistance() {
                 dialogPanel.Pack_start(distancePanel.GetWidget(), false, false, 0);
             informationDialog.SetBody(dialogPanel);
 
-        //show the dialog anc ask the question, but do not destroy the dialog when the user presses OK
+        //show the dialog anc ask the question, but do not destroy the dialog immediately when the user presses OK
         bool shouldLearn = informationDialog.ShowButDontClose();
         double targetTrueWidth = trueWidthPanelValue.GetValue();
         double targetDistance = distanceValue.GetValue();
@@ -722,6 +775,11 @@ void ConfigEditor::ApplyCameraSettings() {
     }
 }
 
+
+void ConfigEditor::ApplyFRCCameraSettings() {
+    this->cameraSettings.ApplyFRCSettings();
+}
+
 /**
  * Sets the text of the Camera ID number boxes to the value of "index."
  */
@@ -782,4 +840,11 @@ void ConfigEditor::SetTarget(ExampleTarget target) {
         this->postprocessorSettings.SetProperty(i, TargetProperty::ASPECT_RATIO, newContours[i].AspectRatio());
         this->postprocessorSettings.SetProperty(i, TargetProperty::MINIMUM_AREA, SettingPair(newContours[i].MinimumArea(), 0));
     }
+}
+
+/**
+ * Returns true if the learn confirmation dialog is active, and false otherwise.
+ */
+bool ConfigEditor::LearnDialogActive() {
+    return learnerActivated && !learner.GetLearning();
 }

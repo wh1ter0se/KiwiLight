@@ -440,10 +440,11 @@ namespace KiwiLight {
     class ConfigLearner {
         public:
         ConfigLearner() {};
-        ConfigLearner(PreProcessor preprocessor);
+        ConfigLearner(PreProcessor preprocessor, Size imageSize);
         void StartLearning();
-        void FeedImage(Mat img, int minimumContourArea);
-        ExampleTarget StopLearning(int minimumContourArea);
+        void SetMinimumArea(int minimumArea);
+        void Feed();
+        ExampleTarget StopLearning();
         bool GetLearning() { return this->currentlyLearning; };
         bool GetHasFailed() { return this->failedFrames > 10; };
         int GetFramesLearned();
@@ -452,6 +453,8 @@ namespace KiwiLight {
 
         private:
         PreProcessor preprocessor;
+        Size imageSize;
+        int minimumArea;
 
         bool currentlyLearning;
         std::vector<CameraFrame> currentFrames;
@@ -472,6 +475,7 @@ namespace KiwiLight {
         TargetDistanceLearner(PreProcessor preprocessor, PostProcessor postprocessor);
         void FeedImage(Mat img);
         void FeedTarget(Target targ);
+        void FeedBlank();
         int GetFramesLearned();
         bool GetHasFailed() { return this->failedFrames > 10; };
         double GetFocalWidth(double trueDistance, double trueWidth);

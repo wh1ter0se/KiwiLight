@@ -9,8 +9,7 @@ echo "Running this program will install/uninstall the following packages/depende
 echo " - OpenCV"
 echo " - Video4Linux"
 echo " - GTK 3"
-echo " - Cmake"
-echo " - VNC"
+echo " - VNC Server"
 echo ""
 read -p "Do you want to continue? [y/n]:" confirm
 
@@ -29,9 +28,14 @@ if [ $action = "1" ];
 then
     echo "Installing."
     #install packages
+    sudo apt-get update
     sudo apt-get --assume-yes install v4l-utils
     sudo apt-get --assume-yes install libgtk-3-dev
+    sudo apt-get --assume-yes install make
     sudo apt-get --assume-yes install cmake
+    sudo apt-get --assume-yes install wget
+    sudo apt-get --assume-yes install unzip
+    sudo apt-get --assume-yes install crontab
     sudo apt-get --assume-yes install realvnc-vnc-server
     
     #install OpenCV
@@ -39,18 +43,18 @@ then
     cd $HOME
     mkdir opencv
     cd opencv
-    wget https://github.com/opencv/opencv/archive/3.4.5.zip
-    unzip 3.4.5.zip
+    wget https://github.com/opencv/opencv/archive/refs/tags/3.4.14.zip
+    unzip 3.4.14.zip
     mkdir build
-    cmake -S opencv-3.4.5 -B build \
+    cmake -S opencv-3.4.14 -B build \
     -DCMAKE_BUILD_TYPE=RELEASE \
     -DCMAKE_INSTALL_PREFIX=/usr/local \
-    -DBUILD_TEST=FALSE \
+    -DBUILD_TESTS=FALSE \
     -DBUILD_JAVA=FALSE \
     -DWITH_GTK=TRUE
     
     cd build
-    sudo make -j3 install
+    sudo make -j4 install
     sudo ldconfig
     cd "$currentDir"
     
@@ -58,6 +62,7 @@ then
     cd $HOME
     mkdir KiwiLightData
     mkdir KiwiLightData/confs
+    mkdir KiwiLightData/logs
     mkdir KiwiLightData/tmp
     cp "$currentDir/generic.xml" KiwiLightData/confs
     
@@ -74,6 +79,7 @@ then
     sudo apt-get --assume-yes remove v4l-utils
     sudo apt-get --assume-yes remove libgtk-3-dev
     sudo apt-get --assume-yes remove cmake
+    sudo apt-get --assume-yes remove realvnc-vnc-server
     sudo apt-get --assume-yes autoremove
     
     #uninstall OpenCV
@@ -81,6 +87,7 @@ then
     cd $HOME
     cd opencv/build
     sudo make -j4 uninstall
+    cd $HOME
     sudo rm -r opencv
     cd $currentDir
     

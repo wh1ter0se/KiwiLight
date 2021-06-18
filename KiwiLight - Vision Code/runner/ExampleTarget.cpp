@@ -44,37 +44,12 @@ std::vector<Target> ExampleTarget::GetTargets(std::vector<Contour> objects) {
     int numTargetContours = this->contours.size();
     int numImageContours = validContours.size();
 
-    //if maxContours is exceeded, filter out smaller contours and only take the bigger ones
-    if(validContours.size() > maxContours && numTargetContours > 1) { 
-        std::vector<Contour> reducedValidContours = std::vector<Contour>();
-        int placeRequirement = validContours.size() - maxContours;
-        for(int i=0; i<validContours.size(); i++) {
-            int area = validContours[i].Area();
-            int numsGreaterThan = 0;
-
-            //go though vector of valid contours and keep count of how many numbers we are greater than
-            for(int k=0; k<validContours.size(); k++) {
-                if(area > validContours[k].Area() && i != k) {
-                    numsGreaterThan++;
-                }
-            }
-
-            if(numsGreaterThan >= placeRequirement) {
-                reducedValidContours.push_back(validContours[i]);
-            }
-        }
-
-        validContours = reducedValidContours;
-    }
-
     if(numTargetContours == 1) { //this is simply for optimization, since we can do 1-contours faster very easily, and FRC likes 1-contours
-        for(int i=0; i<numImageContours; i++) {
+        for(int i=0; i<validContours.size(); i++) {
             std::vector<Contour> potentialTarget = std::vector<Contour>();
             potentialTarget.push_back(validContours[i]);
-            if(isTarget(potentialTarget)) {
                 Target newTarg = Target(this->id, potentialTarget, this->knownHeight, this->focalHeight, this->distErrorCorrect, this->calibratedDistance, this->distMode);
                 foundTargets.push_back(newTarg);
-            }
         }
     } 
     else {
@@ -186,6 +161,7 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
 std::vector<Contour> ExampleTarget::GetValidContours(std::vector<Contour> objects) {
     std::vector<Contour> validContours;
     
+    //go through and test contours one-by-one
     for(int i=0; i<objects.size(); i++) {
         for(int k=0; k<this->contours.size(); k++) {
             if(this->contours[k].IsContour(objects[i])) {
@@ -193,6 +169,31 @@ std::vector<Contour> ExampleTarget::GetValidContours(std::vector<Contour> object
                 break;
             }
         }
+    }
+    
+    //if maxContours is exceeded, filter out smaller contours and only take the bigger ones
+    //basically, this block will go through the contours and test all of their sizes. 
+    if(validContours.size() > maxContours) {
+        std::vector<Contour> reducedValidContours = std::vector<Contour>();
+        int contoursToBest = validContours.size() - maxContours; //contour must be bigger than at least this amount
+        
+        for(int i=0; i<validContours.size(); i++) {
+            int area = validContours[i].Area();
+            int numsGreaterThan = 0;
+
+            //go though vector of valid contours and keep count of how many contours we are bigger than
+            for(int k=0; k<validContours.size(); k++) {
+                if(i != k && area > validContours[k].Area()) {
+                    numsGreaterThan++;
+                }
+            }
+
+            if(numsGreaterThan >= contoursToBest) {
+                reducedValidContours.push_back(validContours[i]);
+            }
+        }
+
+        validContours = reducedValidContours;
     }
     
     return validContours;

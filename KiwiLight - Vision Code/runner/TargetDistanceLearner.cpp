@@ -47,6 +47,13 @@ void TargetDistanceLearner::FeedTarget(Target targ) {
 }
 
 /**
+ * Feeds the distance learner nothing.
+ */
+void TargetDistanceLearner::FeedBlank() {
+    this->frames++;
+}
+
+/**
  * Calculates the focal width required to achieve the distance value of the fed targets.
  * @param trueDistance The real distance from the camera to the target
  * @param trueWidth The width of the target.
@@ -55,13 +62,19 @@ void TargetDistanceLearner::FeedTarget(Target targ) {
  */
 double TargetDistanceLearner::GetFocalWidth(double trueDistance, double trueWidth) {
     int sizeBeforeRemove = targetWidths.size();
-    this->targetWidths = DataUtils::SortLeastGreatestDouble(this->targetWidths);
-    this->targetWidths = DataUtils::RemoveOutliers(this->targetWidths, 30);
-    
-    double avgWidth = DataUtils::Average(targetWidths);
-    
-    double focalWidth = avgWidth * trueDistance / trueWidth;
-    this->targetWidths = std::vector<double>(); //reset the vector so it can learn again
+    double focalWidth = -1;
+    if(sizeBeforeRemove > 15) {
+        this->targetWidths = Util::SortLeastGreatestDouble(this->targetWidths);
+        this->targetWidths = Util::RemoveOutliers(this->targetWidths, 30);
+        
+        double avgWidth = Util::Average(targetWidths);
+        
+        focalWidth = avgWidth * trueDistance / trueWidth;
+        this->targetWidths = std::vector<double>(); //reset the vector so it can learn again
+    } else {
+        std::cout << "Not enough frames with targets! Aborting." << std::endl;
+    }
+
     this->frames = 0; //reset the frames counter so it can learn again
     return focalWidth;
 }

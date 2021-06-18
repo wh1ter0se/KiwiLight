@@ -1,4 +1,4 @@
-#include "UI.h"
+#include "../KiwiLight.h"
 
 /**
  * Source file for the PreprocessorEditor class.
@@ -6,6 +6,34 @@
  */
 
 using namespace KiwiLight;
+
+/**
+ * Sets the target color to white.
+ */
+void white() {
+    KiwiLightApp::EditorSetTargetColorHSV(0, 0, 255);
+}
+
+/**
+ * Sets the target color to red.
+ */
+void red() {
+    KiwiLightApp::EditorSetTargetColorHSV(100, 255, 255);
+}
+
+/**
+ * Sets the target color to green.
+ */
+void green() {
+    KiwiLightApp::EditorSetTargetColorHSV(72, 255, 255);
+}
+
+/**
+ * Sets the target color to blue.
+ */
+void blue() {
+    KiwiLightApp::EditorSetTargetColorHSV(33, 255, 255);
+}
 
 /**
  * Creates a new PreProcessorEditor using the values from "preprocessor" as the inital values.
@@ -51,13 +79,34 @@ PreprocessorEditor::PreprocessorEditor(PreProcessor preprocessor) {
                 this->colorV = NumberBox(0, 255, realColorV);
                     targetColorPanelContents.Pack_start(this->colorV.GetWidget(), true, true, 0);
 
-                this->colorPreview = Image(ImageColorspace::RGB);
-                    targetColorPanelContents.Pack_start(this->colorPreview.GetWidget(), false, false, 0);
+                this->colorPreviewLabel = Label("asdfasdf");
+                    colorPreviewLabel.SetMarkup("<span background=\"#000000\" foreground=\"#ffffff\">Target Color</span>");
+                    targetColorPanelContents.Pack_start(colorPreviewLabel.GetWidget(), true, true, 0);
 
                 targetColorPanel.Pack_start(targetColorPanelContents.GetWidget(), true, true, 0);
 
             editor.Pack_start(targetColorPanel.GetWidget(), true, true, 0);
 
+        //color presets
+        Label colorButtonHeader = Label("Color Presets");
+            colorButtonHeader.SetName("subHeader");
+            editor.Pack_start(colorButtonHeader.GetWidget(), true, true, 0);
+        Panel colorButtonPanel = Panel(true, 0);
+            Button whiteButton = Button("White", white);
+                colorButtonPanel.Pack_start(whiteButton.GetWidget(), true, true, 0);
+            
+            Button redButton = Button("Red", red);
+                colorButtonPanel.Pack_start(redButton.GetWidget(), true, true, 0);
+            
+            Button greenButton = Button("Green", green);
+                colorButtonPanel.Pack_start(greenButton.GetWidget(), true, true, 0);
+            
+            Button blueButton = Button("Blue", blue);
+                colorButtonPanel.Pack_start(blueButton.GetWidget(), true, true, 0);
+
+            editor.Pack_start(colorButtonPanel.GetWidget(), true, true, 0);
+
+        //image processing options
         Label imageProcLabel = Label("Image Processing");
             imageProcLabel.SetName("subHeader");
             editor.Pack_start(imageProcLabel.GetWidget(), true, true, 0);
@@ -113,13 +162,13 @@ void PreprocessorEditor::Update() {
     }
 
     //update the color in the box to the desired color
-    int hue        = (int) this->colorH.GetValue();
-    int saturation = (int) this->colorS.GetValue();
-    int value      = (int) this->colorV.GetValue();
+    int hue        = (int) this->colorH.GetValue() * 3.6;
+    int saturation = (int) this->colorS.GetValue() * (100/255.0);
+    int value      = (int) this->colorV.GetValue() * (100/255.0);
 
-    Mat previewImage = Mat(Size(30, 30), CV_8UC3, Scalar(hue, saturation, value));
-    cvtColor(previewImage, previewImage, COLOR_HSV2BGR_FULL);
-    this->colorPreview.Update(previewImage);
+    //create markup tag for sample label
+    std::string markupTag = "<span background=\"" + Util::getHexColor(hue, saturation, value) + "\" foreground=\"#000000\">Color</span>";
+    colorPreviewLabel.SetMarkup(markupTag);
 }
 
 /**

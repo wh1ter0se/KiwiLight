@@ -301,7 +301,7 @@ MenuBar KiwiLightApp::CreateMenuBar() {
             SubMenuItem about = SubMenuItem("About", KiwiLightApp::ShowAboutWindow);
                 help.AddSubmenuItem(about);
 
-            SubMenuItem helpme = SubMenuItem("How the heck does this work?", KiwiLightApp::ShowHelpWindow);
+            SubMenuItem helpme = SubMenuItem("How to Use", KiwiLightApp::ShowHelpWindow);
                 help.AddSubmenuItem(helpme);
 
             menubar.AddItem(help);
@@ -324,11 +324,10 @@ void KiwiLightApp::LaunchStreamingThread(AppMode newMode) {
  * Messages the streaming thread to stop and waits until it does
  */
 void KiwiLightApp::StopStreamingThread() {
-    // if(streamThreadEnabled) {
-    //     streamThreadEnabled = false;
         KiwiLightApp::mode = AppMode::UI_PAUSING;
-        g_thread_join(KiwiLightApp::streamingThread);
-    // }
+        if(KiwiLightApp::streamingThread != NULL) {
+            g_thread_join(KiwiLightApp::streamingThread);
+        }
 }
 
 /**
@@ -347,8 +346,11 @@ bool KiwiLightApp::CloseEditor(bool saveFirst) {
         }
     }
     
+    KiwiLightApp::StopStreamingThread();
     KiwiLightApp::configeditor.Close();
     OpenConfigurationFromFile(KiwiLightApp::configeditor.GetFileName());
+    // KiwiLightApp::LaunchStreamingThread(fileSaved ? AppMode::UI_RUNNER : AppMode::UI_EDITOR);
+    KiwiLightApp::LaunchStreamingThread(AppMode::UI_RUNNER);
     return true;
 }
 
@@ -479,6 +481,20 @@ void KiwiLightApp::EditorOpenNewCameraFromOverview() {
 }
 
 /**
+ * Applies FRC settings on the camera.
+ */
+void KiwiLightApp::EditorApplyFRCSettings() {
+    KiwiLightApp::configeditor.ApplyFRCCameraSettings();
+}
+
+/**
+ * Changes the editor target color value.
+ */
+void KiwiLightApp::EditorSetTargetColorHSV(int h, int s, int v) {
+    KiwiLightApp::configeditor.SetTargetColor(h, s, v);
+}
+
+/**
  * Shows the log plot on the LogViewer
  */
 void KiwiLightApp::ToggleLogPlot() {
@@ -541,7 +557,7 @@ void KiwiLightApp::UpdateStreamsConstantly() {
     //now because some cameras like the jevois take a little longer for the stream to start, we will wait until it gives us a good frame
     //to avoid the VIDIOC_QBUF: Invalid Argument barage.
     bool retrieveSuccess = false;
-    while(!retrieveSuccess && KiwiLightApp::mode != AppMode::UI_PAUSING/* && streamThreadEnabled*/) {
+    while(!retrieveSuccess && KiwiLightApp::mode != AppMode::UI_PAUSING) {
         usleep(250000); //give camera some time to adjust and do things
         bool grabSuccess = KiwiLightApp::camera.grab();
         if(grabSuccess) {
@@ -550,7 +566,7 @@ void KiwiLightApp::UpdateStreamsConstantly() {
         }
     }
 
-    while(KiwiLightApp::mode != AppMode::UI_PAUSING/* && streamThreadEnabled*/) {
+    while(KiwiLightApp::mode != AppMode::UI_PAUSING) {
         KiwiLightApp::UpdateStreams();
     }
 }
@@ -593,11 +609,12 @@ void KiwiLightApp::UpdateStreams() {
             default:
                 break;
         }
+        
         // if successful, update the display image
         if(KiwiLightApp::lastImageGrabSuccessful) {            
             //wait for out image to be used by other thread
             while(KiwiLightApp::lfgImgInUse) {
-                usleep(1000000);
+                usleep(1000);
             }
             KiwiLightApp::lfgImgInUse = true;
             KiwiLightApp::lastFrameGrabImage = displayImage;
@@ -686,21 +703,30 @@ void KiwiLightApp::OpenConfiguration() {
     
     if(fileToOpen != "") {
         StopStreamingThread();
-        OpenConfigurationFromFile(fileToOpen);
-        LaunchStreamingThread(AppMode::UI_RUNNER);
+        bool success = OpenConfigurationFromFile(fileToOpen);
+        if(success) {
+            LaunchStreamingThread(AppMode::UI_RUNNER);
+        } else {
+            //alert the user that the file they selected was bad
+            ConfirmationDialog alert = ConfirmationDialog("The File you selected could not be opened.");
+            alert.ShowAndGetResponse();
+            LaunchStreamingThread(AppMode::UI_STREAM);
+        }
     }
 }
 
 /**
  * Causes KiwiLight to open the configuration specified by the file
+ * @return {@code true} if the operation succeeds, {@code false} otherwise.
  */
-void KiwiLightApp::OpenConfigurationFromFile(std::string fileName) {
+bool KiwiLightApp::OpenConfigurationFromFile(std::string fileName) {
     XMLDocument newDoc = XMLDocument(fileName);
-    if(newDoc.HasContents()) {
+    if(Util::configDocumentIsValid(newDoc)) {
         KiwiLightApp::confInfo.LoadConfig(newDoc);
         KiwiLightApp::runner = Runner(fileName, true);
+        return true;
     } else {
-        std::cout << "New Document either empty or not specified. Taking no action." << std::endl;
+        return false;
     }
 }
 
@@ -842,9 +868,14 @@ void KiwiLightApp::ShowLog(XMLDocument log) {
 void KiwiLightApp::ShowLog() {
     FileChooser chooser = FileChooser(false, "");
     std::string fileToOpen = chooser.Show();
-    XMLDocument log = XMLDocument(fileToOpen);
-    if(log.HasContents()) {
-        ShowLog(fileToOpen);
+    if(fileToOpen != "") {
+        XMLDocument log = XMLDocument(fileToOpen);
+        if(Util::logDocumentIsValid(log)) {
+            ShowLog(fileToOpen);
+        } else {
+            ConfirmationDialog alert = ConfirmationDialog("The Selected File could not be opened.");
+            alert.ShowAndGetResponse();
+        }
     }
 }
 

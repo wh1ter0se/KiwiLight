@@ -43,7 +43,12 @@ bool ExampleContour::IsContour(Contour contour) {
     bool angleTest = false;
     bool arTest = false;
     bool solidTest = false;
-    bool areaTest = false;
+
+    //do the area test first to optimize
+    bool areaTest = (contour.Area() > this->minimumArea);
+    if(!areaTest) {
+        return false;
+    }
 
     //conduct all five tests and return result of all five
 
@@ -59,7 +64,6 @@ bool ExampleContour::IsContour(Contour contour) {
     bool solidUpper = (contour.Solidity() < this->solidity.UpperBound());
     solidTest = solidLower && solidUpper;
 
-    areaTest = (contour.Area() > this->minimumArea);
 
     return (angleTest && arTest && solidTest && areaTest);
 }

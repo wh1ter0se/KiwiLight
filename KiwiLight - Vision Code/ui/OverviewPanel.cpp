@@ -153,7 +153,7 @@ void OverviewPanel::SetTargetInformationLabels(
         targetVAngleString = "N/A";
 
     if(targetSpotted) {
-        targetLocationString = "( " + std::to_string(targetImgX) + ", " + std::to_string(targetImgY) + ")";
+        targetLocationString = "(" + std::to_string(targetImgX) + ", " + std::to_string(targetImgY) + ")";
         targetSizeString = "(" + std::to_string(targetImgW) + ", " + std::to_string(targetImgH) + ")";
         targetDistString = std::to_string(targetDist);
         targetHAngleString = std::to_string(targetHAngle);
@@ -226,21 +226,21 @@ void OverviewPanel::SetTargetInformationLabelsFromString(std::string iterOutput)
     }
 
     std::string trimmedOutput = iterOutput.substr(1, iterOutput.length() - 2); //sub off the ':' and ';' at beginning and end
-    std::vector<std::string> splitOutput = StringUtils::SplitString(trimmedOutput, ',');
+    std::vector<std::string> splitOutput = Util::SplitString(trimmedOutput, ',');
 
     //there must be 5 nums in string, no more, no less
-    if(splitOutput.size() == 7) {
-        int targetX = std::stoi(splitOutput[0]);
-        int targetY = std::stoi(splitOutput[1]);
-        int targetWidth = std::stoi(splitOutput[2]);
-        int targetHeight = std::stoi(splitOutput[3]);
-        double targetDist = std::stod(splitOutput[4]);
-        double targetAngleHorizontal = std::stod(splitOutput[5]);
-        double targetAngleVertical = std::stod(splitOutput[6]);
+    if(splitOutput.size() == 8) {
+        int targetX = std::stoi(splitOutput[1]);
+        int targetY = std::stoi(splitOutput[2]);
+        int targetWidth = std::stoi(splitOutput[3]);
+        int targetHeight = std::stoi(splitOutput[4]);
+        double targetDist = std::stod(splitOutput[5]);
+        double targetAngleHorizontal = std::stod(splitOutput[6]);
+        double targetAngleVertical = std::stod(splitOutput[7]);
         bool targetSpotted = (targetX > -1);
 
         SetTargetInformationLabels(targetSpotted, targetX, targetY, targetWidth, targetHeight, targetDist, targetAngleHorizontal, targetAngleVertical);
     } else {
-        std::cout << "WARNING: Could not update overview panel information labels. Input string was wrongly formatted." << std::endl;
+        std::cout << "WARNING: Could not update overview panel information labels. Input string was wrongly formatted: " << iterOutput << std::endl;
     }
 }

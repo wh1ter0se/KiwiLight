@@ -149,10 +149,17 @@ void PostprocessorEditor::SetNumContours(int contours) {
 }
 
 /**
+ * Returns the index of the currently selected contour.
+ */
+int PostprocessorEditor::GetCurrentContour() {
+    return (int) this->contourchooser.GetValue();
+}
+
+/**
  * Updates the editor.
  */
 void PostprocessorEditor::Update() {
-    int currentContour = (int) this->contourchooser.GetValue();
+    int currentContour = GetCurrentContour();
 
     if(currentContour < 0) {
         currentContour = 0;

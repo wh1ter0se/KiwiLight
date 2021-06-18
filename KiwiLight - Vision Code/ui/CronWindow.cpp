@@ -73,7 +73,7 @@ std::string CronWindow::GetRuleByLine(int line) {
  * @return The location of the file that the rule will automatically start
  */
 std::string CronWindow::GetFileNameFromRule(std::string rule) {
-    return StringUtils::SplitString(rule, ' ')[3];
+    return Util::SplitString(rule, ' ')[3];
 }
 
 /**
@@ -185,7 +185,7 @@ bool CronWindow::isFileAutomatic(std::string file) {
  */
 std::vector<std::string> CronWindow::ReadAllRules() {
     std::string output = Shell::ExecuteCommand("crontab -l");
-    return StringUtils::SplitString(output, '\n');
+    return Util::SplitString(output, '\n');
 }
 
 /**
@@ -196,8 +196,8 @@ std::vector<std::string> CronWindow::ReadKiwiLightRules() {
     std::vector<std::string> rules = ReadAllRules();
     for(int i=0; i<rules.size(); i++) {
         std::string rule = rules[i];
-        if(StringUtils::StringStartsWith(rule, "@reboot")) {
-            std::vector<std::string> segments = StringUtils::SplitString(rule, ' ');
+        if(Util::StringStartsWith(rule, "@reboot")) {
+            std::vector<std::string> segments = Util::SplitString(rule, ' ');
             if(segments.size() >= 2) {
                 if(segments[1] == "KiwiLight") {
                     validRules.push_back(rule);
