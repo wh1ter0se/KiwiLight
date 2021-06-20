@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=KiwiLight
+Comment=Create or launch an FRC Computer Vision configuration.
+Icon=/home/pi/KiwiLight/KiwiLight/icon.png
+Exec=KiwiLight
+Terminal=false
+Type=Application
+NoDisplay=true
+StartupNotify=true
+Keywords=kiwilight;KiwiLight;auto;autonomous;FRC;frc;vision;Vision;

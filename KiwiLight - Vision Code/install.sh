@@ -22,10 +22,17 @@ fi
 echo "What would you like to do?"
 echo "1: Install"
 echo "2: Uninstall"
+echo "3: Create Packager(KiwiLight must be installed for this to work)"
 read -p "Enter an action:" action
 
 if [ $action = "1" ];
 then
+    read -p "Would you like to create a packager? (This is required for KiwiLightPackagingTool.sh to work and will rename the repository directory to KiwiLightProject) [y/n]:" packager
+    if [ packager = "y" ];
+    then
+        action="3"
+    fi
+
     echo "Installing."
     #install packages
     sudo apt-get update
@@ -95,8 +102,61 @@ then
     rm -r $HOME/KiwiLightData
     sudo rm /usr/bin/KiwiLight
     
-else
-echo "That is not a valid option."
+fi
+
+if [ $action = "3" ];
+then
+    currentDir=$PWD
+    make -j4 KiwiLight
+    
+    echo "Creating Packager"
+    cd $HOME
+    
+    mkdir KiwiLightPackage
+    cd KiwiLightPackage
+    mkdir KiwiLight
+    cd KiwiLight
+    
+    #assemble the /home/<user>/KiwiLightPackage/KiwiLight/directory
+    mkdir KiwiLight
+    mkdir opencv
+    cp "$currentDir"/packager/install.sh $PWD
+    
+    #assemble the /home/<user>/KiwiLightPackage/KiwiLight/KiwiLight directory
+    cd KiwiLight
+    
+    mkdir confs
+    mkdir ui
+    cp "$currentDir"/*.png $PWD #copy all images
+    cp "$currentDir"/packager/icon.png $PWD
+    cp "$currentDir"/KiwiLight $PWD
+    cp "$currentDir"/packager/KiwiLight.desktop $PWD
+    cp "$currentDir"/packager/KiwiLight.sh $PWD
+    
+    #assemble subdirectories of this directory
+    cp "$currentDir"/generic.xml confs
+    cp "$currentDir"/ui/Style.css ui
+    
+    #assemble the /home/<user>/KiwiLightPackage/KiwiLight/opencv directory
+    cd ../opencv
+    mkdir bin
+    mkdir include
+    mkdir lib
+    mkdir share
+    
+    cp /usr/local/bin/*opencv*  bin
+    cp -r /usr/local/include/*opencv*/ include
+    cp /usr/local/lib/libopencv* lib
+    cp -r /usr/local/share/OpenCV share
+    
+    #put the packaging tool in the home directory and rename it to KiwiLightPackager.sh
+    
+    cd "$currentDir"
+    cp packager/packager.sh $HOME
+    mv $HOME/packager.sh $HOME/KiwiLightPackager.sh
+    
+    echo "Packager Created"
+    
 fi
 
 echo "Finished!"
