@@ -1,4 +1,8 @@
 #!/bin/sh
+echo "Welcome to the KiwiLight Packager Utiltiy!"
+echo "In order for this utility to work, the KiwiLight clone directory"
+echo "should be located in the HOME directory and be named KiwiLightProject."
+echo
 echo "Enter the name for the output zip (it should have a .zip at the end!)"
 read outputFile
 

@@ -42,6 +42,7 @@ then
     sudo apt-get --assume-yes install cmake
     sudo apt-get --assume-yes install wget
     sudo apt-get --assume-yes install unzip
+    sudo apt-get --assume-yes install zip
     sudo apt-get --assume-yes install crontab
     sudo apt-get --assume-yes install realvnc-vnc-server
     
