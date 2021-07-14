@@ -27,8 +27,8 @@ read -p "Enter an action:" action
 
 if [ $action = "1" ];
 then
-    read -p "Would you like to create a packager? (This is required for KiwiLightPackagingTool.sh to work and will rename the repository directory to KiwiLightProject) [y/n]:" packager
-    if [ packager = "y" ];
+    read -p "Would you like to create a packager? (Required for KiwiLightPackagingTool.sh to work) [y/n]:" packager
+    if [ $packager = "y" ];
     then
         action="3"
     fi
