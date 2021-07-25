@@ -44,6 +44,8 @@ public class CyborgCommandAlign extends CommandBase {
       double horizontalAngle = kiwilight.getHorizontalAngleToTarget();
       double output = pidcontroller.calculate(horizontalAngle);
       drivetrain.driveDirect(output, output * -1);
+    } else {
+      drivetrain.driveDirect(0, 0);
     }
   }
 

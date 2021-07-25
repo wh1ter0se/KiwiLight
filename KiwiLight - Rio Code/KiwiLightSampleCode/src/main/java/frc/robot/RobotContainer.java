@@ -10,7 +10,6 @@ package frc.robot;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
@@ -26,7 +25,7 @@ import frc.robot.util.Xbox;
  * (including subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
-  private final SubsystemDrive    SUB_DRIVE     = new SubsystemDrive();
+  private final SubsystemDrive SUB_DRIVE        = new SubsystemDrive();
   private final SubsystemReceiver SUB_KIWILIGHT = new SubsystemReceiver(Constants.KIWILIGHT_PORT);
 
   private final Joystick DRIVER = new Joystick(0);
@@ -46,15 +45,12 @@ public class RobotContainer {
    * {@link edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    CyborgCommandAlign align = new CyborgCommandAlign(SUB_DRIVE, SUB_KIWILIGHT);
+    SUB_DRIVE.setDefaultCommand(
+      new RunCommand(() -> SUB_DRIVE.DriveTankByController(DRIVER), SUB_DRIVE)
+    );
 
-    //linking the command to the A button on the driver's Xbox controller.
-    //NOTE: The Xbox class is located in the Util folder. Xbox.A = 1.
     JoystickButton toggleAlign = new JoystickButton(DRIVER, Xbox.A);
-    toggleAlign.toggleWhenPressed(align);
-
-    //sending the command to the dashboard for display as a button
-    SmartDashboard.putData("Align", align);
+    toggleAlign.toggleWhenPressed(new CyborgCommandAlign(SUB_DRIVE, SUB_KIWILIGHT));
   }
 
 
@@ -65,9 +61,6 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     // An ExampleCommand will run in autonomous
-    SUB_DRIVE.setDefaultCommand(
-      new RunCommand(() -> SUB_DRIVE.DriveTankByController(DRIVER), SUB_DRIVE)
-    );
     return null;
   }
 }
