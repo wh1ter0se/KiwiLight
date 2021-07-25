@@ -27,8 +27,8 @@ read -p "Enter an action:" action
 
 if [ $action = "1" ];
 then
-    read -p "Would you like to create a packager? (This is required for KiwiLightPackagingTool.sh to work and will rename the repository directory to KiwiLightProject) [y/n]:" packager
-    if [ packager = "y" ];
+    read -p "Would you like to create a packager? (Required for KiwiLightPackagingTool.sh to work) [y/n]:" packager
+    if [ $packager = "y" ];
     then
         action="3"
     fi
@@ -42,6 +42,7 @@ then
     sudo apt-get --assume-yes install cmake
     sudo apt-get --assume-yes install wget
     sudo apt-get --assume-yes install unzip
+    sudo apt-get --assume-yes install zip
     sudo apt-get --assume-yes install crontab
     sudo apt-get --assume-yes install realvnc-vnc-server
     

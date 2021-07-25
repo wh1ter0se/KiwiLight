@@ -595,7 +595,7 @@ bool ConfigEditor::Save() {
     std::vector<std::string> fileParts = Util::SplitString(fileToSave, '/');
     
     if(fileParts[fileParts.size() - 1] == "generic.xml") {
-        FileChooser chooser = FileChooser(true, "config.xml");
+        FileChooser chooser = FileChooser(true, "kiwilight-config.xml");
         fileToSave = chooser.Show();
         if(fileToSave == "") {
             //user pressed "cancel" or did not select a file, abort
