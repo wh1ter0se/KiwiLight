@@ -15,7 +15,7 @@ CronWindow::CronWindow(GtkWindowType type) {
         window.SetCSS("ui/Style.css");
 
         Panel contents = Panel(false, 5);
-            Label header = Label("Cron Manager");
+            Label header = Label("Auto-Start");
                 header.SetName("header");
                 contents.Pack_start(header.GetWidget(), false, false, 10);
 
