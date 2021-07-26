@@ -5,18 +5,31 @@
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
 
+/**
+ * _____/\\\\\\\\\\_____________/\\\\\______/\\\\\\\\\______/\\\\\\\\\\\\\\\_         
+ *  ___/\\\///////\\\________/\\\\////_____/\\\///////\\\___\/\\\///////////__        
+ *   __\///______/\\\______/\\\///_________/\\\______\//\\\__\/\\\_____________       
+ *    _________/\\\//_____/\\\\\\\\\\\_____\//\\\_____/\\\\\__\/\\\\\\\\\\\\_____     
+ *     ________\////\\\___/\\\\///////\\\____\///\\\\\\\\/\\\__\////////////\\\___    
+ *      ___________\//\\\_\/\\\______\//\\\_____\////////\/\\\_____________\//\\\__   
+ *       __/\\\______/\\\__\//\\\______/\\\____/\\________/\\\___/\\\________\/\\\__  
+ *        _\///\\\\\\\\\/____\///\\\\\\\\\/____\//\\\\\\\\\\\/___\//\\\\\\\\\\\\\/___ 
+ *         ___\/////////________\/////////_______\///////////______\/////////////_____
+ * 
+ * KiwiLight SubsystemReceiver - Version 1.4
+ * Written By: Colton Kreischer and Brach Knutson of FRC team 3695 - Foximus Prime
+ */
+
 package frc.robot.subsystems;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
-
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.util.Util;
-
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.util.Util;
 
 /**
  * The thing that listens to the Pi.
@@ -30,6 +43,7 @@ public class SubsystemReceiver extends SubsystemBase {
 
   /**
    * Creates a new SubsystemReceiver.
+   * @param port The port to listen for data on. This should match the port that the configuration uses.
    */
   public SubsystemReceiver(int port) {
     latestSegment = "-1,-1,-1,-1,-1,-1,180,180";
@@ -176,6 +190,7 @@ public class SubsystemReceiver extends SubsystemBase {
 
   /**
    * Returns true if a target is seen, false otherwise.
+   * @return Whether or not the target is spotted.
    */
   public boolean targetSpotted() {
     return latestData[2] > -1;
@@ -204,7 +219,7 @@ public class SubsystemReceiver extends SubsystemBase {
 
     try {
       for(int i=0; i<stringData.length; i++) {
-        newData[i] = Integer.parseInt(stringData[i]);
+        newData[i] = Double.parseDouble(stringData[i]);
       }
     } catch(Exception ex) {
       DriverStation.reportWarning("PARSING DATA ERROR: " + ex.getMessage(), true);

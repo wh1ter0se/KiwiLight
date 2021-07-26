@@ -10,6 +10,7 @@ package frc.robot;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
@@ -36,6 +37,20 @@ public class RobotContainer {
   public RobotContainer() {
     // Configure the button bindings
     configureButtonBindings();
+  }
+
+  /**
+   * Called every robot frame
+   */
+  public void periodic() {
+    SmartDashboard.putNumber("Target ID", SUB_KIWILIGHT.getSpottedTargetID());
+    SmartDashboard.putNumber("Target X", SUB_KIWILIGHT.getTargetPositionX());
+    SmartDashboard.putNumber("Target Y", SUB_KIWILIGHT.getTargetPositionY());
+    SmartDashboard.putNumber("Target Width", SUB_KIWILIGHT.getTargetWidthPixels());
+    SmartDashboard.putNumber("Target Height", SUB_KIWILIGHT.getTargetHeightPixels());
+    SmartDashboard.putNumber("Target Distance", SUB_KIWILIGHT.getDistanceToTarget());
+    SmartDashboard.putNumber("Target Horizontal Angle", SUB_KIWILIGHT.getHorizontalAngleToTarget());
+    SmartDashboard.putNumber("Target Vertical Angle", SUB_KIWILIGHT.getVerticalAngleToTarget());
   }
 
   /**
