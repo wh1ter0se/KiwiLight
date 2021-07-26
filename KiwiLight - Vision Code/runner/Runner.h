@@ -34,7 +34,8 @@ namespace KiwiLight {
         PERCEIVED_WIDTH,
         CALIBRATED_DISTANCE,
         ERROR_CORRECTION,
-        CALC_DIST_BY_HEIGHT
+        CALC_DIST_BY_HEIGHT,
+        MAX_CONTOURS
     };
 
     /**
@@ -178,11 +179,11 @@ namespace KiwiLight {
         std::vector<Contour> Contours() { return this->contours; };
         double Distance();
         double Distance(DistanceCalcMode mode);
-        int HorizontalAngle(int imageCenterX);
-        int HorizontalAngle(double distanceToTarget, int imageCenterX);
-        int VerticalAngle(int imageCenterY);
-        int VerticalAngle(double distanceToTarget, int imageCenterY);
-        int ObliqueAngle(int imageCenterX, int imageCenterY);
+        double HorizontalAngle(int imageCenterX);
+        double HorizontalAngle(double distanceToTarget, int imageCenterX);
+        double VerticalAngle(int imageCenterY);
+        double VerticalAngle(double distanceToTarget, int imageCenterY);
+        double ObliqueAngle(int imageCenterX, int imageCenterY);
         double KnownWidth() { return this->knownHeight; };
         double FocalWidth() { return this->focalHeight; };
         double DistanceErrorCorrection() { return this->distErrorCorrect; };
@@ -214,7 +215,16 @@ namespace KiwiLight {
     class ExampleTarget {
         public:
         ExampleTarget() {};
-        ExampleTarget(int id, std::vector<ExampleContour> contours, double knownHeight, double focalHeight, double distErrorCorrect, double calibratedDistance, DistanceCalcMode mode);
+        ExampleTarget(
+            int id, 
+            std::vector<ExampleContour> contours, 
+            double knownHeight,
+            double focalHeight, 
+            double distErrorCorrect, 
+            double calibratedDistance, 
+            DistanceCalcMode mode,
+            int maxContours
+        );
         std::vector<Target> GetTargets(std::vector<Contour> contours);
         bool isTarget(std::vector<Contour> contours);
         std::vector<Contour> GetValidContours(std::vector<Contour> contours);
@@ -225,10 +235,6 @@ namespace KiwiLight {
         SettingPair GetContourProperty(int contour, TargetProperty prop);
         void SetTargetProperty(RunnerProperty prop, double value);
         double GetTargetProperty(RunnerProperty prop);
-
-        //DEPRECATED
-        [[deprecated("This method is no longer used and will be removed in the next update.")]] 
-        void AddGenericContour();
 
         private:
         bool ArrayMaxed(int arr[], int size, int max);
@@ -243,6 +249,8 @@ namespace KiwiLight {
                calibratedDistance;
 
         DistanceCalcMode distMode;
+
+        int maxContours;
     };
 
     /**
@@ -292,22 +300,6 @@ namespace KiwiLight {
         double GetRunnerProperty(RunnerProperty prop);
         ExampleTarget GetTarget();
         std::vector<Contour> GetContoursFromLastFrame() { return this->contoursFromLastFrame; };
-
-        //DEPRECATED STUFF
-        [[deprecated("Use PostProcessor(ExampleTarget, bool) instead.")]] 
-        PostProcessor(std::vector<ExampleTarget> targets, bool debugging); //deprecated
-
-        [[deprecated("Use SetTarget(ExampleTarget) instead.")]] 
-        void SetTarget(int id, ExampleTarget target); //deprecated
-
-        [[deprecated("The PostProcessor will no longer support multi-targeting.")]] 
-        int NumberOfTargets(); //deprecated
-
-        [[deprecated("PostProcessor is moving away from using multiple targets. Use NumberOfContours() instead.")]] 
-        int NumberOfContours(int target); //deprecated
-
-        [[deprecated("PostProcessor is moving away from using multiple targets. use GetTarget() instead.")]] 
-        ExampleTarget GetExampleTargetByID(int id); //deprecated
 
         private:
         bool debugging;
@@ -411,21 +403,8 @@ namespace KiwiLight {
         void SetRunnerProperty(RunnerProperty prop, double value);
         double GetRunnerProperty(RunnerProperty prop);
 
-        //DEPRECATED:
-        [[deprecated("This method will be removed in the next update.")]]
-        int GetNumberOfTargets() { return 1; };
-
-        [[deprecated("Use SetExampleTarget(ExampleTarget) instead.")]]
-        void SetExampleTarget(int targetID, ExampleTarget target);
-
-        [[deprecated("Use GetExampleTarget() instead.")]]
-        ExampleTarget GetExampleTargetByID(int id);
-
-        [[deprecated("Use NumberOfContours() instead.")]]
-        int GetNumberOfContours(int target);
-
         private:
-        void parseDocument(XMLDocument doc);
+        void parseDocument(XMLDocument doc, bool applyUDP);
         void applySettings(XMLDocument document);
 
         PreProcessor preprocessor;
@@ -451,6 +430,8 @@ namespace KiwiLight {
 
         double centerOffsetX,
                centerOffsetY;
+
+        int maxSendRate;
     };
 
     /**
@@ -459,10 +440,11 @@ namespace KiwiLight {
     class ConfigLearner {
         public:
         ConfigLearner() {};
-        ConfigLearner(PreProcessor preprocessor);
+        ConfigLearner(PreProcessor preprocessor, Size imageSize);
         void StartLearning();
-        void FeedImage(Mat img, int minimumContourArea);
-        ExampleTarget StopLearning(int minimumContourArea);
+        void SetMinimumArea(int minimumArea);
+        void Feed();
+        ExampleTarget StopLearning();
         bool GetLearning() { return this->currentlyLearning; };
         bool GetHasFailed() { return this->failedFrames > 10; };
         int GetFramesLearned();
@@ -471,6 +453,8 @@ namespace KiwiLight {
 
         private:
         PreProcessor preprocessor;
+        Size imageSize;
+        int minimumArea;
 
         bool currentlyLearning;
         std::vector<CameraFrame> currentFrames;
@@ -491,6 +475,7 @@ namespace KiwiLight {
         TargetDistanceLearner(PreProcessor preprocessor, PostProcessor postprocessor);
         void FeedImage(Mat img);
         void FeedTarget(Target targ);
+        void FeedBlank();
         int GetFramesLearned();
         bool GetHasFailed() { return this->failedFrames > 10; };
         double GetFocalWidth(double trueDistance, double trueWidth);

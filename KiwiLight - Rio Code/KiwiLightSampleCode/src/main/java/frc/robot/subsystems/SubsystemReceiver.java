@@ -5,46 +5,54 @@
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
 
+/**
+ * _____/\\\\\\\\\\_____________/\\\\\______/\\\\\\\\\______/\\\\\\\\\\\\\\\_         
+ *  ___/\\\///////\\\________/\\\\////_____/\\\///////\\\___\/\\\///////////__        
+ *   __\///______/\\\______/\\\///_________/\\\______\//\\\__\/\\\_____________       
+ *    _________/\\\//_____/\\\\\\\\\\\_____\//\\\_____/\\\\\__\/\\\\\\\\\\\\_____     
+ *     ________\////\\\___/\\\\///////\\\____\///\\\\\\\\/\\\__\////////////\\\___    
+ *      ___________\//\\\_\/\\\______\//\\\_____\////////\/\\\_____________\//\\\__   
+ *       __/\\\______/\\\__\//\\\______/\\\____/\\________/\\\___/\\\________\/\\\__  
+ *        _\///\\\\\\\\\/____\///\\\\\\\\\/____\//\\\\\\\\\\\/___\//\\\\\\\\\\\\\/___ 
+ *         ___\/////////________\/////////_______\///////////______\/////////////_____
+ * 
+ * KiwiLight SubsystemReceiver - Version 1.4
+ * Written By: Colton Kreischer and Brach Knutson of FRC team 3695 - Foximus Prime
+ */
+
 package frc.robot.subsystems;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
-
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.util.Util;
-
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.util.Util;
 
 /**
  * The thing that listens to the Pi.
  */
 public class SubsystemReceiver extends SubsystemBase {
-  private String latestSegment;
-  private double[] latestData;
-
-  private Boolean inRange;
-
+  private String         latestSegment;
+  private double[]       latestData;
   private DatagramSocket serverSocket;
   private byte[]         receiveData;
-
-  private long latestTime;
-
+  private long           latestTime;
 
   /**
    * Creates a new SubsystemReceiver.
+   * @param port The port to listen for data on. This should match the port that the configuration uses.
    */
   public SubsystemReceiver(int port) {
-    latestSegment = "-1,-1,-1,-1,-1,180,180";
-    latestData = new double[] {-1, -1, -1, -1, -1, 180, 180};
+    latestSegment = "-1,-1,-1,-1,-1,-1,180,180";
+    latestData = new double[] {-1, -1, -1, -1, -1, -1, 180, 180};
     latestTime    = System.currentTimeMillis();
 
     SmartDashboard.putString("RPi Data", latestSegment);
     SmartDashboard.putBoolean("Spotted", false);
     SmartDashboard.putBoolean("Updated", false);
-    inRange = false;
 
     try {
       serverSocket = new DatagramSocket(port);
@@ -55,6 +63,7 @@ public class SubsystemReceiver extends SubsystemBase {
 
     // EXPECTED FORMAT OF INPUT STRING:
     // :X,Y,W,H,D,HA,VA;
+      // ID = ID of focused target
       // X = X-coordinate
       // Y = Y-coordinate
       // W = Width of target in image space.
@@ -86,69 +95,102 @@ public class SubsystemReceiver extends SubsystemBase {
 
   @Override
   public void periodic() {
-    SmartDashboard.putBoolean("Spotted", targetSpotted());
-    SmartDashboard.putBoolean("Updated", getSecondsSinceUpdate() < 0.5);
+    SmartDashboard.putBoolean("KiwiLight Target Spotted", targetSpotted());
+    SmartDashboard.putBoolean("KiwiLight Data Updated", getSecondsSinceUpdate() < 0.5);
   }
 
   /**
-   * Prints dashboard indicators indicating whether the subsystem is ready for a match.
-   * Indicators are to be used for pre-match only. They do not provide an accurite indication
-   * of the state of a subsystem in mid match.
+   * Returns true if the subsystem has received a packet in the last half second,
+   * false otherwise.
    * @return true if the system is ready for a match, false otherwise.
    */
-  public boolean getSystemIsGo() {
+  public boolean updated() {
     return getSecondsSinceUpdate() < 0.5;
   }
 
   /**
    * Retrieves the last known pixel coordinates of the target
-   * @return [0] = X-coordinate (in pixels from left)
-   *         [1] = Y-coordinate (in pixels from bottom)
-   *         [2] = Distance (in inches)
-   *         [3] = Angle from center (in degrees; positive = CW)
-   *         {-1,-1,-1,-1} for no known location
+   * @return [0] = ID of target
+   *         [1] = X-coordinate (in pixels from left)
+   *         [2] = Y-coordinate (in pixels from bottom) 
+   *         [3] = Width (in pixels) 
+   *         [4] = Height (in pixels) 
+   *         [5] = Distance 
+   *         [6] = Horizontal Angle from Center (in degrees; positive = CW)
+   *         [7] = Vertical Angle from Center (in degrees; positive = up)
+   *         {-1, -1, -1 ,-1 ,-1 ,-1 ,180, 180} for no known location
    */
   public double[] getLatestData() {
     return latestData;
   }
 
   /**
-   * Returns the width of the seen target in pixels, or -1 if no target is seen.
+   * Returns the spotted target's ID number, or -1 if no target is spotted.
+   * @return Target ID.
    */
-  public double getTargetWidthPixels() {
-    return latestData[2];
+  public int getSpottedTargetID() {
+    return (int) latestData[0];
   }
 
   /**
-   * Returns the height of the seen target in pixels, or -1 if no target is seen.
+   * Returns the spotted target's X position.
+   * @return Target X coordinate in pixels from left of image.
    */
-  public double getTargetHeightPixels() {
+  public int getTargetPositionX() {
+    return (int) latestData[1];
+  }
+
+  /**
+   * Returns the spotted target's Y position.
+   * @return Target Y coordinate in pixels from top of image.
+   */
+  public int getTargetPositionY() {
+    return (int) latestData[2];
+  }
+
+  /**
+   * Returns the width of the seen target in pixels, or -1 if no target is seen.
+   * @return Target width.
+   */
+  public double getTargetWidthPixels() {
     return latestData[3];
   }
 
   /**
-   * Returns the distance of the camera to the target, or -1 if no target is seen.
+   * Returns the height of the seen target in pixels, or -1 if no target is seen.
+   * @return Target height.
    */
-  public double getDistanceToTarget() {
+  public double getTargetHeightPixels() {
     return latestData[4];
   }
 
   /**
-   * Returns the horizontal angle (degrees) to the target, or 180 if no target is seen.
+   * Returns the distance of the camera to the target, or -1 if no target is seen.
+   * @return Target distance.
    */
-  public double getHorizontalAngleToTarget() {
+  public double getDistanceToTarget() {
     return latestData[5];
   }
 
   /**
-   * Returns the vertical angle (degrees) to the target, or 180 if no target is seen.
+   * Returns the horizontal angle (degrees) to the target, or 180 if no target is seen.
+   * @return Horizontal angle to target.
    */
-  public double getVerticalAngleToTarget() {
+  public double getHorizontalAngleToTarget() {
     return latestData[6];
   }
 
   /**
+   * Returns the vertical angle (degrees) to the target, or 180 if no target is seen.
+   * @return Vertical angle to target.
+   */
+  public double getVerticalAngleToTarget() {
+    return latestData[7];
+  }
+
+  /**
    * Returns true if a target is seen, false otherwise.
+   * @return Whether or not the target is spotted.
    */
   public boolean targetSpotted() {
     return latestData[2] > -1;
@@ -163,33 +205,11 @@ public class SubsystemReceiver extends SubsystemBase {
   }
 
   /**
-   * If data is being received, records whether or not its in "target lock" range
-   * If dats is not being received, the last known state is kept
-   */
-  public void updateTargetLock(double[] data) {
-    if (data[2] != -1) {
-      inRange = data[2] < 0;
-    }
-  }
-
-  /**
-   * Gets the state of target lock
-   * @return true if within range, false if out of range
-   */
-  public Boolean getWithinRange() {
-    return inRange;
-  }
-
-  /**
    * Retrieves the last known pixel coordinates of the target
-   * @return [0] = X-coordinate (in pixels from left)
-   *         [1] = Y-coordinate (in pixels from bottom)
-   *         [2] = Distance (in inches)
-   *         [3] = Angle from center (in degrees; positive = CW)
-   *         {-1,-1,-1,-1} for no known location
+   * @return Array of {@code double}s with the same formatting as that which is returned by {@link #getLatestData()}.
    */
   private double[] analyzeData(String input) {
-    double[] newData = {-1, -1, -1, -1, -1, 180, 180};
+    double[] newData = {-1, -1, -1, -1, -1, -1, 180, 180};
     String[] stringData = input.split(",");
 
     if(stringData.length != newData.length) {
@@ -199,7 +219,7 @@ public class SubsystemReceiver extends SubsystemBase {
 
     try {
       for(int i=0; i<stringData.length; i++) {
-        newData[i] = Integer.parseInt(stringData[i]);
+        newData[i] = Double.parseDouble(stringData[i]);
       }
     } catch(Exception ex) {
       DriverStation.reportWarning("PARSING DATA ERROR: " + ex.getMessage(), true);

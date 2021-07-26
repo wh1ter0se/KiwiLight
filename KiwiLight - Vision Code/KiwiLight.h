@@ -71,23 +71,21 @@ namespace KiwiLight {
         static void EditorConnectUDPFromOverview();
         static void EditorApplyCameraSettings();
         static void EditorOpenNewCameraFromOverview();
-        static void SaveConfigShouldRun();
-        static void SaveConfigShouldNotRun();
+        static void EditorApplyFRCSettings();
+        static void EditorSetTargetColorHSV(int h, int s, int v);
         static void ToggleLogPlot();
         static void GenerateLogPlot();
         static void OpenNewCameraOnIndex(int index);
         static void ReconnectUDP(std::string newAddress, int newPort);
         static void ReconnectUDP(std::string newAddress, int newPort, bool block);
+        static void SetUDPMaxSendRate(int maxSendRate);
         static void SendOverUDP(std::string message);
+        static void CronDeleteButtonPressed(void* data, GtkWidget *widget);
+        static void CronAddButtonPressed();
 
         //thread utilities
         static void LaunchStreamingThread(AppMode newMode);
         static void StopStreamingThread();
-
-        //DEPRECATED
-        [[deprecated("This method is no longer used and will be removed in the next update.")]] 
-        static void InitCameraOnly(int index);
-
 
         private:
         //menu bar utility
@@ -103,7 +101,7 @@ namespace KiwiLight {
         static void NewConfiguration();
         static void EditConfiguration();
         static void OpenConfiguration();
-        static void OpenConfigurationFromFile(std::string fileName);
+        static bool OpenConfigurationFromFile(std::string fileName);
         static void CloseConfiguration();
         static bool PromptEditorSaveAndClose();
         static bool PromptHeadlessStop();

@@ -12,13 +12,13 @@ using namespace KiwiLight;
  */
 void ShowHelp() {
     std::cout << "KIWILIGHT HELP\n";
-    std::cout << "Usage: KiwiLight [-h] [-c] [config files]\n";
+    std::cout << "Usage: KiwiLight [options] [config files]\n";
     std::cout << "\n";
     std::cout << "KiwiLight is a smart vision solution for FRC applications developed by FRC Team 3695: Foximus Prime.\n";
     std::cout << "\n";
     std::cout << "Options:\n";
     std::cout << "-c: Runs a config file, or multiple config files.\n";
-    std::cout << "-h: Displays this help window.\n";
+    std::cout << "-h: Displays this help message.\n";
     std::cout << std::endl;
 }
 
@@ -84,6 +84,7 @@ void RunConfigs(std::vector<std::string> filePaths) {
 
     while(KiwiLightApp::CurrentMode() == AppMode::UI_HEADLESS) {
         Target closestTarget;
+        int closestTargetID;
 
         double 
             closestTargetHorizontalAngle = 360,
@@ -110,6 +111,7 @@ void RunConfigs(std::vector<std::string> filePaths) {
 
             if(currentObliqueAngle < closestTargetObliqueAngle) {
                 closestTarget = currentClosestTarget;
+                closestTargetID = i;
                 closestTargetHorizontalAngle = currentHorizontalAngle;
                 closestTargetVerticalAngle   = currentVerticalAngle;
                 closestTargetObliqueAngle    = currentObliqueAngle;
@@ -120,16 +122,16 @@ void RunConfigs(std::vector<std::string> filePaths) {
         std::string message = Runner::NULL_MESSAGE;
 
         if(targetFound) {
-            std::string
-                x  = std::to_string(closestTarget.Center().x),
-                y  = std::to_string(closestTarget.Center().y),
-                w  = std::to_string(closestTarget.Bounds().width),
-                h  = std::to_string(closestTarget.Bounds().height),
-                d  = std::to_string((int) closestTarget.Distance()),
-                ha = std::to_string((int) closestTargetHorizontalAngle),
-                va = std::to_string((int) closestTargetVerticalAngle);
-            
-            message = ":" + x + "," + y + "," + w + "," + h + "," + d + "," + ha + "," + va + ";";
+            message = Util::composeRioMessage(
+                closestTargetID,
+                closestTarget.Center().x,
+                closestTarget.Center().y,
+                closestTarget.Bounds().width,
+                closestTarget.Bounds().height,
+                closestTarget.Distance(),
+                closestTargetHorizontalAngle,
+                closestTargetVerticalAngle
+            );
         }
         
         KiwiLightApp::SendOverUDP(message);
@@ -141,7 +143,7 @@ void RunConfigs(std::vector<std::string> filePaths) {
  * Test method. This method will be run if the -t flag is specified.
  */
 void Test() {
-    std::cout << Clock::GetDateString() << std::endl;
+    std::cout << "No Tests to Perform. Put some in the Test() method!\n";
 }
 
 /**
@@ -174,7 +176,7 @@ int main(int argc, char *argv[]) {
                 if(runningConfig) {
                     //"-c" option was already entered
                     std::cout << "WARNING: Options \"-c\" and \"-h\" should not be used together. Please use one or the other.\n";
-                    return 1;
+                    return 0;
                 }
             }
 

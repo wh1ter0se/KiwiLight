@@ -50,29 +50,6 @@ namespace KiwiLight {
     };
 
     /**
-     * A panel with scrollbars.
-     * DEPRECATED: This class is not used in KiwiLight and will be removed in the next update.
-     */
-    class [[deprecated("This class is not used in KiwiLight and will be removed in the next update.")]] Scrollable : public Widget {
-        public:
-        [[deprecated("The Scrollable class is not used and will be removed in the next update.")]] Scrollable() {};
-        [[deprecated("The Scrollable class is not used and will be removed in the next update.")]] Scrollable(bool horizontal, bool vertical);
-        [[deprecated("The Scrollable class is not used and will be removed in the next update.")]] void PackWidget(GtkWidget *wid);
-    };
-
-    /**
-     * A frame with a label.
-     * DEPRECATED: The Frame class is not used in KiwiLight and will be removed in the next update.
-     */
-    class [[deprecated("The Frame class is not used in KiwiLight and will be removed in the next update.")]] Frame : public Widget {
-        public:
-        Frame() {};
-        [[deprecated("The Frame class is not used and will be removed in the next update.")]] Frame(std::string label);
-        [[deprecated("The Frame class is not used and will be removed in the next update.")]] void Pack(GtkWidget *widget);
-        [[deprecated("The Frame class is not used and will be removed in the next update.")]] void Unpack(GtkWidget *widget);
-    };
-
-    /**
      * Represents a UI window.
      */
     class Window : public Widget {
@@ -106,9 +83,9 @@ namespace KiwiLight {
         Label() {};
         Label(std::string text);
         void SetText(std::string text);
+        void SetMarkup(std::string markup);
         std::string GetText() { return text; };
         void SetLineWrap(bool enabled);
-        void SetJustify(int justify);
 
         static const int JUSTIFY_LEFT = 0,
                           JUSTIFY_RIGHT = 1,
@@ -186,12 +163,9 @@ namespace KiwiLight {
         public:
         Button() {};
         Button(std::string text, void(*callback)() );
+        Button(std::string text, void(*callback)(gpointer data, GtkWidget *widget), void* data);
         void SetText(std::string text);
         std::string GetText() { return text; };
-
-        //DEPRECATED
-        [[deprecated("This method has not been implemented and is therfore not used in KiwiLight.")]]
-        void SetCallback( void(*callback)() );
         
         private:
         std::string text;
@@ -286,20 +260,6 @@ namespace KiwiLight {
     };
 
     /**
-     * A dialog with a text box.
-     * DEPRECATED: The PopupTextBox class is not used in KiwiLight and will be removed in the next update.
-     */
-    class [[deprecated("The PopupTextBox class is no longer used and will be removed in the next update.")]] PopupTextBox : public Widget {
-        public:
-        PopupTextBox() {};
-        [[deprecated("The PopupTextBox class is no longer used and will be removed in the next update.")]] PopupTextBox(std::string name, std::string prompt, std::string initValue);
-        [[deprecated("The PopupTextBox class is no longer used and will be removed in the next update.")]] std::string Show();
-
-        private:
-        TextBox textbox;
-    };
-
-    /**
      * A Slider with a label.
      */
     class LabeledSlider : public Widget {
@@ -353,19 +313,27 @@ namespace KiwiLight {
         bool isOpen();
         void Show();
         void Close();
-        void SaveRule(bool shouldRun);
+        std::string GetRuleByLine(int line);
+        std::string GetFileNameFromRule(std::string rule);
+        void SaveRule(std::string file, bool shouldRun);
 
         private:
-        bool isCurrentFileAutomatic();
+        void renderTable();
+        bool isFileAutomatic(std::string file);
         std::vector<std::string> ReadAllRules();
         std::vector<std::string> ReadKiwiLightRules();
 
         Window window;
+        Panel
+            tableContainer,
+            table;
         Label 
             cronStatus,
             currentRuleStatus;
 
         bool isOpened;
+
+        std::vector<std::string> cronFiles;
     };
 
     /**
@@ -373,7 +341,6 @@ namespace KiwiLight {
      */
     class LogViewer : public Widget {
         public:
-        static const std::string TEMPFILE_DIR;
         LogViewer() {};
         LogViewer(XMLDocument log);
         void Show();
@@ -433,6 +400,7 @@ namespace KiwiLight {
     class CameraSetting : public Widget {
         public:
         CameraSetting() {};
+        CameraSetting(std::string name, int valueName, double value): CameraSetting(name, valueName, 0, 1, value) {};
         CameraSetting(std::string name, int valueName, double min, double max, double value);
         double GetValue();
         int GetValueName();
@@ -448,8 +416,9 @@ namespace KiwiLight {
             name,
             type;
 
-        int 
-            valueName,
+        int valueName;
+
+        double
             min, 
             max,
             value;
@@ -464,6 +433,7 @@ namespace KiwiLight {
         UDPPanel(bool enabled);
         void SetAddress(std::string address);
         void SetPort(int port);
+        
         void SetEnabled(bool enabled);
         void SetConnected(bool connected);
         void ReadAndSetInfo();
@@ -536,16 +506,15 @@ namespace KiwiLight {
         void SetUDPEnabledLabels(bool UDPEnabled);
         void SetTargetInformationLabelsFromString(std::string iterOutput);
 
-        //DEPRECATED
-        [[deprecated("This method is not needed in KiwiLight and will be removed in the next update.")]] 
-        void Update();
-
-
         private:
-        TextBox configName;
-        TextBox udpAddr;
-        NumberBox udpPort;
-        NumberBox cameraIndex;
+        TextBox 
+            configName,
+            udpAddr;
+
+        NumberBox 
+            udpPort,
+            cameraIndex;
+
         Button enableUDP;
 
         Label
@@ -564,19 +533,14 @@ namespace KiwiLight {
         public:
         Settings() {};
         Settings(XMLDocument doc);
-        void UpdateValue();
         void Show() { gtk_widget_show_all(this->widget); };
         XMLTag GetFinishedTag();
         void SetSettingValueFromID(int id, double value);
         double GetSettingValueFromID(int id);
         void SetCameraIndex(int index);
         int GetCameraIndex();
+        void ApplyFRCSettings();
         std::vector<int> GetSettingIDs();
-
-        //DEPRECATED
-        [[deprecated("This method is unused and will be removed in the next update.")]] 
-        void Update();
-
 
         private:
         NumberBox cameraIndex;
@@ -607,15 +571,13 @@ namespace KiwiLight {
             colorS,
             colorV;
 
-        Image colorPreview;
-
         LabeledSlider 
             colorError,
             threshold,
             erosion,
             dilation;
-        
-        GtkWidget *widget;
+
+        Label colorPreviewLabel;
     };
 
     /**
@@ -626,6 +588,7 @@ namespace KiwiLight {
         PostprocessorEditor() {};
         PostprocessorEditor(PostProcessor postprocessor);
         void Update();
+        int GetCurrentContour();
         int GetNumContours();
         void SetNumContours(int contours);
         SettingPair GetProperty(int contour, TargetProperty prop);
@@ -667,15 +630,21 @@ namespace KiwiLight {
         void SetProperty(RunnerProperty prop, double value);
         std::string GetUDPAddr();
         int GetUDPPort();
+        int GetMaxSendRate();
         void SetUDPAddr(std::string newAddr);
         void SetUDPPort(int newPort);
+        void SetMaxSendRate(int maxsendrate);
         void SetUDPEnabledLabels(bool UDPEnabled);
 
         private:
         Label distanceLabel;
 
         TextBox udpAddress;
-        NumberBox udpPort;
+
+        NumberBox 
+            udpPort,
+            maxSendRate,
+            maxContours;
 
         Button enableUDP;
 
@@ -704,11 +673,13 @@ namespace KiwiLight {
         std::string GetLastFrameResult();
         bool Save();
         void Close();
+        void SetTargetColor(int h, int s, int v);
         void StartLearningTarget();
         void StartLearningDistance();
         void ReconnectUDPFromEditor();
         void SetUDPEnabledLabels(bool UDPEnabled);
         void ApplyCameraSettings();
+        void ApplyFRCCameraSettings();
         void SetCameraIndexBoxes(int index);
         void ReconnectUDPFromOverview();
         void OpenNewCameraFromOverview();
@@ -717,41 +688,48 @@ namespace KiwiLight {
 
         private:
         void UpdateImage();
+        void SetTarget(ExampleTarget target);
+        bool LearnDialogActive();
         
         //universal config learning utility
         ConfigLearner learner;
-        bool learnerActivated;
+        ExampleTarget learnerResult;
+        LabeledSlider learnDialogMinArea;
+        bool 
+            learnerActivated,
+            learnerFinished;
 
         //universal focal width learning utility
         TargetDistanceLearner distanceLearner;
         bool distanceLearnerRunning;
-
-        TargetTroubleshooter troubleshooter;
         
-        Label serviceMonitor;
-        Label serviceLabel;
+        Label 
+            serviceMonitor,
+            serviceLabel;
 
         //runtime things
         Runner runner;
         XMLDocument currentDoc;
         std::string 
-                fileName,
-                confName;
-        bool updateShouldSkip;
+            fileName,
+            confName;
+
+        bool 
+            updateShouldSkip,
+            updating;
                 
         std::string lastIterationResult;
-
         TabView tabs;
         OverviewPanel configOverview;
         Settings cameraSettings;
         PreprocessorEditor preprocessorSettings;
         PostprocessorEditor postprocessorSettings;
         RunnerEditor runnerSettings;
+        cv::Mat 
+            out,
+            original;
 
-        cv::Mat out,
-                original;
         Image outputImage;
-
         Window window;
         Panel content;
     };

@@ -1,14 +1,17 @@
 #include "../KiwiLight.h"
 #include "gnuplot_i.hpp"
 
+#define DATA_PLOT FALSE //This flag enables (or disables) a feature offered by the LogViewer that plots the 
+                        //log data over time, which can be useful for debugging performance issues. However,
+                        //the plotter is unstable and may crash frequently for a reason that is still unknown.
+                        //Set this flag to TRUE to enable, and FALSE to disable.
+
 /**
  * Source file for the LogViewer class.
  * Written By: Brach Knutson
  */
 
 using namespace KiwiLight;
-
-const std::string LogViewer::TEMPFILE_DIR = "/KiwiLightData/tmp/plotout.png";
 
 /**
  * Creates a new LogViewer displaying the contents of "log"
@@ -23,68 +26,63 @@ LogViewer::LogViewer(XMLDocument log) {
                 contents.Pack_start(header.GetWidget(), false, false, 0);
 
             XMLTag logTag = log.GetTagsByName("KiwiLightLog")[0];
-            Panel logInfoPanel = Panel(true, 5);
-                // Log file path readout plus separator
-                Label logFileHeader = Label("Log File: ");
-                    logFileHeader.SetName("gray");
-                    logInfoPanel.Pack_start(logFileHeader.GetWidget(), false, false, 0);
+            Panel logInfoContainer = Panel(true, 0);
+                Panel logInfoPanel = Panel(false, 5);
+                    Panel nameAndRecordedPanel = Panel(true, 0);
+                        //Conf names readout plus separator
+                        Label confNamesHeader = Label("Configuration Names: ");
+                            confNamesHeader.SetName("gray");
+                            nameAndRecordedPanel.Pack_start(confNamesHeader.GetWidget(), false, false, 0);
 
-                this->logFileName = Label(fileName);
-                    logInfoPanel.Pack_start(logFileName.GetWidget(), false, false, 0);
+                        std::string names = logTag.GetAttributesByName("confnames")[0].Value();
+                        this->confNames = Label(names);
+                            nameAndRecordedPanel.Pack_start(confNames.GetWidget(), false, false, 0);
 
-                Separator sep1 = Separator(false);
-                    logInfoPanel.Pack_start(sep1.GetWidget(), false, false, 0);
+                        Separator sep2 = Separator(false);
+                            nameAndRecordedPanel.Pack_start(sep2.GetWidget(), false, false, 5);
 
-                //Conf names readout plus separator
-                Label confNamesHeader = Label("Configuration Names: ");
-                    confNamesHeader.SetName("gray");
-                    logInfoPanel.Pack_start(confNamesHeader.GetWidget(), false, false, 0);
+                        //time readout but NO separator
+                        Label timeHeader = Label("Recorded: ");
+                            timeHeader.SetName("gray");
+                            nameAndRecordedPanel.Pack_start(timeHeader.GetWidget(), false, false, 0);
 
-                std::string names = logTag.GetAttributesByName("confnames")[0].Value();
-                this->confNames = Label(names);
-                    logInfoPanel.Pack_start(confNames.GetWidget(), false, false, 0);
+                        logInfoPanel.Pack_start(nameAndRecordedPanel.GetWidget(), false, false, 0);
 
-                Separator sep2 = Separator(false);
-                    logInfoPanel.Pack_start(sep2.GetWidget(), false, false, 0);
+                    std::string time = logTag.GetAttributesByName("started")[0].Value();
+                    //doctor the time string. Instead of MM-DD-YYYY-HH-MM-SS we want MM/DD/YYYY - HH:MM:SS
+                    std::vector<std::string> timeSegments = Util::SplitString(time, '-');
+                    std::string newTime =
+                        timeSegments[0] + "/" + timeSegments[1] + "/" + timeSegments[2] + " - " + timeSegments[3] + ":" + timeSegments[4] + ":" + timeSegments[5];
 
-                //Conf file path readout plus separator
-                Label confFilesHeader = Label("Configuration Files: ");
-                    confFilesHeader.SetName("gray");
-                    logInfoPanel.Pack_start(confFilesHeader.GetWidget(), false, false, 0);
+                    this->logRecordedTime = Label(newTime);
+                        nameAndRecordedPanel.Pack_start(logRecordedTime.GetWidget(), false, false, 0);
 
-                std::string files = logTag.GetAttributesByName("conffiles")[0].Value();
-                this->confFiles = Label(files);
-                    logInfoPanel.Pack_start(confFiles.GetWidget(), false, false, 0);
+                    Panel confFilesPanel = Panel(true, 0);
+                        //Conf file path readout plus separator
+                        Label confFilesHeader = Label("Configuration Files: ");
+                            confFilesHeader.SetName("gray");
+                            confFilesPanel.Pack_start(confFilesHeader.GetWidget(), false, false, 0);
 
-                Separator sep3 = Separator(false);
-                    logInfoPanel.Pack_start(sep3.GetWidget(), false, false, 0);
+                        std::string files = logTag.GetAttributesByName("conffiles")[0].Value();
+                        this->confFiles = Label(files);
+                            confFilesPanel.Pack_start(confFiles.GetWidget(), false, false, 0);
 
-                //time readout but NO separator
-                Label timeHeader = Label("Recorded: ");
-                    timeHeader.SetName("gray");
-                    logInfoPanel.Pack_start(timeHeader.GetWidget(), false, false, 0);
+                        logInfoPanel.Pack_start(confFilesPanel.GetWidget(), false, false, 0);
 
-                std::string time = logTag.GetAttributesByName("started")[0].Value();
-                //doctor the time string. Instead of MM-DD-YYYY-HH-MM-SS we want MM/DD/YYYY - HH:MM:SS
-                std::vector<std::string> timeSegments = StringUtils::SplitString(time, '-');
-                std::string newTime =
-                    timeSegments[0] + "/" + timeSegments[1] + "/" + timeSegments[2] + " - " + timeSegments[3] + ":" + timeSegments[4] + ":" + timeSegments[5];
+                    logInfoContainer.Pack_start(logInfoPanel.GetWidget(), true, false, 0);
 
-                this->logRecordedTime = Label(newTime);
-                    logInfoPanel.Pack_start(logRecordedTime.GetWidget(), false, false, 0);
+                contents.Pack_start(logInfoContainer.GetWidget(), false, false, 10);
 
-                contents.Pack_start(logInfoPanel.GetWidget(), false, false, 10);
-
-            Separator ribbonSeparator = Separator(true);
-                contents.Pack_start(ribbonSeparator.GetWidget(), false, false, 0);
+            Separator sep3 = Separator(true);
+                contents.Pack_start(sep3.GetWidget(), false, false, 0);
 
             //parse ints directly in the file
-            this->totalFramesNum          = std::stoi(logTag.GetTagsByName("TotalFrames")[0].Content()),
-            this->framesWithTargetSeenNum = std::stoi(logTag.GetTagsByName("FramesWithTargetSeen")[0].Content());
+            this->totalFramesNum          = Util::toInt(logTag.GetTagsByName("TotalFrames")[0].Content(), 1),
+            this->framesWithTargetSeenNum = Util::toInt(logTag.GetTagsByName("FramesWithTargetSeen")[0].Content(), 1);
 
             //parse double directly in the file
-            this->averageFPSNum = std::stod(logTag.GetTagsByName("AverageFPS")[0].Content()),
-            this->averageDistanceNum  = std::stod(logTag.GetTagsByName("AverageDistance")[0].Content());
+            this->averageFPSNum = Util::toDouble(logTag.GetTagsByName("AverageFPS")[0].Content(), 1),
+            this->averageDistanceNum  = Util::toDouble(logTag.GetTagsByName("AverageDistance")[0].Content(), 1);
 
             //declare numbers located in events
             this->targetLostEventCountNum = 0,
@@ -101,6 +99,10 @@ LogViewer::LogViewer(XMLDocument log) {
             bool lastTargetSeen = false;
             for(int i=0; i<numEvents; i++) {
                 LogEvent event = eventFromTag(eventTags[i]);
+                if(event.GetTimestamp() < 0) { //invalid event
+                    continue;
+                }
+
                 events[i] = event;
 
                 if(event.GetEventType() == LogEvent::RECORD_HIGH_FPS)  { fastestFPSNum = event.GetRecord();       }
@@ -119,7 +121,7 @@ LogViewer::LogViewer(XMLDocument log) {
                 this->readouts = Panel(false, 0);
                     body.Pack_start(readouts.GetWidget(), true, false, 0);
 
-                contents.Pack_start(body.GetWidget(), true, false, 0);
+                contents.Pack_start(body.GetWidget(), false, false, 0);
 
             //total running time readout
             this->totalRunningTimeNum = totalFramesNum * (1000 / averageFPSNum);
@@ -143,17 +145,17 @@ LogViewer::LogViewer(XMLDocument log) {
             //average frame time readout
             std::string avgFrameTimeString = std::to_string(averageFPSNum) + " FPS";
             this->averageFrameTime = Label(avgFrameTimeString);
-            createHorizontalReadout("Average Frame Time: ", averageFrameTime, true);
+            createHorizontalReadout("Average Frame Rate: ", averageFrameTime, true);
 
             //fastest frame time readout
             std::string fastestFrameTimeString = std::to_string(fastestFPSNum) + " FPS";
             this->fastestFrameTime = Label(fastestFrameTimeString);
-            createHorizontalReadout("Fastest Frame Time: ", fastestFrameTime, false);
+            createHorizontalReadout("Fastest Frame Rate: ", fastestFrameTime, false);
 
             //slowest frame time readout
             std::string slowestFrameTimeString = std::to_string(slowestFPSNum) + " FPS";
             this->slowestFrameTime = Label(slowestFrameTimeString);
-            createHorizontalReadout("Slowest Frame Time: ", slowestFrameTime, false);
+            createHorizontalReadout("Slowest Frame Rate: ", slowestFrameTime, false);
 
             bool distUnknown = (closestDistanceNum == DBL_MAX && farthestDistanceNum == 0);
 
@@ -169,10 +171,12 @@ LogViewer::LogViewer(XMLDocument log) {
             this->farthestDistance = Label(distUnknown ? "Unknown" : std::to_string(farthestDistanceNum));
             createHorizontalReadout("Farthest Distance: ", farthestDistance, false);
 
-            //show plot button
+            #if DATA_PLOT == TRUE
+            //show plot button (only if DATA_PLOT is enabled)
             this->showingPlot = false;
             this->plotButton = Button("Show Plot", KiwiLightApp::ToggleLogPlot);
                 readouts.Pack_start(plotButton.GetWidget(), true, false, 0);
+            #endif
 
             this->window.SetPane(contents);
         this->window.SetCSS("ui/Style.css");
@@ -254,7 +258,7 @@ void LogViewer::generatePlot(long elapsedTime, int maxFPS, double maxDist, LogEv
     maxFPS *= 1.1;
     maxDist *= 1.1;
     
-    //resolve the height of the image
+    //resolve the height of the background of the graph
     int imageHeight = (maxFPS > maxDist ? maxFPS : maxDist);
     
     if(maxDist == 0) {
@@ -268,7 +272,7 @@ void LogViewer::generatePlot(long elapsedTime, int maxFPS, double maxDist, LogEv
     plot << "set palette model RGB defined (0 0.7 1 0.7, 1 1 0.7 0.7)";
     plot.set_cbrange(0, 1);
 
-    //declare image for distance plot
+    //declare image for distance plot. This image will show all times where a target was spotted.
     unsigned char 
         imageSamples[elapsedTimeSeconds * imageHeight];
 
@@ -284,37 +288,41 @@ void LogViewer::generatePlot(long elapsedTime, int maxFPS, double maxDist, LogEv
     //assemble vectors for plotting points
     int lastGUTimestampSeconds = 0;
     for(int i=0; i<numEvents; i++) {
-        double timestamp = events[i].GetTimestamp() / 1000.0;
-        if(events[i].GetEventType() == LogEvent::RECORD_HIGH_FPS || events[i].GetEventType() == LogEvent::RECORD_LOW_FPS) {
-            fpsTimes.push_back(timestamp);
-            fpsReadings.push_back(events[i].GetRecord());
-        } else if(events[i].GetEventType() == LogEvent::RECORD_HIGH_DIST || events[i].GetEventType() == LogEvent::RECORD_LOW_DIST) {
-            distanceTimes.push_back(timestamp);
-            distanceReadings.push_back(events[i].GetRecord());
-        } else { //GENERAL_UPDATE
-            fpsTimes.push_back(timestamp);
-            fpsReadings.push_back(events[i].GetFPS());
+        try {
+            double timestamp = events[i].GetTimestamp() / 1000.0;
+            if(events[i].GetEventType() == LogEvent::RECORD_HIGH_FPS || events[i].GetEventType() == LogEvent::RECORD_LOW_FPS) {
+                fpsTimes.push_back(timestamp);
+                fpsReadings.push_back(events[i].GetRecord());
+            } else if(events[i].GetEventType() == LogEvent::RECORD_HIGH_DIST || events[i].GetEventType() == LogEvent::RECORD_LOW_DIST) {
+                distanceTimes.push_back(timestamp);
+                distanceReadings.push_back(events[i].GetRecord());
+            } else { //GENERAL_UPDATE
+                fpsTimes.push_back(timestamp);
+                fpsReadings.push_back(events[i].GetFPS());
 
-            distanceTimes.push_back(timestamp);
-            distanceReadings.push_back(events[i].GetDistance());
+                distanceTimes.push_back(timestamp);
+                distanceReadings.push_back(events[i].GetDistance());
 
-            int colorValue = (events[i].GetTargetSeen() ? 0 : 1);
-            //fill in fps image
-            for(int r=lastGUTimestampSeconds; r<timestamp; r++) {
-                for(int c=0; c<imageHeight; c++) {
-                    imageSamples[(c * elapsedTimeSeconds) + r] = colorValue;
+                int colorValue = (events[i].GetTargetSeen() ? 0 : 1);
+                //fill in fps image
+                for(int r=lastGUTimestampSeconds; r<timestamp; r++) {
+                    for(int c=0; c<imageHeight; c++) {
+                        imageSamples[(c * elapsedTimeSeconds) + r] = colorValue;
+                    }
                 }
-            }
 
-            lastGUTimestampSeconds = timestamp;
+                lastGUTimestampSeconds = timestamp;
+            }
+        } catch(std::bad_alloc ex) {
+            std::cout << "bad_alloc encountered. Skipping event." << std::endl;
         }
     }
 
     //resolve plot height and apply
-    std::vector<double> distanceWithoutNegatives = DataUtils::RemoveOccurances(distanceReadings, -1);
+    std::vector<double> distanceWithoutNegatives = Util::RemoveOccurances(distanceReadings, -1);
 
-    int fpsHeight = DataUtils::MaxWithoutOutliers(fpsReadings, 30);
-    int distHeight = DataUtils::MaxWithoutOutliers(distanceWithoutNegatives, 150);
+    int fpsHeight = Util::MaxWithoutOutliers(fpsReadings, 30);
+    int distHeight = Util::MaxWithoutOutliers(distanceWithoutNegatives, 150);
     int plotHeight = (fpsHeight > distHeight ? fpsHeight : distHeight);
     
     if(distHeight > 5000) {
@@ -339,19 +347,24 @@ void LogViewer::generatePlot(long elapsedTime, int maxFPS, double maxDist, LogEv
  * Interprets the XMLTag tag and creates a LogEvent out of it.
  */
 LogEvent LogViewer::eventFromTag(XMLTag tag) {
-    std::string type = tag.GetAttributesByName("type")[0].Value();
-    long timestamp = std::stol(tag.GetAttributesByName("timestamp")[0].Value());
-    if(type == LogEvent::GENERAL_UPDATE) {
-        double fps = std::stod(tag.GetAttributesByName("fps")[0].Value());
-        int distance = std::stoi(tag.GetAttributesByName("distance")[0].Value());
-        bool targetSeen = (tag.GetAttributesByName("targetSeen")[0].Value() == "true" ? true : false);
+    try {
+        std::string type = tag.GetAttributesByName("type")[0].Value();
+        long timestamp = std::stol(tag.GetAttributesByName("timestamp")[0].Value());
+        if(type == LogEvent::GENERAL_UPDATE) {
+            double fps = std::stod(tag.GetAttributesByName("fps")[0].Value());
+            int distance = std::stoi(tag.GetAttributesByName("distance")[0].Value());
+            bool targetSeen = (tag.GetAttributesByName("targetSeen")[0].Value() == "true" ? true : false);
 
-        LogEvent event = LogEvent(type, timestamp, fps, distance, targetSeen);
-        return event;
-    } else {
-        double record = std::stod(tag.GetAttributesByName("record")[0].Value());
-        LogEvent event = LogEvent(type, timestamp, record);
-        return event;
+            LogEvent event = LogEvent(type, timestamp, fps, distance, targetSeen);
+            return event;
+        } else {
+            double record = std::stod(tag.GetAttributesByName("record")[0].Value());
+            LogEvent event = LogEvent(type, timestamp, record);
+            return event;
+        }
+    } catch(std::invalid_argument ex) {
+        std::cout << "Could not parse log event tag " << tag.ReturnString() << "." << std::endl;
+        return LogEvent(LogEvent::GENERAL_UPDATE, -1, -1, -1, -1);
     }
 }
 

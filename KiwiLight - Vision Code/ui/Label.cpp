@@ -24,30 +24,15 @@ void Label::SetText(std::string text) {
 }
 
 /**
+ * Sets the markup of the label.
+ */
+void Label::SetMarkup(std::string markup) {
+    gtk_label_set_markup(GTK_LABEL(this->widget), markup.c_str());
+}
+
+/**
  * Enables/Disables line wrapping.
  */
 void Label::SetLineWrap(bool enabled) {
     gtk_label_set_line_wrap(GTK_LABEL(this->widget), enabled);
-}
-
-/**
- * Sets the justify of the Label.
- * DEPRECATED: This method is no longer used by KiwiLight and will be removed in the next update.
- */
-void Label::SetJustify(int justify) {
-    GtkJustification justification;
-    switch(justify) {
-        case 0:
-        justification = GTK_JUSTIFY_LEFT;
-        break;
-
-        case 1:
-        justification = GTK_JUSTIFY_RIGHT;
-        break;
-
-        default:
-        justification = GTK_JUSTIFY_CENTER;
-    }
-
-    gtk_label_set_justify(GTK_LABEL(this->widget), justification);
 }

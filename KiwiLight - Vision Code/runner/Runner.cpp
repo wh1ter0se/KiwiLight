@@ -8,7 +8,7 @@
 using namespace cv;
 using namespace KiwiLight;
 
-const std::string Runner::NULL_MESSAGE = ":-1,-1,-1,-1,-1,180,180;";
+const std::string Runner::NULL_MESSAGE = ":-1,-1,-1,-1,-1,-1,180,180;";
 
 /**
  * Creates a new runner which runs the configuration described by the given file
@@ -16,18 +16,19 @@ const std::string Runner::NULL_MESSAGE = ":-1,-1,-1,-1,-1,180,180;";
 Runner::Runner(std::string fileName, bool debugging)
     : Runner(fileName, debugging, true) { }
 
-Runner::Runner(std::string fileName, bool debugging, bool applyCameraSettings) {
+Runner::Runner(std::string fileName, bool debugging, bool applySettings) {
     this->src = fileName;
     this->debug = debugging;
     this->lastIterationSuccessful = false;
     XMLDocument file = XMLDocument(fileName);
     if(file.HasContents()) {
-        this->parseDocument(file);
+        this->parseDocument(file, applySettings);
     } else {
         std::cout << "sorry! the file " << fileName << " could not be found. " << std::endl;
+        return;
     }
     
-    if(applyCameraSettings) {
+    if(applySettings) {
         this->applySettings(file);
     }
     this->stop = false;
@@ -61,6 +62,7 @@ std::string Runner::Iterate() {
     img = this->preprocessor.ProcessImage(img);
     img.copyTo(out);
     std::vector<Target> targets = this->postprocessor.ProcessImage(img);
+
     //find the percieved robot center using this->centerOffset
     int trueCenterX = (this->constantResize.width / 2);
     int robotCenterX = trueCenterX;
@@ -103,10 +105,12 @@ std::string Runner::Iterate() {
     this->lastFrameCenterPoint = Point(robotCenterX, robotCenterY);
 
     //figure out which target to send and then send the target
-    int coordX   = -1,
+    int 
+        coordX   = -1,
         coordY   = -1,
         width    = -1,
-        height   = -1,
+        height   = -1;
+    double 
         distance = -1,
         HAngle   = 180,
         VAngle   = 180;
@@ -129,22 +133,20 @@ std::string Runner::Iterate() {
 
     this->lastFrameTargets = targets;
 
-    std::string x = std::to_string(coordX),
-                y = std::to_string(coordY),
-                w = std::to_string(width),
-                h = std::to_string(height),
-                d = std::to_string(distance),
-                ax = std::to_string(HAngle),
-                ay = std::to_string(VAngle);
-
-    rioMessage = ":" + x + "," + y + "," + w + "," + h +"," + d + "," + ax + "," + ay + ";";
+    rioMessage = Util::composeRioMessage(
+        0,
+        coordX,
+        coordY,
+        width,
+        height,
+        distance,
+        HAngle,
+        VAngle
+    );
 
     //mark up the image with some stuff for the programmers to look at :)
     if(this->debug) {
         cv::cvtColor(out, out, cv::COLOR_GRAY2BGR);
-
-        //write the out string onto the image
-        cv::putText(out, rioMessage, cv::Point(5, 15), cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar(0,0,255), 2);
         
         //draw a line where the perceived horizontal robot center is
         int camHeight = this->constantResize.height;
@@ -192,25 +194,8 @@ std::string Runner::Iterate() {
     return rioMessage;
 }
 
-/**
- * Returns the number of contours that make up the target.
- * DEPRECATED: Use NumberOfContours() instead.
- */
-int Runner::GetNumberOfContours(int target) {
-    return this->postprocessor.NumberOfContours();
-}
-
-
 int Runner::NumberOfContours() {
     return this->postprocessor.NumberOfContours();
-}
-
-/**
- * Returns the example target at the given id. Returns the 0th exampletarget if id is out of bounds.
- * DEPRECATED: Use GetExampleTarget() instead.
- */
-ExampleTarget Runner::GetExampleTargetByID(int id) {
-    return this->postprocessor.GetTarget();
 }
 
 /**
@@ -218,14 +203,6 @@ ExampleTarget Runner::GetExampleTargetByID(int id) {
  */
 ExampleTarget Runner::GetExampleTarget() {
     return this->postprocessor.GetTarget();
-}
-
-/**
- * Sets the ExampleTarget that this runner is tasked with finding.
- * DEPRECATED: No longer used in KiwiLight. Use SetExampleTarget(ExampleTarget) instead.
- */
-void Runner::SetExampleTarget(int contourID, ExampleTarget target) {
-    this->postprocessor.SetTarget(target);
 }
 
 /**
@@ -325,9 +302,9 @@ double Runner::GetRunnerProperty(RunnerProperty prop) {
  * Parses the XMLdocument doc and initalizes all runner settings and variables.
  * @param doc The XMLDocument to read.
  */
-void Runner::parseDocument(XMLDocument doc) {
+void Runner::parseDocument(XMLDocument doc, bool applyUDP) {
     XMLTag camera = doc.GetTagsByName("camera")[0];
-        this->cameraIndex = std::stoi(camera.GetAttributesByName("index")[0].Value());
+        this->cameraIndex = Util::Util::toInt(camera.GetAttributesByName("index")[0].Value(), 0);
         
         std::vector<XMLTag> camSettings = 
             camera.GetTagsByName("settings")[0]
@@ -337,53 +314,54 @@ void Runner::parseDocument(XMLDocument doc) {
         this->configName = doc.GetTagsByName("configuration")[0].GetAttributesByName("name")[0].Value();
 
         XMLTag cameraOffset = config.GetTagsByName("cameraOffset")[0];
-            this->centerOffsetX = std::stod(cameraOffset.GetTagsByName("horizontal")[0].Content());
-            this->centerOffsetY = std::stod(cameraOffset.GetTagsByName("vertical")[0].Content());
+            this->centerOffsetX = Util::toDouble(cameraOffset.GetTagsByName("horizontal")[0].Content(), 0);
+            this->centerOffsetY = Util::toDouble(cameraOffset.GetTagsByName("vertical")[0].Content(), 0);
 
         XMLTag constResize = config.GetTagsByName("constantResize")[0];
-            int resizeX = std::stoi(constResize.GetTagsByName("width")[0].Content());
-            int resizeY = std::stoi(constResize.GetTagsByName("height")[0].Content());
+            int resizeX = Util::toInt(constResize.GetTagsByName("width")[0].Content(), 320);
+            int resizeY = Util::toInt(constResize.GetTagsByName("height")[0].Content(), 240);
             this->constantResize = Size(resizeX, resizeY);
 
         XMLTag preprocess = config.GetTagsByName("preprocessor")[0];
             bool preprocessorTypeIsFull = (preprocess.GetAttributesByName("type")[0].Value() == "full" ? true : false);
             
-            int preprocessorThreshold = std::stoi(preprocess.GetTagsByName("threshold")[0].Content());
-            int preprocessorErosion = std::stoi(preprocess.GetTagsByName("erosion")[0].Content());
-            int preprocessorDilation = std::stoi(preprocess.GetTagsByName("dilation")[0].Content());
+            int preprocessorThreshold = Util::toInt(preprocess.GetTagsByName("threshold")[0].Content(), 75);
+            int preprocessorErosion = Util::toInt(preprocess.GetTagsByName("erosion")[0].Content(), 3);
+            int preprocessorDilation = Util::toInt(preprocess.GetTagsByName("dilation")[0].Content(), 5);
             XMLTag color = preprocess.GetTagsByName("targetColor")[0];
-                int error = std::stoi(color.GetAttributesByName("error")[0].Value());
-                int h = std::stoi(color.GetTagsByName("h")[0].Content());
-                int s = std::stoi(color.GetTagsByName("s")[0].Content());
-                int v = std::stoi(color.GetTagsByName("v")[0].Content());
+                int error = Util::toInt(color.GetAttributesByName("error")[0].Value(), 20);
+                int h = Util::toInt(color.GetTagsByName("h")[0].Content(), 80);
+                int s = Util::toInt(color.GetTagsByName("s")[0].Content(), 255);
+                int v = Util::toInt(color.GetTagsByName("v")[0].Content(), 255);
                 Color preprocessorColor = Color(h, s, v, error, error, error);
 
         XMLTag postprocess = config.GetTagsByName("postprocessor")[0];
             XMLTag udp = postprocess.GetTagsByName("UDP")[0];
                 std::string udpAddr = udp.GetTagsByName("address")[0].Content();
-                int udpPort = std::stoi(udp.GetTagsByName("port")[0].Content());
+                int udpPort = Util::toInt(udp.GetTagsByName("port")[0].Content(), 3695);
+                int maxSendRate = Util::toInt(udp.GetTagsByName("maxSendRate")[0].Content(), 120);
 
             XMLTag targetTag = postprocess.GetTagsByName("target")[0];
             std::vector<XMLTag> targContours = targetTag.GetTagsByName("contour");
             
-            int targetId = std::stoi(targetTag.GetAttributesByName("id")[0].Value());
+            int targetId = Util::toInt(targetTag.GetAttributesByName("id")[0].Value(), 0);
             std::vector<ExampleContour> contours;
 
             //find all contours and populate the vector
             for(int k=0; k<targContours.size(); k++) {
                 XMLTag contour = targContours[k];
-                int id = std::stoi(contour.GetAttributesByName("id")[0].Value());
-                double x = std::stod(contour.GetTagsByName("x")[0].Content());
-                double y = std::stod(contour.GetTagsByName("y")[0].Content());
-                double distXError = std::stod(contour.GetTagsByName("x")[0].GetAttributesByName("error")[0].Value());
-                double distYError = std::stod(contour.GetTagsByName("y")[0].GetAttributesByName("error")[0].Value());
-                int angle = std::stoi(contour.GetTagsByName("angle")[0].Content());
-                int angleError = std::stoi(contour.GetTagsByName("angle")[0].GetAttributesByName("error")[0].Value());
-                double solidity = std::stod(contour.GetTagsByName("solidity")[0].Content());
-                double solidError = std::stod(contour.GetTagsByName("solidity")[0].GetAttributesByName("error")[0].Value());
-                double ar = std::stod(contour.GetTagsByName("aspectRatio")[0].Content());
-                double arError = std::stod(contour.GetTagsByName("aspectRatio")[0].GetAttributesByName("error")[0].Value());
-                int minArea = std::stoi(contour.GetTagsByName("minimumArea")[0].Content());
+                int id = Util::toInt(contour.GetAttributesByName("id")[0].Value(), 0);
+                double x = Util::toDouble(contour.GetTagsByName("x")[0].Content(), 0);
+                double y = Util::toDouble(contour.GetTagsByName("y")[0].Content(), 0);
+                double distXError = Util::toDouble(contour.GetTagsByName("x")[0].GetAttributesByName("error")[0].Value(), 0.5);
+                double distYError = Util::toDouble(contour.GetTagsByName("y")[0].GetAttributesByName("error")[0].Value(), 0.5);
+                int angle = Util::toInt(contour.GetTagsByName("angle")[0].Content(), 0);
+                int angleError = Util::toInt(contour.GetTagsByName("angle")[0].GetAttributesByName("error")[0].Value(), 30);
+                double solidity = Util::toDouble(contour.GetTagsByName("solidity")[0].Content(), 1);
+                double solidError = Util::toDouble(contour.GetTagsByName("solidity")[0].GetAttributesByName("error")[0].Value(), 0.3);
+                double ar = Util::toDouble(contour.GetTagsByName("aspectRatio")[0].Content(), 1);
+                double arError = Util::toDouble(contour.GetTagsByName("aspectRatio")[0].GetAttributesByName("error")[0].Value(), 0.3);
+                int minArea = Util::toInt(contour.GetTagsByName("minimumArea")[0].Content(), 500);
 
                 SettingPair distXPair = SettingPair(x, distXError);
                 SettingPair distYPair = SettingPair(y, distYError);
@@ -396,20 +374,25 @@ void Runner::parseDocument(XMLDocument doc) {
             }
 
             //knownWidth, focalWidth, calibratedDistance, distErrorCorrect
-            double knownWidth = std::stod(targetTag.GetTagsByName("knownWidth")[0].Content());
-            double focalWidth = std::stod(targetTag.GetTagsByName("focalWidth")[0].Content());
-            double calibratedDistance = std::stod(targetTag.GetTagsByName("calibratedDistance")[0].Content());
-            double distErrorCorrect = std::stod(targetTag.GetTagsByName("distErrorCorrect")[0].Content());
+            double knownWidth = Util::toDouble(targetTag.GetTagsByName("knownWidth")[0].Content(), 24);
+            double focalWidth = Util::toDouble(targetTag.GetTagsByName("focalWidth")[0].Content(), 100);
+            double calibratedDistance = Util::toDouble(targetTag.GetTagsByName("calibratedDistance")[0].Content(), 24);
+            double distErrorCorrect = Util::toDouble(targetTag.GetTagsByName("distErrorCorrect")[0].Content(), 1.1);
 
             bool calcByHeight = targetTag.GetTagsByName("calcByHeight")[0].Content() == "true";
             DistanceCalcMode distMode = (calcByHeight ? DistanceCalcMode::BY_HEIGHT : DistanceCalcMode::BY_WIDTH);
 
-            this->postProcessorTarget = ExampleTarget(targetId, contours, knownWidth, focalWidth, distErrorCorrect, calibratedDistance, distMode);
+            int maxContours = Util::toDouble(targetTag.GetTagsByName("maxContours")[0].Content(), 7);
+            this->postProcessorTarget = ExampleTarget(targetId, contours, knownWidth, focalWidth, distErrorCorrect, calibratedDistance, distMode, maxContours);
 
     //init the preprocessor and postprocessor here
     this->preprocessor = PreProcessor(preprocessorTypeIsFull, preprocessorColor, preprocessorThreshold, preprocessorErosion, preprocessorDilation, this->debug);
     this->postprocessor = PostProcessor(this->postProcessorTarget, this->debug);
-    KiwiLightApp::ReconnectUDP(udpAddr, udpPort);
+
+    if(applyUDP) {
+        KiwiLightApp::ReconnectUDP(udpAddr, udpPort);
+        KiwiLightApp::SetUDPMaxSendRate(maxSendRate);
+    }
 }
 
 /**
@@ -422,13 +405,17 @@ void Runner::applySettings(XMLDocument document) {
         .GetTagsByName("settings")[0]
         .GetTagsByName("setting");
         
-    int camIndex = std::stoi(document.GetTagsByName("camera")[0].GetAttributesByName("index")[0].Value());
+    int camIndex = Util::Util::toInt(document.GetTagsByName("camera")[0].GetAttributesByName("index")[0].Value(), 0);
     KiwiLightApp::OpenNewCameraOnIndex(camIndex);
 
     for(int i=0; i<camSettings.size(); i++) {
-        XMLTag setting = camSettings[i];
-        int settingID = std::stoi(setting.GetAttributesByName("id")[0].Value());
-        double settingValue = std::stod(setting.Content());
-        KiwiLightApp::SetCameraProperty(settingID, settingValue);
+        try {
+            XMLTag setting = camSettings[i];
+            int settingID = std::stoi(setting.GetAttributesByName("id")[0].Value());
+            double settingValue = std::stod(setting.Content());
+            KiwiLightApp::SetCameraProperty(settingID, settingValue);
+        } catch(std::invalid_argument ex) {
+            std::cout << "Could not set amera setting by tag " << camSettings[i].ReturnString() << "." << std::endl;
+        }
     }
 }

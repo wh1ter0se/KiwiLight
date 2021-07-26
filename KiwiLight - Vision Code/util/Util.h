@@ -31,22 +31,6 @@ namespace KiwiLight {
     };
 
     /**
-     * An easy event and variable flagging system
-     * DEPRECATED: This class is no longer used in KiwiLight and will be removed in the next update.
-     */
-    
-    class [[deprecated("This class is no longer used in KiwiLight and will be removed in the next update.")]] Flags {
-        public:
-        [[deprecated("The Flags class is no longer used and will be removed in the next update.")]] static void RaiseFlag(std::string flagName);
-        [[deprecated("The Flags class is no longer used and will be removed in the next update.")]] static void LowerFlag(std::string flagName);
-        [[deprecated("The Flags class is no longer used and will be removed in the next update.")]] static void SetFlagState(std::string flagName, bool state);
-        [[deprecated("The Flags class is no longer used and will be removed in the next update.")]] static bool GetFlag(std::string flagName);
-
-        private:
-        static std::vector<std::string> flagNames;
-    };
-
-    /**
      * Class that can execute shell commands and return their output.
      */
     class Shell {
@@ -55,40 +39,19 @@ namespace KiwiLight {
     };
 
     /**
-     * Utilities for handling strings.
+     * Basic timer utility, which increments time since Start() is called. 
      */
-    class StringUtils {
+    class Clock {
         public:
-        static std::vector<std::string> SplitString(std::string str, char character);
-        static std::string Substring(std::string str, int begin, int end);
-        static bool StringStartsWith(std::string str, std::string startsWith);
-        static int CountCharacters(std::string str, char character);
+        Clock();
+        void Start();
+        long GetTime();
+        static long GetSystemTime();
+        static std::string GetDateString();
+
+        private:
+        long startTime;
     };
-
-    /**
-     * Utilities for handling sets of doubles.
-     */
-    class DataUtils {
-        public:
-        static std::vector<double> SortLeastGreatestDouble(std::vector<double> data);
-        static double MaxWithoutOutliers(std::vector<double> data, double allowableDeviation);
-        static double Total(std::vector<double> data);
-        static double Average(std::vector<double> data);
-        static double Median(std::vector<double> data);
-        static double Greatest(std::vector<double> data);
-        static double Least(std::vector<double> data);
-        static double AverageDifference(std::vector<double> data);
-        static int NumberOfOccurrances(std::vector<double> data, double value);
-        static double MostCommonValue(std::vector<double> data);
-        static bool IsOutlier(std::vector<double> data, int indexOfValue, double allowableError);
-        static std::vector<double> RemoveOutliers(std::vector<double> data, double allowableError);
-        static std::vector<double> RemoveOccurances(std::vector<double> data, double occurance);
-        static std::string VectorToString(std::vector<double> data);
-
-        std::vector<int> VectorDoubleToInt(std::vector<double> data);
-        std::vector<double> VectorIntToDouble(std::vector<int> data);
-    };
-
 
     /**
      * A UDP sender utility that sends and recieves information to and from the RIO.
@@ -96,28 +59,31 @@ namespace KiwiLight {
     class UDP {
         public:
         UDP(){};
-        UDP(std::string dest_ip, int port, bool blockUntilConnected);
+        UDP(std::string dest_ip, int port, bool blockUntilConnected): UDP(dest_ip, port, blockUntilConnected, 120) {};
+        UDP(std::string dest_ip, int port, bool blockUntilConnected, int maxSendRate);
         bool AttemptToConnect();
-        bool Connected() { return this->connected; };
+        bool Connected();
         void Send(std::string msg);
-        std::string Recieve();
+        std::string Receive();
         void Close();
-        std::string GetAddress() { return this->address; };
-        int GetPort() { return this->port; };
-
-        //DEPRECATED
-        [[deprecated("This constructor is not used in KiwiLight and will be removed in the next update.")]] 
-        UDP(std::string this_ip, std::string dest_ip, int port, bool blockUntilConnected);
-
+        std::string GetAddress();
+        int GetPort();
+        int MaxSendRate();
+        void SetMaxSendRate(int maxsendrate);
 
         private:
         int sock; //sock fd returned by socket() call
         sockaddr_in client_address; //address of the server
 
         bool connected;
+        long lastSendTime;
 
         std::string address;
-        int port;
+        int
+            port,
+            maxSendRate;
+
+        Clock clock;
     };
 
     /**
@@ -195,8 +161,55 @@ namespace KiwiLight {
      */
     class Util {
         public:
+        static const char *HEX_DIGITS;
+
+        //utilities that dont fit into a category
         static std::string ResolveGenericConfFilePath();
+        static std::string composeRioMessage (
+            int id,
+            int x,
+            int y,
+            int width,
+            int height,
+            double distance,
+            double horizontalAngle,
+            double verticalAngle
+        );
+        static std::string shortenStringedDouble(std::string str, int places);
         static XMLTag SearchCameraSettingsByID(std::vector<XMLTag> settings, int id);
+        static bool configDocumentIsValid(XMLDocument document);
+        static bool logDocumentIsValid(XMLDocument document);
+        static double toDouble(std::string str, double backup);
+        static int toInt(std::string str, int backup);
+        static double roundTo(double number, int places);
+        static Scalar toRGB(double h, double s, double v);
+        static std::string hexify(int value);
+        static std::string getHexColor(double h, double s, double v);
+
+        //data related utilities
+        static std::vector<double> SortLeastGreatestDouble(std::vector<double> data);
+        static double MaxWithoutOutliers(std::vector<double> data, double allowableDeviation);
+        static double Total(std::vector<double> data);
+        static double Average(std::vector<double> data);
+        static double Median(std::vector<double> data);
+        static double Greatest(std::vector<double> data);
+        static double Least(std::vector<double> data);
+        static double AverageDifference(std::vector<double> data);
+        static int NumberOfOccurrances(std::vector<double> data, double value);
+        static double MostCommonValue(std::vector<double> data);
+        static bool IsOutlier(std::vector<double> data, int indexOfValue, double allowableError);
+        static std::vector<double> RemoveOutliers(std::vector<double> data, double allowableError);
+        static std::vector<double> RemoveOccurances(std::vector<double> data, double occurance);
+        static std::string VectorToString(std::vector<double> data);
+        static std::vector<int> VectorDoubleToInt(std::vector<double> data);
+        static std::vector<double> VectorIntToDouble(std::vector<int> data);
+
+        //string related utilities
+        static std::vector<std::string> SplitString(std::string str, char character);
+        static std::string Substring(std::string str, int begin, int end);
+        static bool StringStartsWith(std::string str, std::string sequence);
+        static bool StringEndsWith(std::string str, std::string sequence);
+        static int CountCharacters(std::string str, char character);
     };
 
     /**
@@ -244,26 +257,11 @@ namespace KiwiLight {
     };
 
     /**
-     * Basic timer utility, which increments time since Start() is called. 
-     */
-    class Clock {
-        public:
-        Clock();
-        void Start();
-        long GetTime();
-        static long GetSystemTime();
-        static std::string GetDateString();
-
-        private:
-        long startTime;
-    };
-
-    /**
      * Logger Event, such as a general update, or a record time or distance.
      */
     class LogEvent {
         public:
-        static const std::string
+        static const std::string //event types
             RECORD_LOW_FPS,
             RECORD_HIGH_FPS,
             RECORD_LOW_DIST,

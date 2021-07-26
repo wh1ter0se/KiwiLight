@@ -18,7 +18,8 @@ ExampleTarget::ExampleTarget(
     double focalHeight, 
     double distErrorCorrect, 
     double calibratedDistance,
-    DistanceCalcMode distMode
+    DistanceCalcMode distMode,
+    int maxContours
 ) {
     this->id = id;
     this->contours = contours;
@@ -27,6 +28,7 @@ ExampleTarget::ExampleTarget(
     this->distErrorCorrect = distErrorCorrect;
     this->calibratedDistance = calibratedDistance;
     this->distMode = distMode;
+    this->maxContours = maxContours;
 }
 
 /**
@@ -38,18 +40,16 @@ std::vector<Target> ExampleTarget::GetTargets(std::vector<Contour> objects) {
     std::vector<Contour> validContours = std::vector<Contour>();
     
     validContours = this->GetValidContours(objects);
-        
+
     int numTargetContours = this->contours.size();
     int numImageContours = validContours.size();
 
-    if(numTargetContours == 1) {
-        for(int i=0; i<numImageContours; i++) {
+    if(numTargetContours == 1) { //this is simply for optimization, since we can do 1-contours faster very easily, and FRC likes 1-contours
+        for(int i=0; i<validContours.size(); i++) {
             std::vector<Contour> potentialTarget = std::vector<Contour>();
             potentialTarget.push_back(validContours[i]);
-            if(isTarget(potentialTarget)) {
                 Target newTarg = Target(this->id, potentialTarget, this->knownHeight, this->focalHeight, this->distErrorCorrect, this->calibratedDistance, this->distMode);
                 foundTargets.push_back(newTarg);
-            }
         }
     } 
     else {
@@ -60,15 +60,14 @@ std::vector<Target> ExampleTarget::GetTargets(std::vector<Contour> objects) {
 
         std::vector< std::vector<int> > originalCombos;
 
-        //while new combos are possible, generate and test combos of targets
+        //while new combos are possible, generate and test combos of contours
         while(!ArrayMaxed(places, numTargetContours, numImageContours)) {
             if(!ContainsDuplicates(places, numTargetContours)) {
                 if(!CombonationAlreadyTested(places, originalCombos, numTargetContours)) {
-                    //add to original combos and then test;
+                    //add to original combos and then test
 
-                    //we create new vector to protect it from being changed in the vector
+                    //Log this combo so that it does not get duplicated!
                     std::vector<int> newOriginalCombo;
-
                     for(int i=0; i<numTargetContours; i++) {
                         newOriginalCombo.push_back(places[i]);
                     }
@@ -162,6 +161,7 @@ bool ExampleTarget::isTarget(std::vector<Contour> objects) {
 std::vector<Contour> ExampleTarget::GetValidContours(std::vector<Contour> objects) {
     std::vector<Contour> validContours;
     
+    //go through and test contours one-by-one
     for(int i=0; i<objects.size(); i++) {
         for(int k=0; k<this->contours.size(); k++) {
             if(this->contours[k].IsContour(objects[i])) {
@@ -169,6 +169,31 @@ std::vector<Contour> ExampleTarget::GetValidContours(std::vector<Contour> object
                 break;
             }
         }
+    }
+    
+    //if maxContours is exceeded, filter out smaller contours and only take the bigger ones
+    //basically, this block will go through the contours and test all of their sizes. 
+    if(validContours.size() > maxContours) {
+        std::vector<Contour> reducedValidContours = std::vector<Contour>();
+        int contoursToBest = validContours.size() - maxContours; //contour must be bigger than at least this amount
+        
+        for(int i=0; i<validContours.size(); i++) {
+            int area = validContours[i].Area();
+            int numsGreaterThan = 0;
+
+            //go though vector of valid contours and keep count of how many contours we are bigger than
+            for(int k=0; k<validContours.size(); k++) {
+                if(i != k && area > validContours[k].Area()) {
+                    numsGreaterThan++;
+                }
+            }
+
+            if(numsGreaterThan >= contoursToBest) {
+                reducedValidContours.push_back(validContours[i]);
+            }
+        }
+
+        validContours = reducedValidContours;
     }
     
     return validContours;
@@ -293,6 +318,8 @@ void ExampleTarget::SetTargetProperty(RunnerProperty prop, double value) {
         case RunnerProperty::CALC_DIST_BY_HEIGHT:
             this->distMode = (value == 1 ? DistanceCalcMode::BY_HEIGHT : DistanceCalcMode::BY_WIDTH);
             break;
+        case RunnerProperty::MAX_CONTOURS:
+            this->maxContours = (int) value;
     }
 }
 
@@ -319,24 +346,11 @@ double ExampleTarget::GetTargetProperty(RunnerProperty prop) {
         case RunnerProperty::CALC_DIST_BY_HEIGHT:
             value = (this->distMode == DistanceCalcMode::BY_HEIGHT ? 1 : 0);
             break;
+        case RunnerProperty::MAX_CONTOURS:
+            value = (double) this->maxContours;
     }
 
     return value;
-}
-
-/**
- * Adds a "generic" contour to this target, increasing the contour count by 1.
- * DEPRECATED: This method is no longer used and will be removed in the next update.
- */
-void ExampleTarget::AddGenericContour() {
-    SettingPair genericDistX = SettingPair(0.0, 0.4);
-    SettingPair genericDistY = SettingPair(0.0, 0.4);
-    SettingPair genericAngle = SettingPair(0.0, 12.0);
-    SettingPair genericSolidity = SettingPair(1.0, 0.35);
-    SettingPair genericAspectRatio = SettingPair(1.0, 0.35);
-
-    ExampleContour newContour = ExampleContour(this->contours.size(), genericDistX, genericDistY, genericAngle, genericAspectRatio, genericSolidity, 1000);
-    this->contours.push_back(newContour);
 }
 
 /**

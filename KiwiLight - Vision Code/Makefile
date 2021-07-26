@@ -7,7 +7,6 @@ CXX=g++
 FLAGS=-c -o
 CV=`pkg-config --cflags --libs opencv`
 GTK=`pkg-config --cflags --libs gtk+-3.0`
-SUPPRESS_DEP=-Wno-deprecated-declarations
 
 #UI 
 bin/ui/Widget.o: ui/Widget.cpp
@@ -49,12 +48,6 @@ bin/ui/LogViewer.o: ui/LogViewer.cpp
 bin/ui/Panel.o: ui/Panel.cpp
 	$(CXX) $(FLAGS) bin/ui/Panel.o ui/Panel.cpp $(GTK)
 
-bin/ui/Scrollable.o: ui/Scrollable.cpp
-	$(CXX) $(FLAGS) bin/ui/Scrollable.o ui/Scrollable.cpp $(GTK)
-
-bin/ui/Frame.o: ui/Frame.cpp
-	$(CXX) $(FLAGS) bin/ui/Frame.o ui/Frame.cpp $(GTK)
-
 bin/ui/Separator.o: ui/Separator.cpp
 	$(CXX) $(FLAGS) bin/ui/Separator.o ui/Separator.cpp $(GTK)
 
@@ -75,9 +68,6 @@ bin/ui/FileChooser.o: ui/FileChooser.cpp
 
 bin/ui/TabView.o: ui/TabView.cpp
 	$(CXX) $(FLAGS) bin/ui/TabView.o ui/TabView.cpp $(GTK)
-
-bin/ui/PopupTextBox.o: ui/PopupTextBox.cpp
-	$(CXX) $(FLAGS) bin/ui/PopupTextBox.o ui/PopupTextBox.cpp $(GTK)
 
 bin/ui/Image.o: ui/Image.cpp
 	$(CXX) $(FLAGS) bin/ui/Image.o ui/Image.cpp $(GTK) $(CV)
@@ -112,24 +102,15 @@ bin/ui/CameraSetting.o: ui/CameraSetting.cpp
 bin/ui/UDPPanel.o: ui/UDPPanel.cpp
 	$(CXX) $(FLAGS) bin/ui/UDPPanel.o ui/UDPPanel.cpp $(GTK)
 
-lib/UI.a: bin/ui/Widget.o bin/ui/ConfirmationDialog.o bin/ui/SubMenuItem.o bin/ui/MenuItem.o bin/ui/MenuBar.o bin/ui/Button.o bin/ui/Label.o bin/ui/LabeledSlider.o bin/ui/AboutWindow.o bin/ui/HelpWindow.o bin/ui/CronWindow.o bin/ui/LogViewer.o bin/ui/Panel.o bin/ui/Scrollable.o bin/ui/Frame.o bin/ui/Separator.o bin/ui/Slider.o bin/ui/CheckBox.o bin/ui/TextBox.o bin/ui/NumberBox.o bin/ui/FileChooser.o bin/ui/TabView.o bin/ui/PopupTextBox.o bin/ui/Image.o bin/ui/Window.o bin/ui/ConfigPanel.o bin/ui/OverviewPanel.o bin/ui/Settings.o bin/ui/PreprocessorEditor.o bin/ui/PostprocessorEditor.o bin/ui/RunnerEditor.o bin/ui/ConfigEditor.o bin/ui/CameraSetting.o bin/ui/UDPPanel.o
-	ar rs lib/UI.a bin/ui/Widget.o bin/ui/ConfirmationDialog.o bin/ui/SubMenuItem.o bin/ui/MenuItem.o bin/ui/MenuBar.o bin/ui/Button.o bin/ui/Label.o bin/ui/LabeledSlider.o bin/ui/AboutWindow.o bin/ui/HelpWindow.o bin/ui/CronWindow.o bin/ui/LogViewer.o bin/ui/Panel.o bin/ui/Scrollable.o bin/ui/Frame.o bin/ui/Separator.o bin/ui/Slider.o bin/ui/CheckBox.o bin/ui/TextBox.o bin/ui/NumberBox.o bin/ui/FileChooser.o bin/ui/TabView.o bin/ui/PopupTextBox.o bin/ui/Image.o bin/ui/Window.o bin/ui/ConfigPanel.o bin/ui/OverviewPanel.o bin/ui/Settings.o bin/ui/PreprocessorEditor.o bin/ui/PostprocessorEditor.o bin/ui/RunnerEditor.o bin/ui/ConfigEditor.o bin/ui/CameraSetting.o bin/ui/UDPPanel.o
+lib/UI.a: bin/ui/Widget.o bin/ui/ConfirmationDialog.o bin/ui/SubMenuItem.o bin/ui/MenuItem.o bin/ui/MenuBar.o bin/ui/Button.o bin/ui/Label.o bin/ui/LabeledSlider.o bin/ui/AboutWindow.o bin/ui/HelpWindow.o bin/ui/CronWindow.o bin/ui/LogViewer.o bin/ui/Panel.o bin/ui/Separator.o bin/ui/Slider.o bin/ui/CheckBox.o bin/ui/TextBox.o bin/ui/NumberBox.o bin/ui/FileChooser.o bin/ui/TabView.o bin/ui/Image.o bin/ui/Window.o bin/ui/ConfigPanel.o bin/ui/OverviewPanel.o bin/ui/Settings.o bin/ui/PreprocessorEditor.o bin/ui/PostprocessorEditor.o bin/ui/RunnerEditor.o bin/ui/ConfigEditor.o bin/ui/CameraSetting.o bin/ui/UDPPanel.o
+	ar rs lib/UI.a bin/ui/Widget.o bin/ui/ConfirmationDialog.o bin/ui/SubMenuItem.o bin/ui/MenuItem.o bin/ui/MenuBar.o bin/ui/Button.o bin/ui/Label.o bin/ui/LabeledSlider.o bin/ui/AboutWindow.o bin/ui/HelpWindow.o bin/ui/CronWindow.o bin/ui/LogViewer.o bin/ui/Panel.o bin/ui/Separator.o bin/ui/Slider.o bin/ui/CheckBox.o bin/ui/TextBox.o bin/ui/NumberBox.o bin/ui/FileChooser.o bin/ui/TabView.o bin/ui/Image.o bin/ui/Window.o bin/ui/ConfigPanel.o bin/ui/OverviewPanel.o bin/ui/Settings.o bin/ui/PreprocessorEditor.o bin/ui/PostprocessorEditor.o bin/ui/RunnerEditor.o bin/ui/ConfigEditor.o bin/ui/CameraSetting.o bin/ui/UDPPanel.o
 
 #UTIL
-bin/util/Flags.o: util/Flags.cpp
-	$(CXX) $(FLAGS) bin/util/Flags.o util/Flags.cpp $(SUPPRESS_DEP)
-	
 bin/util/Shell.o: util/Shell.cpp
 	$(CXX) $(FLAGS) bin/util/Shell.o util/Shell.cpp
 
 bin/util/Util.o: util/Util.cpp
 	$(CXX) $(FLAGS) bin/util/Util.o util/Util.cpp
-
-bin/util/StringUtils.o: util/StringUtils.cpp
-	$(CXX) $(FLAGS) bin/util/StringUtils.o util/StringUtils.cpp
-
-bin/util/DataUtils.o: util/DataUtils.cpp
-	$(CXX) $(FLAGS) bin/util/DataUtils.o util/DataUtils.cpp
 
 bin/util/UDP.o: util/UDP.cpp
 	$(CXX) $(FLAGS) bin/util/UDP.o util/UDP.cpp
@@ -155,8 +136,8 @@ bin/util/Clock.o: util/Clock.cpp
 bin/util/LogEvent.o: util/LogEvent.cpp
 	$(CXX) $(FLAGS) bin/util/LogEvent.o util/LogEvent.cpp 
 
-lib/Util.a: bin/util/Flags.o bin/util/Shell.o bin/util/Util.o bin/util/StringUtils.o bin/util/DataUtils.o bin/util/UDP.o bin/util/XMLDocument.o bin/util/XMLTag.o bin/util/XMLTagAttribute.o bin/util/SettingPair.o bin/util/Color.o bin/util/Clock.o bin/util/LogEvent.o
-	ar rs lib/Util.a bin/util/Flags.o bin/util/Shell.o bin/util/Util.o bin/util/StringUtils.o bin/util/DataUtils.o bin/util/UDP.o bin/util/XMLDocument.o bin/util/XMLTag.o bin/util/XMLTagAttribute.o bin/util/SettingPair.o bin/util/Color.o bin/util/Clock.o bin/util/LogEvent.o
+lib/Util.a: bin/util/Shell.o bin/util/Util.o bin/util/UDP.o bin/util/XMLDocument.o bin/util/XMLTag.o bin/util/XMLTagAttribute.o bin/util/SettingPair.o bin/util/Color.o bin/util/Clock.o bin/util/LogEvent.o
+	ar rs lib/Util.a bin/util/Shell.o bin/util/Util.o bin/util/UDP.o bin/util/XMLDocument.o bin/util/XMLTag.o bin/util/XMLTagAttribute.o bin/util/SettingPair.o bin/util/Color.o bin/util/Clock.o bin/util/LogEvent.o
 
 #RUNNER
 bin/runner/Contour.o: runner/Contour.cpp
@@ -181,7 +162,7 @@ bin/runner/Logger.o: runner/Logger.cpp
 	$(CXX) $(FLAGS) bin/runner/Logger.o runner/Logger.cpp $(CV)
 
 bin/runner/ConfigLearner.o: runner/ConfigLearner.cpp
-	$(CXX) $(FLAGS) bin/runner/ConfigLearner.o runner/ConfigLearner.cpp $(CV)
+	$(CXX) $(FLAGS) bin/runner/ConfigLearner.o runner/ConfigLearner.cpp $(GTK) $(CV)
 
 bin/runner/Runner.o: runner/Runner.cpp
 	$(CXX) $(FLAGS) bin/runner/Runner.o runner/Runner.cpp $(GTK) $(CV)

@@ -8,7 +8,8 @@
 using namespace cv;
 using namespace KiwiLight;
 
-static int LEARNER_FRAMES = 50;
+static const int LEARNER_FRAMES = 50;
+static const int MAX_CONTOURS_BEFORE_SUPPRESSION = 6;
 
 /**
  * Called when the "Learn Target" editor button is pressed. 
@@ -31,9 +32,9 @@ static void LearnDistanceButtonPressed() {
  * Closes the editor window without saving the current configuration.
  */
 static void JustCloseButtonPressed() {
-    KiwiLightApp::StopStreamingThread();
+    // KiwiLightApp::StopStreamingThread();
     KiwiLightApp::CloseEditor(false);
-    KiwiLightApp::LaunchStreamingThread(AppMode::UI_RUNNER);
+    // KiwiLightApp::LaunchStreamingThread(AppMode::UI_RUNNER);
 }
 
 /**
@@ -42,9 +43,7 @@ static void JustCloseButtonPressed() {
  */
 static void SaveAndCloseButtonPressed() {
     //save previous file name in case the editor fails to close due to save issues
-    KiwiLightApp::StopStreamingThread();
-    bool editorWasClosed = KiwiLightApp::CloseEditor(true);
-    KiwiLightApp::LaunchStreamingThread(editorWasClosed ? AppMode::UI_RUNNER : AppMode::UI_EDITOR);
+    KiwiLightApp::CloseEditor(true);
 }
 
 /**
@@ -52,6 +51,10 @@ static void SaveAndCloseButtonPressed() {
  */
 ConfigEditor::ConfigEditor(std::string fileName) {
     this->learnerActivated = false;
+    this->learnerFinished = false;
+    std::vector<ExampleContour> sampleContourVector;
+    sampleContourVector.push_back(ExampleContour(0));
+    this->learnerResult = ExampleTarget(0, sampleContourVector, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH, 5);
     this->distanceLearnerRunning = false;
     this->runner = Runner(fileName, true);
     this->currentDoc = XMLDocument(fileName);
@@ -59,6 +62,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
     this->lastIterationResult = "";
     this->out = Mat(Size(50, 50), CV_8UC3);
     this->updateShouldSkip = false;
+    this->updating = false;
     this->confName = this->currentDoc.GetTagsByName("configuration")[0].GetAttributesByName("name")[0].Value();
     
     this->window = Window(GTK_WINDOW_TOPLEVEL, false);
@@ -86,7 +90,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
                     overviewPanel.Pack_start(exitPanel.GetWidget(), true, true, 0);
 
             Panel cameraSettingsPanel = Panel(false, 5);
-                Label cameraSettingsHeader = Label("Camera Settings");
+                Label cameraSettingsHeader = Label("Camera");
                     cameraSettingsHeader.SetName("header");
                     cameraSettingsPanel.Pack_start(cameraSettingsHeader.GetWidget(), true, true, 0);
                     
@@ -110,7 +114,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
                     postprocessorSettingsPanel.Pack_start(this->postprocessorSettings.GetWidget(), true, true, 0);
 
             Panel runnerSettingsPanel = Panel(false, 5);
-                Label runnerSettingsPanelHeader = Label("Runner");
+                Label runnerSettingsPanelHeader = Label("Misc.");
                     runnerSettingsPanelHeader.SetName("header");
                     runnerSettingsPanel.Pack_start(runnerSettingsPanelHeader.GetWidget(), true, true, 0);
 
@@ -121,7 +125,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
             this->tabs.AddTab("Camera", cameraSettingsPanel.GetWidget());
             this->tabs.AddTab("Preprocessor", preprocessorSettingsPanel.GetWidget());
             this->tabs.AddTab("Postprocessor", postprocessorSettingsPanel.GetWidget());
-            this->tabs.AddTab("Runner", runnerSettingsPanel.GetWidget());
+            this->tabs.AddTab("Misc.", runnerSettingsPanel.GetWidget());
             this->content.Pack_start(this->tabs.GetWidget(), true, true, 0);
 
             Panel imageAndServicePanel = Panel(false, 0);
@@ -149,6 +153,7 @@ ConfigEditor::ConfigEditor(std::string fileName) {
  */
 void ConfigEditor::Update() {
     if(!this->updateShouldSkip) {
+        this->updating = true;
         Mat displayable;
     
         try {
@@ -156,6 +161,13 @@ void ConfigEditor::Update() {
             this->outputImage.Update(displayable);
         } catch(cv::Exception ex) {
         }
+
+        //set new ExampleTarget is the learner is finished
+        if(this->learnerFinished) {
+            SetTarget(this->learnerResult);
+            this->learnerFinished = false;
+        }
+
         //update the different tabs
         this->configOverview.SetTargetInformationLabelsFromString(this->lastIterationResult);
         this->preprocessorSettings.Update();
@@ -175,13 +187,12 @@ void ConfigEditor::Update() {
         //apply all contour settings to the runner. First, make sure we have all contours needed.
         int numberOfContours = this->postprocessorSettings.GetNumContours();
         if(this->runner.NumberOfContours() != numberOfContours) {
-            std::cout << "Redefining Target." << std::endl;
             std::vector<ExampleContour> newContours;
             for(int i=0; i<numberOfContours; i++) {
                 ExampleContour newContour = ExampleContour(i);
                 newContours.push_back(newContour);
             }
-            ExampleTarget newTarget = ExampleTarget(0, newContours, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH);
+            ExampleTarget newTarget = ExampleTarget(0, newContours, 0.0, 0.0, 0.0, 0.0, DistanceCalcMode::BY_WIDTH, 5);
             this->runner.SetExampleTarget(newTarget);
         }
     
@@ -204,6 +215,8 @@ void ConfigEditor::Update() {
         this->runner.SetRunnerProperty(RunnerProperty::CALIBRATED_DISTANCE, this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE));
         this->runner.SetRunnerProperty(RunnerProperty::ERROR_CORRECTION, this->runnerSettings.GetProperty(RunnerProperty::ERROR_CORRECTION));
         this->runner.SetRunnerProperty(RunnerProperty::CALC_DIST_BY_HEIGHT, this->runnerSettings.GetProperty(RunnerProperty::CALC_DIST_BY_HEIGHT));
+        this->runner.SetRunnerProperty(RunnerProperty::MAX_CONTOURS, this->runnerSettings.GetProperty(RunnerProperty::MAX_CONTOURS));
+        KiwiLightApp::SetUDPMaxSendRate(this->runnerSettings.GetMaxSendRate());
     
         //set service labels
         if(this->learnerActivated && this->learner.GetLearning()) {
@@ -229,45 +242,58 @@ void ConfigEditor::Update() {
             this->serviceMonitor.SetText("No Service Running.");
             this->serviceLabel.SetText("");
         }
+
+        //check target. If there are too many contours, performance errors will occur.
+        if(this->runner.GetExampleTarget().Contours().size() > MAX_CONTOURS_BEFORE_SUPPRESSION) {
+            //restore generic target
+            ExampleTarget genericTarget = Runner(Util::ResolveGenericConfFilePath(), false, false).GetExampleTarget();
+            SetTarget(genericTarget);
+            
+            //alert the user that the new target was discarded
+            ConfirmationDialog alert = ConfirmationDialog(
+                std::string("The Target KiwiLight just tried to learn had too many contours!\n") + 
+                std::string("Please ensure that the target has less than " + std::to_string(MAX_CONTOURS_BEFORE_SUPPRESSION) + " contours.\n") +
+                std::string("Reverting to generic target.")
+            );
+            alert.ShowAndGetResponse();
+        }
+        this->updating = false;
     }
 }
 
 
 /**
  * Updates the internal runner to in turn update the output images.
+ * Also updates services that are dependent on the images.
  */
 bool ConfigEditor::UpdateImageOnly() {
-    this->lastIterationResult = this->runner.Iterate();
-    bool retval = this->runner.GetLastFrameSuccessful();
-    this->out = this->runner.GetOutputImage();
-    this->original = this->runner.GetOriginalImage();
+    bool successful = false;
 
+    //update services
     if(this->learnerActivated) {
-        int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
-        this->learner.FeedImage(this->original, minimumArea);
-        this->out = this->learner.GetOutputImageFromLastFeed();
+        if(LearnDialogActive()) { //if the learn dialog is active, use the minimum area slider on it to set minimum area.
+            int minimumArea = (int) this->learnDialogMinArea.GetValue();
+            this->learner.SetMinimumArea(minimumArea);
+        }
+
+        this->learner.Feed();
 
         if(this->learner.GetLearning()) {
             if(this->learner.GetFramesLearned() >= LEARNER_FRAMES) {
+                //process new target
                 this->updateShouldSkip = true;
-                int minimumArea = (int) this->postprocessorSettings.GetProperty(0, TargetProperty::MINIMUM_AREA).Value();
-                ExampleTarget newTarget = this->learner.StopLearning(minimumArea);
-                std::vector<ExampleContour> newContours = newTarget.Contours();
+                //wait for current update to finish
+                while(this->updating) {
+                    usleep(1000);
+                }
+                int minimumArea = (int) this->postprocessorSettings.GetProperty(postprocessorSettings.GetCurrentContour(), TargetProperty::MINIMUM_AREA).Value();
+                ExampleTarget newTarget = this->learner.StopLearning();
                 this->learnerActivated = false;
 
-                if(newContours.size() > 0) {
-                    //prepare the editor for the contours
-                    this->postprocessorSettings.SetNumContours(newContours.size());
-                    this->runner.SetExampleTarget(newTarget);
-    
-                    for(int i=0; i<newContours.size(); i++) {
-                        this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_X, newContours[i].DistX());
-                        this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_Y, newContours[i].DistY());
-                        this->postprocessorSettings.SetProperty(i, TargetProperty::ANGLE, newContours[i].Angle());
-                        this->postprocessorSettings.SetProperty(i, TargetProperty::SOLIDITY, newContours[i].Solidity());
-                        this->postprocessorSettings.SetProperty(i, TargetProperty::ASPECT_RATIO, newContours[i].AspectRatio());
-                        this->postprocessorSettings.SetProperty(i, TargetProperty::MINIMUM_AREA, SettingPair(newContours[i].MinimumArea(), 0));
-                    }
+                if(newTarget.Contours().size() > 0) {
+                    //mark as done
+                    this->learnerFinished = true;
+                    this->learnerResult = newTarget;
                 }
                 this->updateShouldSkip = false;
             }
@@ -285,19 +311,53 @@ bool ConfigEditor::UpdateImageOnly() {
     }
     
     if(this->distanceLearnerRunning) {
-        this->distanceLearner.FeedTarget(this->runner.GetClosestTargetToCenter());
+        if(this->runner.GetLastFrameTargets().size() > 0) {
+            this->distanceLearner.FeedTarget(this->runner.GetClosestTargetToCenter());
+        } else {
+            this->distanceLearner.FeedBlank();
+        }
 
         if(this->distanceLearner.GetFramesLearned() >= LEARNER_FRAMES) {
             this->updateShouldSkip = true;
+
+            //wait for current update to finish
+            while(this->updating) {
+                usleep(1000);
+            }
+
             double trueDistance = this->runnerSettings.GetProperty(RunnerProperty::CALIBRATED_DISTANCE);
             double trueWidth = this->runnerSettings.GetProperty(RunnerProperty::TRUE_WIDTH);
             double newFocalWidth = this->distanceLearner.GetFocalWidth(trueDistance, trueWidth);
-            this->runnerSettings.SetProperty(RunnerProperty::PERCEIVED_WIDTH, newFocalWidth);
+            if(newFocalWidth > -1) {
+                this->runnerSettings.SetProperty(RunnerProperty::PERCEIVED_WIDTH, newFocalWidth);
+            }
+
             this->distanceLearnerRunning = false;
             this->updateShouldSkip = false;
         }
     }
-    return retval;
+
+    //return without success if last target had too many contours.
+    if(this->runner.GetExampleTarget().Contours().size() > MAX_CONTOURS_BEFORE_SUPPRESSION) {
+        return false;
+    }
+
+    //return with success of runner if the target learner is not running
+    if(!this->learnerActivated) { 
+        //this if statement prevents the spaz attack that happens when the "learn target" button was pressed.
+        //previously, the images kept switching between the learner ouput and the real output.
+        this->lastIterationResult = this->runner.Iterate();
+        successful = this->runner.GetLastFrameSuccessful();
+        this->original = this->runner.GetOriginalImage();
+        this->out = this->runner.GetOutputImage();
+    } else {
+        //otherwise (if the target learner is running), return with the success of the target learner.
+        successful = !learner.GetHasFailed();
+        this->out = this->learner.GetOutputImageFromLastFeed();
+        this->original = this->learner.GetOriginalImageFromLastFeed();
+    }
+
+    return successful;
 }
 
 /**
@@ -502,6 +562,10 @@ bool ConfigEditor::Save() {
                     XMLTag calcByHeight = XMLTag("calcByHeight", (this->runnerSettings.GetProperty(RunnerProperty::CALC_DIST_BY_HEIGHT) == 1 ? "true" : "false"));
                         target.AddTag(calcByHeight);
 
+                    //<maxContours>
+                    XMLTag maxContours = XMLTag("maxContours", std::to_string((int) this->runnerSettings.GetProperty(RunnerProperty::MAX_CONTOURS)));
+                        target.AddTag(maxContours);
+
                     postprocessor.AddTag(target);
                                     
                 /**
@@ -517,6 +581,10 @@ bool ConfigEditor::Save() {
                     //<port>
                     XMLTag port = XMLTag("port", std::to_string(this->runnerSettings.GetUDPPort()));
                         UDP.AddTag(port);
+
+                    //<maxSendRate>
+                    XMLTag maxSendRate = XMLTag("maxSendRate", std::to_string(this->runnerSettings.GetMaxSendRate()));
+                        UDP.AddTag(maxSendRate);
                         
                     postprocessor.AddTag(UDP);
                 configuration.AddTag(postprocessor);
@@ -524,10 +592,10 @@ bool ConfigEditor::Save() {
                 
     //to prompt file name or not to promt file name
     std::string fileToSave = this->fileName;
-    std::vector<std::string> fileParts = StringUtils::SplitString(fileToSave, '/');
+    std::vector<std::string> fileParts = Util::SplitString(fileToSave, '/');
     
     if(fileParts[fileParts.size() - 1] == "generic.xml") {
-        FileChooser chooser = FileChooser(true, "config.xml");
+        FileChooser chooser = FileChooser(true, "kiwilight-config.xml");
         fileToSave = chooser.Show();
         if(fileToSave == "") {
             //user pressed "cancel" or did not select a file, abort
@@ -546,7 +614,22 @@ bool ConfigEditor::Save() {
  * Closes and destroys the editor window.
  */
 void ConfigEditor::Close() {
+    updateShouldSkip = true;
+
+    //wait for updating to stop
+    while(updating) {
+        usleep(1000);
+    }
     gtk_widget_destroy(this->widget);
+}
+
+/**
+ * Sets the color of the target, in HSV colorspace.
+ */
+void ConfigEditor::SetTargetColor(int h, int s, int v) {
+    preprocessorSettings.SetProperty(PreProcessorProperty::COLOR_HUE, h);
+    preprocessorSettings.SetProperty(PreProcessorProperty::COLOR_SATURATION, s);
+    preprocessorSettings.SetProperty(PreProcessorProperty::COLOR_VALUE, v);
 }
 
 /**
@@ -555,14 +638,23 @@ void ConfigEditor::Close() {
 void ConfigEditor::StartLearningTarget() {
     if(KiwiLightApp::CameraOpen()) {
         //reinstantiate the learner to apply the preprocessor settings
-        this->learner = ConfigLearner(this->runner.GetPreProcessor());
+        this->learner = ConfigLearner(this->runner.GetPreProcessor(), this->runner.GetConstantSize());
         this->learnerActivated = true;
         
         ConfirmationDialog confirmLearn = ConfirmationDialog(
             std::string("Position the target in the center of the image and press OK.\n") +
-            std::string("It should be highlighted with a blue box.")
+            std::string("It should be highlighted with a blue box. If not, adjust the\n") +
+            std::string("area of the contours by using the slider.")
         );
+        Panel minimumAreaPanel = Panel(true, 0);
+            double realMinimumArea = postprocessorSettings.GetProperty(postprocessorSettings.GetCurrentContour(), TargetProperty::MINIMUM_AREA).Value();
+            this->learnDialogMinArea = LabeledSlider("Minimum Area", 5, 2500, 5, realMinimumArea);
+                minimumAreaPanel.Pack_start(learnDialogMinArea.GetWidget(), true, true, 5);
+            
+            confirmLearn.SetBody(minimumAreaPanel);
+
         bool shouldLearn = confirmLearn.ShowAndGetResponse();
+        
         if(shouldLearn) {
             this->serviceMonitor.SetText("Learning Target");
             this->serviceLabel.SetText("Capturing Frames");
@@ -610,7 +702,7 @@ void ConfigEditor::StartLearningDistance() {
                 dialogPanel.Pack_start(distancePanel.GetWidget(), false, false, 0);
             informationDialog.SetBody(dialogPanel);
 
-        //show the dialog anc ask the question, but do not destroy the dialog when the user presses OK
+        //show the dialog anc ask the question, but do not destroy the dialog immediately when the user presses OK
         bool shouldLearn = informationDialog.ShowButDontClose();
         double targetTrueWidth = trueWidthPanelValue.GetValue();
         double targetDistance = distanceValue.GetValue();
@@ -683,6 +775,11 @@ void ConfigEditor::ApplyCameraSettings() {
     }
 }
 
+
+void ConfigEditor::ApplyFRCCameraSettings() {
+    this->cameraSettings.ApplyFRCSettings();
+}
+
 /**
  * Sets the text of the Camera ID number boxes to the value of "index."
  */
@@ -728,4 +825,26 @@ void ConfigEditor::UpdateImage() {
     } catch(cv::Exception ex) {
         std::cout << "cv exception in config editor" << std::endl;
     }
+}
+
+void ConfigEditor::SetTarget(ExampleTarget target) {
+    std::vector<ExampleContour> newContours = target.Contours();
+    this->postprocessorSettings.SetNumContours(newContours.size());
+    this->runner.SetExampleTarget(target);
+
+    for(int i=0; i<newContours.size(); i++) {
+        this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_X, newContours[i].DistX());
+        this->postprocessorSettings.SetProperty(i, TargetProperty::DIST_Y, newContours[i].DistY());
+        this->postprocessorSettings.SetProperty(i, TargetProperty::ANGLE, newContours[i].Angle());
+        this->postprocessorSettings.SetProperty(i, TargetProperty::SOLIDITY, newContours[i].Solidity());
+        this->postprocessorSettings.SetProperty(i, TargetProperty::ASPECT_RATIO, newContours[i].AspectRatio());
+        this->postprocessorSettings.SetProperty(i, TargetProperty::MINIMUM_AREA, SettingPair(newContours[i].MinimumArea(), 0));
+    }
+}
+
+/**
+ * Returns true if the learn confirmation dialog is active, and false otherwise.
+ */
+bool ConfigEditor::LearnDialogActive() {
+    return learnerActivated && !learner.GetLearning();
 }

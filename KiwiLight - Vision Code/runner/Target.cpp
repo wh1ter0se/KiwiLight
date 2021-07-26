@@ -108,7 +108,7 @@ double Target::Distance(DistanceCalcMode mode) {
  * @param distanceToTarget The Distance to the target.
  * @param imageCenterX The x coordinate of the center of the image. (width / 2)
  */
-int Target::HorizontalAngle(double distanceToTarget, int imageCenterX) {
+double Target::HorizontalAngle(double distanceToTarget, int imageCenterX) {
     double inchesPerPixel = this->knownHeight / this->Bounds().width;
     int pixelsToTarget = imageCenterX - this->Center().x;
 
@@ -117,14 +117,14 @@ int Target::HorizontalAngle(double distanceToTarget, int imageCenterX) {
 
     //convert to degrees
     angle *= (180 / M_PI);
-    return (int) angle;
+    return angle;
 }
 
 /**
  * Returns the angle (in degrees) the robot needs to turn horizontally to be considered "aligned" with the target.
  * @param imageCenterX The x coordinate of the center of the image (width / 2)
  */
-int Target::HorizontalAngle(int imageCenterX) {
+double Target::HorizontalAngle(int imageCenterX) {
     return this->HorizontalAngle(this->Distance(), imageCenterX);
 }
 
@@ -133,7 +133,7 @@ int Target::HorizontalAngle(int imageCenterX) {
  * @param distancEtoTarget the distance to the target.
  * @param imageCenterY the Y coordinate of the center of the image.
  */
-int Target::VerticalAngle(double distanceToTarget, int imageCenterY) {
+double Target::VerticalAngle(double distanceToTarget, int imageCenterY) {
     double InchesPerPixel = this->knownHeight / this->Bounds().width;
     int pixelsToTarget = imageCenterY - this->Center().y;
     
@@ -142,14 +142,14 @@ int Target::VerticalAngle(double distanceToTarget, int imageCenterY) {
 
     //convert to degrees and return
     angle *= (180 / M_PI);
-    return (int) angle;
+    return angle;
 }
 
 /**
  * Returns the angle (in degrees) the robot needs to turn vertically to be considered "aligned" with the target.
  * @param imageCenterY The Y coordinate of the center of the image.
  */
-int Target::VerticalAngle(int imageCenterY) {
+double Target::VerticalAngle(int imageCenterY) {
     return this->VerticalAngle(this->Distance(), imageCenterY);
 }
 
@@ -158,7 +158,7 @@ int Target::VerticalAngle(int imageCenterY) {
  * @param imageCenterX the X coordinate of the center of the image.
  * @param imageCenterY the Y coordinate of the center of the image.
  */
-int Target::ObliqueAngle(int imageCenterX, int imageCenterY) {
+double Target::ObliqueAngle(int imageCenterX, int imageCenterY) {
     double horizontalAngle = this->HorizontalAngle(imageCenterX) * (M_PI / 180); //convert angle from degrees to radians
     double verticalAngle   = this->VerticalAngle(imageCenterY)   * (M_PI / 180);
     double targetDistance  = this->Distance();

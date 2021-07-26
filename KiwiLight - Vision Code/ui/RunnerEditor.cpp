@@ -20,6 +20,19 @@ static void ReconnectUDP() {
  */
 RunnerEditor::RunnerEditor(Runner runner) {
     Panel editor = Panel(false, 0);
+        Panel maxContourPanel = Panel(true, 0);
+            Label maxContourHeader = Label("Contour limit: ");
+                maxContourPanel.Pack_start(maxContourHeader.GetWidget(), true, true, 0);
+
+            int realMaxContours = runner.GetRunnerProperty(RunnerProperty::MAX_CONTOURS);
+            this->maxContours = NumberBox(1, 20, 1, realMaxContours);
+                maxContourPanel.Pack_start(maxContours.GetWidget(), true, true, 0);
+
+            editor.Pack_start(maxContourPanel.GetWidget(), true, true, 0);
+
+        Label udpPanelHeader = Label("UDP");
+            udpPanelHeader.SetName("subHeader");
+            editor.Pack_start(udpPanelHeader.GetWidget(), true, true, 0);
 
         Panel udpPanel = Panel(true, 0);
             Panel udpInputPanel = Panel(false, 0);
@@ -41,7 +54,19 @@ RunnerEditor::RunnerEditor(Runner runner) {
                     this->udpPort = NumberBox(0.0, 9999.0, 1.0, (double) realUDPPort);
                         udpPortPanel.Pack_start(this->udpPort.GetWidget(), true, true, 0);
                     udpInputPanel.Pack_start(udpPortPanel.GetWidget(), true, true, 0);
+
+                Panel sendRatePanel = Panel(true, 0);
+                    Label sendRatePanelHeader = Label("Send Cap: ");
+                        sendRatePanel.Pack_start(sendRatePanelHeader.GetWidget(), true, true, 0);
+                    
+                    double realMaxSendRate = KiwiLightApp::GetUDP().MaxSendRate();
+                    this->maxSendRate = NumberBox(1, 150, 1, realMaxSendRate);
+                        sendRatePanel.Pack_start(this->maxSendRate.GetWidget(), true, true, 0);
+                    
+                    udpInputPanel.Pack_start(sendRatePanel.GetWidget(), false, false, 0);
+
                 udpPanel.Pack_start(udpInputPanel.GetWidget(), true, true, 0);
+
             Button reconnectUDP = Button("Reconnect", ReconnectUDP);
                 udpPanel.Pack_start(reconnectUDP.GetWidget(), true, true, 0);
 
@@ -50,7 +75,6 @@ RunnerEditor::RunnerEditor(Runner runner) {
 
             editor.Pack_start(udpPanel.GetWidget(), true, true, 0);
                     
-
         Panel offsetPanel = Panel(false, 0);
             Label offsetPanelHeader = Label("Camera offset (inches)");
                 offsetPanelHeader.SetName("subHeader");
@@ -58,7 +82,7 @@ RunnerEditor::RunnerEditor(Runner runner) {
 
             Panel offsetPanelContents = Panel(true, 0);
                 double realOffsetX = runner.GetRunnerProperty(RunnerProperty::OFFSET_X);
-                this->offsetX = LabeledSlider("Horizontal", -48.0, 48.0, -1.0, realOffsetX);
+                this->offsetX = LabeledSlider("Horizontal", -48.0, 48.0, 0.1, realOffsetX);
                     offsetPanelContents.Pack_start(this->offsetX.GetWidget(), true, true, 0);
 
                 double realOffsetY = runner.GetRunnerProperty(RunnerProperty::OFFSET_Y);
@@ -75,16 +99,16 @@ RunnerEditor::RunnerEditor(Runner runner) {
 
             Panel resizePanelContents = Panel(true, 0);
                 double realResizeX = runner.GetRunnerProperty(RunnerProperty::IMAGE_WIDTH);
-                this->imageWidth = LabeledSlider("Horizontal", 50.0, 1080.0, 1.0, realResizeX);
+                this->imageWidth = LabeledSlider("Width", 50.0, 1080.0, 1.0, realResizeX);
                     resizePanelContents.Pack_start(this->imageWidth.GetWidget(), true, true, 0);
 
                 double realResizeY = runner.GetRunnerProperty(RunnerProperty::IMAGE_HEIGHT);
-                this->imageHeight = LabeledSlider("Vertical", 50.0, 720.0, 1.0, realResizeY);
+                this->imageHeight = LabeledSlider("Height", 50.0, 720.0, 1.0, realResizeY);
                     resizePanelContents.Pack_start(this->imageHeight.GetWidget(), true, true, 0);
 
                 resizePanel.Pack_start(resizePanelContents.GetWidget(), true, true, 0);
             editor.Pack_start(resizePanel.GetWidget(), true, true, 0);
-
+        
         Panel distancePanel = Panel(false, 0);
             Label distancePanelHeader = Label("Distance Constants");
                 distancePanelHeader.SetName("subHeader");
@@ -156,6 +180,8 @@ double RunnerEditor::GetProperty(RunnerProperty prop) {
             return this->targetErrorCorrection.GetValue();
         case RunnerProperty::CALC_DIST_BY_HEIGHT:
             return (this->useHeight.GetState() ? 1 : 0);
+        case RunnerProperty::MAX_CONTOURS:
+            return this->maxContours.GetValue();
     }
 }
 
@@ -191,6 +217,9 @@ void RunnerEditor::SetProperty(RunnerProperty prop, double value) {
         case RunnerProperty::CALC_DIST_BY_HEIGHT:
             this->useHeight.SetState(value == 1);
             break;
+        case RunnerProperty::MAX_CONTOURS:
+            this->maxContours.SetValue(value);
+            break;
     }
 }
 
@@ -209,6 +238,13 @@ int RunnerEditor::GetUDPPort() {
 }
 
 /**
+ * Returns the maximum send rate.
+ */
+int RunnerEditor::GetMaxSendRate() {
+    return (int) this->maxSendRate.GetValue();
+}
+
+/**
  * Sets the text of the "UDP Address" field.
  */
 void RunnerEditor::SetUDPAddr(std::string newAddr) {
@@ -220,6 +256,13 @@ void RunnerEditor::SetUDPAddr(std::string newAddr) {
  */
 void RunnerEditor::SetUDPPort(int newPort) {
     this->udpPort.SetValue((double) newPort);
+}
+
+/**
+ * Sets the value of the "Max Send Rate" field.
+ */
+void RunnerEditor::SetMaxSendRate(int maxsendrate) {
+    this->maxSendRate.SetValue((double) maxsendrate);
 }
 
 /**
